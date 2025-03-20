@@ -3,6 +3,8 @@
 #include <PubSubClient.h>
 #include <fns.h>
 #include <dotenv.h>
+#include <ArduinoJson.h>
+
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -18,12 +20,53 @@ void callback(const char* topic, byte* payload, unsigned int length);
 void connectMQTT();
 void blinkLeds(int first,int second,int third,int fourth);
 
+struct ParsedData {
+    bool engine;
+    bool isMoving;
+    const char* moveValue;
+    bool isTurning;
+    const char* directionValue;
+    int speed;
+};
+
+// Json example
+String getJsonString() {
+    return R"({"engine":true,"move":{"isMoving":true,"value":"w"},"direction":{"isTurning":false,"value":"None"},"speed":50})";
+}
+
+ParsedData parseJson(String jsonString) {
+    DynamicJsonDocument doc(512); // Adjust size if needed
+
+    DeserializationError error = deserializeJson(doc, jsonString);
+
+    if (error) {
+        Serial.print("Deserialization failed: ");
+        Serial.println(error.f_str());
+        // Return default values if parsing fails
+        return ParsedData();
+    }
+
+    // Extract values and return them in a struct
+    ParsedData data;
+    data.engine = doc["engine"];
+    data.isMoving = doc["move"]["isMoving"];
+    data.moveValue = doc["move"]["value"];
+    data.isTurning = doc["direction"]["isTurning"];
+    data.directionValue = doc["direction"]["value"];
+    data.speed = doc["speed"];
+
+    return data;
+}
+
+
 
 void setup() {
     Serial.begin(115200);
     setupMotors();
     connectWiFi();
     connectMQTT();
+    // client.loop();
+
 }
 
 void loop() {
@@ -43,10 +86,10 @@ void callback(const char* topic, byte* payload, unsigned int length) {
       Serial.println(topic);
       String response = "";
       for (int i = 0; i < length; i++) {
-        Serial.print((char)payload[i]);
         response += (char)payload[i];
     }
     Serial.println(response);
+    receiveData(response);
 }
 
 
@@ -92,31 +135,21 @@ void connectMQTT() {
 
 
 void receiveData(String value){
-   value.toLowerCase();
-   Serial.println(value);
+    // Get parsed values
+    ParsedData data = parseJson(value);
 
-    if (value == "w") {
-        moveRobot(FORWARD,20);
-        return;
-    }
-
-    if(value=="a"){
-      moveRobot(LEFT,20);
-      return;
-    }
-
-    if(value=="d"){
-      moveRobot(RIGHT,20);
-      return;
-    }
-
-    if(value=="s"){
-      moveRobot(STOP,0);
-      return;
-    }
-
-
+    // Use the returned values
+    Serial.print("Engine: ");
+    Serial.println(data.engine);
+    Serial.print("Is Moving: ");
+    Serial.println(data.isMoving);
+    Serial.print("Move Value: ");
+    Serial.println(data.moveValue);
+    Serial.print("Is Turning: ");
+    Serial.println(data.isTurning);
+    Serial.print("Direction Value: ");
+    Serial.println(data.directionValue);
+    Serial.print("Speed: ");
+    Serial.println(data.speed);
 }
-
-
 

@@ -20,7 +20,7 @@ void callback(const char* topic, byte* payload, unsigned int length);
 void connectMQTT();
 void blinkLeds(int first,int second,int third,int fourth);
 void setupMotors();
-EngineStatus engine(int engineStatus);
+bool engineManager(int engineStatus);
 void movementManager(int isMoving, String value, int speed);
 
 struct ParsedData {
@@ -140,15 +140,12 @@ void receiveData(String value){
     // Get parsed values
     ParsedData data = parseJson(value);
 
-    // Use the returned values
-    EngineStatus engineStatus = engine(data.engine);
-    if (engineStatus == EngineStatus::OFF) {
-        engineSwitch(EngineStatus::OFF);
-
+    // Checks if engine is ON or OFF
+    if (!engineManager(data.engine)) {
         return;
     };
 
-    engineSwitch(EngineStatus::ON);
+    // Checks for movements
     movementManager(data.isMoving, data.moveValue, data.speed);
    //  Serial.print("Is Moving: ");
    //  Serial.println(data.isMoving);
@@ -163,12 +160,14 @@ void receiveData(String value){
 }
 
 
-EngineStatus engine(int engineStatus) {
+bool engineManager(int engineStatus) {
     if (engineStatus == 0) {
-        return EngineStatus::OFF;
+        engineSwitch(EngineStatus::OFF);
+        return false;
     };
 
-    return EngineStatus::ON;
+    engineSwitch(EngineStatus::ON);
+    return true;
 }
 
 

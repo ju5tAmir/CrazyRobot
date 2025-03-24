@@ -7,9 +7,9 @@ import MoveDetails from '../mqtt/mqttComponents/MoveDetails';
 
 
 export default function Motor() {
-    const SPEED_INCREASE_RATE = 1;
-    const SPEED_DECREASE_RATE = 5;
-    const SPEED_INTERVAL_MS = 200;
+    const SPEED_INCREASE_RATE = 5;
+    const SPEED_DECREASE_RATE = 10;
+    const SPEED_INTERVAL_MS = 150;
     const BASE_SPEED = 150; // It's different in each motor
     const MAX_SPEED = 255;
 

@@ -1,10 +1,10 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <PubSubClient.h>
-#include <fns.h>
 #include <dotenv.h>
 #include <ArduinoJson.h>
-
+#include <enums.h>
+#include <motor.h>
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -19,6 +19,9 @@ void connectWiFi();
 void callback(const char* topic, byte* payload, unsigned int length);
 void connectMQTT();
 void blinkLeds(int first,int second,int third,int fourth);
+void setupMotors();
+EngineStatus engine(int engineStatus);
+void movementManager(int isMoving, String value, int speed);
 
 struct ParsedData {
     bool engine;
@@ -59,15 +62,14 @@ ParsedData parseJson(String jsonString) {
 }
 
 
-
 void setup() {
     Serial.begin(115200);
     setupMotors();
     connectWiFi();
     connectMQTT();
     // client.loop();
-
 }
+
 
 void loop() {
     if(WiFi.status()!=WL_CONNECTED){
@@ -139,17 +141,45 @@ void receiveData(String value){
     ParsedData data = parseJson(value);
 
     // Use the returned values
-    Serial.print("Engine: ");
-    Serial.println(data.engine);
-    Serial.print("Is Moving: ");
-    Serial.println(data.isMoving);
-    Serial.print("Move Value: ");
-    Serial.println(data.moveValue);
-    Serial.print("Is Turning: ");
-    Serial.println(data.isTurning);
-    Serial.print("Direction Value: ");
-    Serial.println(data.directionValue);
-    Serial.print("Speed: ");
-    Serial.println(data.speed);
+    EngineStatus engineStatus = engine(data.engine);
+    if (engineStatus == EngineStatus::OFF) {
+        engineSwitch(EngineStatus::OFF);
+
+        return;
+    };
+
+    engineSwitch(EngineStatus::ON);
+    movementManager(data.isMoving, data.moveValue, data.speed);
+   //  Serial.print("Is Moving: ");
+   //  Serial.println(data.isMoving);
+   //  Serial.print("Move Value: ");
+   //  Serial.println(data.moveValue);
+   //  Serial.print("Is Turning: ");
+   //  Serial.println(data.isTurning);
+   //  Serial.print("Direction Value: ");
+   //  Serial.println(data.directionValue);
+   //  Serial.print("Speed: ");
+   //  Serial.println(data.speed);
 }
+
+
+EngineStatus engine(int engineStatus) {
+    if (engineStatus == 0) {
+        return EngineStatus::OFF;
+    };
+
+    return EngineStatus::ON;
+}
+
+
+void movementManager(int isMoving, String value, int speed) {
+    if (isMoving == 0) {
+        return;
+    };
+
+    if (value.charAt(0) == 'w') {
+            moveRobot(Move::FORWARD, speed);
+    };
+}
+
 

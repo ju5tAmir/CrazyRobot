@@ -8,14 +8,8 @@
 #define ENA 25
 #define ENB 14
 const int pwmChannel1 = 0;
-const int pwmChannel2 = 1; 
-const int freq = 8000; 
-const int resolution = 8;   
-enum Direction {FORWARD, BACKWARD,RIGHT,LEFT, STOP};
-
-void setupMotors();
-void moveRobot(Direction dir, int speed);
-
-
+const int pwmChannel2 = 1;
+const int freq = 30000;
+const int resolution = 8;
 
 #endif

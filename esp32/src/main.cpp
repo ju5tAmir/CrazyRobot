@@ -2,7 +2,7 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
 #include <fns.h>
-#include <dotenv.h>
+#include "dotenv.h"
 #include <ArduinoJson.h>
 
 
@@ -12,13 +12,12 @@ const String topic= "drive";
 
 
 // put function declarations here:
-int myFunction(int, int);
 void startMotor(int, int);
 void receiveData(String);
 void connectWiFi();
 void callback(const char* topic, byte* payload, unsigned int length);
 void connectMQTT();
-void blinkLeds(int first,int second,int third,int fourth);
+
 
 struct ParsedData {
     bool engine;

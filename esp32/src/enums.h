@@ -1,19 +1,19 @@
-#ifndef ENUM_h
-#define ENUM_h
+// #ifndef ENUM_h
+// #define ENUM_h
 
-enum class EngineStatus {
-    ON,
-    OFF
-};
+// enum class EngineStatus {
+//     ON,
+//     OFF
+// };
 
-enum Move {
-    FORWARD,
-    BACKWARD
-};
+// enum Move {
+//     FORWARD,
+//     BACKWARD
+// };
 
-enum class Direction {
-    RIGHT,
-    LEFT
-};
+// enum class Direction {
+//     RIGHT,
+//     LEFT
+// };
 
-#endif
+// #endif

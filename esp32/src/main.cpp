@@ -5,11 +5,14 @@
 #include <ArduinoJson.h>
 #include <enums.h>
 #include <motor.h>
+#include "fns.h"
 
 WiFiClient espClient;
 PubSubClient client(espClient);
 const String topic= "drive";
 
+Motor leftMotor(IN1, IN2, ENA, pwmChannel1); 
+Motor rightMotor(IN3, IN4, ENB, pwmChannel2);
 
 // put function declarations here:
 void startMotor(int, int);
@@ -37,7 +40,7 @@ String getJsonString() {
 }
 
 ParsedData parseJson(String jsonString) {
-    DynamicJsonDocument doc(512); // Adjust size if needed
+    JsonDocument doc = DynamicJsonDocument(512); // Adjust size if needed
 
     DeserializationError error = deserializeJson(doc, jsonString);
 
@@ -63,10 +66,12 @@ ParsedData parseJson(String jsonString) {
 
 void setup() {
     Serial.begin(115200);
-    setupMotors();
-    connectWiFi();
-    connectMQTT();
-    // client.loop();
+//    setupMotors();
+//     connectWiFi();
+//    connectMQTT();
+  
+
+  
 }
 
 
@@ -77,7 +82,38 @@ void loop() {
     if(!client.connected()){
         connectMQTT();
     }
-    client.loop();
+    client.loop();   
+    delay(2000);
+    float scale = 66 / 377;
+    moveRobotTwo(FORWARD,255,255, leftMotor,rightMotor);
+    delay(3000);
+    // moveRobotTwo(FORWARD,200,255, leftMotor,rightMotor);
+    // delay(3000);
+    // moveRobotTwo(FORWARD,205, 255,leftMotor,rightMotor);
+    // delay(3000);
+    // moveRobotTwo(FORWARD,210, 255,leftMotor,rightMotor);
+    // delay(3000);
+    // moveRobotTwo(FORWARD,215, 255,leftMotor,rightMotor);
+    // delay(3000);
+    // moveRobotTwo(FORWARD,220, 255,leftMotor,rightMotor);
+    // delay(3000);
+    // moveRobotTwo(FORWARD,225, 255,leftMotor,rightMotor);
+    // delay(3000);
+    // moveRobotTwo(FORWARD,230, 255,leftMotor,rightMotor);
+    // delay(3000);
+    // moveRobotTwo(FORWARD,235, 255,leftMotor,rightMotor);
+    // delay(3000);
+    // moveRobotTwo(FORWARD,240, 255,leftMotor,rightMotor);
+    // delay(3000);
+    // moveRobotTwo(LEFT, 150, 150,leftMotor,rightMotor);
+    // delay(3000);
+    
+  // moveRobot(RIGHT, 150, 150);
+    moveRobotTwo(RIGHT, 150, 150,leftMotor,rightMotor);
+    delay(1000);
+  //  moveRobot(STOP, 0, 0);
+    moveRobotTwo(STOP, 0, 0,leftMotor,rightMotor);
+    delay(2000);
 }
 
 
@@ -95,27 +131,44 @@ void callback(const char* topic, byte* payload, unsigned int length) {
 
 
 void connectWiFi() {
-    WiFi.mode(WIFI_STA);
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(50);
+    WiFi.mode(WIFI_STA);    
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-    Serial.println("\nConnecting to WiFi...");
 
-    while (WiFi.status() != WL_CONNECTED) {
-      Serial.print(".");
-      digitalWrite(LED_BUILTIN, HIGH);
-      delay(50);
-      digitalWrite(LED_BUILTIN, LOW);
-      delay(50);
+    Serial.println("Connecting to SSID:");
+    Serial.println(WIFI_SSID);
+    Serial.println("With password:");
+    Serial.println(WIFI_PASSWORD);
+
+    int retryCount = 0;
+    while (WiFi.status() != WL_CONNECTED && retryCount < 30) {
+        Serial.print(".");
+        digitalWrite(LED_BUILTIN, HIGH);
+        delay(250);
+        digitalWrite(LED_BUILTIN, LOW);
+        delay(250);
+        retryCount++;
+    }
+
+    if (WiFi.status() == WL_CONNECTED) {
+        Serial.println(" Connected to WiFi!");
+        Serial.println(WiFi.localIP());
+    } else {
+        Serial.println(" Failed to connect to WiFi.");
     }
 }
+
 
 
 void connectMQTT() {
   client.setServer(MQTT_HOST, MQTT_PORT);
   client.setCallback(callback);
-
+  digitalWrite(LED_BUILTIN,HIGH);
   int attempts = 0;
-  while (!client.connected() && attempts < 5) { // Limit to 5 attempts
-      Serial.println("Connecting to MQTT...");
+  while (!client.connected() && attempts < 5) {
+      digitalWrite(LED_BUILTIN,HIGH);
+     Serial.println("Connecting to MQTT...");
       if (client.connect("ESP32Client", MQTT_TOKEN, "")) {
           Serial.println("Connected to MQTT");
           client.subscribe("drive");
@@ -130,7 +183,7 @@ void connectMQTT() {
 
   if (!client.connected()) {
       Serial.println("Failed to connect to MQTT after multiple attempts, rebooting...");
-      ESP.restart();  // Reboot ESP32 if connection fails
+      ESP.restart(); 
   }
 }
 
@@ -161,11 +214,11 @@ void receiveData(String value){
 
 bool engineManager(int engineStatus) {
     if (engineStatus == 0) {
-        engineSwitch(EngineStatus::OFF);
-        return false;
+      //  engineSwitch(EngineStatus::OFF);
+      moveRobot(Direction::STOP,0);
+      return false;
     };
 
-    engineSwitch(EngineStatus::ON);
     return true;
 }
 
@@ -176,8 +229,11 @@ void movementManager(int isMoving, String value, int speed) {
     };
 
     if (value.charAt(0) == 'w') {
-            moveRobot(Move::FORWARD, speed);
+            moveRobot(Direction::FORWARD, speed);
     };
+    if(value.charAt(0)== 's'){
+        moveRobot(Direction::BACKWARD, speed);
+    }
 }
 
 

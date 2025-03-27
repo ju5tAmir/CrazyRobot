@@ -1,7 +1,8 @@
-#define WIFI_SSID "VALUE"
-#define WIFI_PASSWORD "VALUE"
-#define MQTT_HOST "VALUE"
+#define WIFI_SSID "value"
+#define WIFI_PASSWORD "value"
+#define MQTT_HOST "value"
 #define MQTT_PORT 1883
-#define MQTT_TOKEN "VALUE"
+#define MQTT_TOKEN "value
+"
 
 

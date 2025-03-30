@@ -1,0 +1,5 @@
+export type {CellProps as CellProps} from "./CellProps.ts"
+export {Player as Player} from "./CellProps.ts"
+export type {SmallBoardProps as SmallBoardProps} from "./CellProps.ts"
+export type  {WonProps as WonProps} from "./CellProps.ts"
+export type {UTTTWonBoard as UTTTWonBoard} from "./State.ts"

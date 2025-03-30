@@ -1,0 +1,1 @@
+export{currentPlayer as currentPlayer} from "./UTTTAtoms.ts"

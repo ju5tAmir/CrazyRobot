@@ -1,14 +1,15 @@
 import Motor from "./components/Motor.tsx"
-import {Canvas} from "./components/Path/Canvas.tsx";
-
+import {UTTTPage} from "./components/UTTT/UTTTpage.tsx";
+import './App.css'
 function App() {
 
   return (
     <>
-            <Motor/>
-        <Canvas/>
-    </>
-  )
+            {/*<Motor/>*/}
+        {/*<Canvas/>*/}
+        {/*<Prm/>*/}
+        {/*<CanvasSim/>*/}
+        {<UTTTPage/>} </>)
 }
 
 export default App

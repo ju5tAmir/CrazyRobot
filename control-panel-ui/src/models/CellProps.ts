@@ -1,5 +1,5 @@
 export interface CellProps {
-    color:string,
+    changeColor:boolean,
     getPlayer:()=>Player
     getMove:(position:number,value:number)=>void
     position:number

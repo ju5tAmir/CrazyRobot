@@ -10,9 +10,9 @@ export const Cell = (props: CellProps) => {
     const [allowedClick, setAllowedClick] = useState<boolean>(props.allowClick);
 
     const onClick = () => {
-        if (!allowedClick) return;
+        if (!allowedClick||!props.changeColor) return;
+
         const player = props.getPlayer();
-        console.error(player,"from cell");
         let moveValue = -1;
         switch (player) {
             case Player.O:
@@ -26,7 +26,6 @@ export const Cell = (props: CellProps) => {
         }
         props.getMove(props.position, moveValue);
         setAllowedClick(false);
-
     };
 
 
@@ -35,8 +34,10 @@ export const Cell = (props: CellProps) => {
         <button
             onClick={onClick}
             className={`${
-                allowedClick ?  "cursor-grab":"cursor-not-allowed"
-            } w-full aspect-square flex items-center justify-center text-2xl font-bold ${
+                allowedClick ? "cursor-grab":"cursor-not-allowed"
+            } w-full aspect-square flex items-center justify-center text-2xl font-bold 
+            ${props.changeColor?"bg-purple-600":"bg-gray-900" }
+            ${
                 cellState === CellState.EMPTY ? "bg-gray-900" :"" 
             } ${cellState===CellState.XPLAYER?"bg-red-500 text-white":"bg-gray-900"}
             ${cellState===CellState.OPLAYER?"bg-teal-500 text-white":"bg-gray-900"}`}

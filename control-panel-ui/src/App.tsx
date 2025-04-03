@@ -5,11 +5,11 @@ function App() {
 
   return (
     <>
-            {/*<Motor/>*/}
+            <Motor/>
         {/*<Canvas/>*/}
         {/*<Prm/>*/}
         {/*<CanvasSim/>*/}
-        {<UTTTPage/>}
+        {/*{<UTTTPage/>}*/}
     </>)
 }
 

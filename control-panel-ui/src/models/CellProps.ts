@@ -7,7 +7,7 @@ export interface CellProps {
 }
 
 export enum Player{
-    O=0,X
+    O=0,X=1,D
 }
 export interface WonProps
 {

@@ -9,7 +9,8 @@ function App() {
         {/*<Canvas/>*/}
         {/*<Prm/>*/}
         {/*<CanvasSim/>*/}
-        {<UTTTPage/>} </>)
+        {<UTTTPage/>}
+    </>)
 }
 
 export default App

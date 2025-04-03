@@ -2,9 +2,11 @@ import {Player, SmallBoardProps} from "../../models";
 import {Cell} from "./Cell.tsx";
 import {MicroBoardWon} from "./MicroBoardWon.tsx";
 import {useState, useRef, useEffect, useCallback} from "react";
-import {useCheckWin} from "../../hooks/DetectWin.ts";
+
 import {AllowToPlay, currentPlayer, MacroboardStatus} from "../../atoms";
 import {useAtom} from "jotai";
+import {useCheckWin, useDetectEqual} from "../../hooks";
+
 
 export const SmallBoard = (props: SmallBoardProps) => {
     const [allowToPlay, setAllowToPlay] = useAtom(AllowToPlay)
@@ -15,6 +17,7 @@ export const SmallBoard = (props: SmallBoardProps) => {
     const [localWinner, setLocalWinner] = useState<Player | null>(null);
     const [didAnimate, setDidAnimate] = useState(false);
     const checkForWin = useCheckWin();
+    const checkDraw = useDetectEqual();
     const pendingUpdateRef = useRef<{
         board: number[];
         macroOrder: number;
@@ -30,6 +33,7 @@ export const SmallBoard = (props: SmallBoardProps) => {
         updatedBoard[position] = value;
         const thisMovePlayer = player!;
         const isWon = checkForWin.checkForWin(updatedBoard, thisMovePlayer);
+        const isDraw = checkDraw.checkForDraw();
         if (isWon) {
             setLocalWinner(thisMovePlayer);
             setDidAnimate(true);

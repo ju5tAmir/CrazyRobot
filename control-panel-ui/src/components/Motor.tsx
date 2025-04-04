@@ -237,6 +237,7 @@ export default function Motor() {
                 >
                     {engine ? "Stop Engine" : "Start Engine"}
                 </button>
+                <button className="btn btn-soft btn-accent">Accent</button>
             </div>
             {/*<ServicePage data={getStatus ()}/>*/}
         </>

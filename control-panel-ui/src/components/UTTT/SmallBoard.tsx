@@ -33,7 +33,6 @@ export const SmallBoard = (props: SmallBoardProps) => {
         updatedBoard[position] = value;
         const thisMovePlayer = player!;
         const isWon = checkForWin.checkForWin(updatedBoard, thisMovePlayer);
-        const isDraw = checkDraw.checkForDraw();
         if (isWon) {
             setLocalWinner(thisMovePlayer);
             setDidAnimate(true);

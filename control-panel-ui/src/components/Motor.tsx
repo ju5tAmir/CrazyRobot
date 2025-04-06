@@ -1,8 +1,7 @@
 // Notes: There is an issue with increasing speed when speed is already set to decrease.
-//      : When shift is pressed, w or s doesn't work.
+//        When shift is pressed, w or s doesn't work.
 //
-import React, { useState, useEffect, useRef } from 'react';
-import { ServicePage } from '../mqtt/mqttComponents/ServicePage.tsx';
+import { useState, useEffect, useRef } from 'react';
 import MoveDetails from '../mqtt/mqttComponents/MoveDetails';
 
 
@@ -13,100 +12,82 @@ export default function Motor() {
     const BASE_SPEED = 150; // It's different in each motor
     const MAX_SPEED = 255;
 
-    const [pressedKeys, setPressedKeys] = useState<Set<string>> (new Set ());
-    const allowedKeys = new Set (['w', 'a', 's', 'd', 'e', 'shift', 'space']);
-    const [engine, setEngine] = useState<boolean> (false);
-    const [move, setMove] = useState<string | boolean> (false);
-    const [direction, setDirection] = useState<string | boolean> (false);
-    const [speed, setSpeed] = useState<number> (BASE_SPEED);
-    const speedInterval = useRef<NodeJS.Timeout | null> (null); // Store interval reference
+    const [pressedKeys, setPressedKeys] = useState<Set<string>>(new Set());
+    const allowedKeys = new Set(['w', 'a', 's', 'd', 'e', 'shift', 'space']);
+    const [engine, setEngine] = useState<boolean>(false);
+    const [move, setMove] = useState<string | boolean>(false);
+    const [direction, setDirection] = useState<string | boolean>(false);
+    const [speed, setSpeed] = useState<number>(BASE_SPEED);
+    const speedInterval = useRef<NodeJS.Timeout | null>(null); // Store interval reference
 
+    const handleInputDown = (key: string) => {
+        if (!allowedKeys.has(key)) return;
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-        const key = e.key.toLowerCase ();
-        if (!allowedKeys.has (key)) return;
-
-
-        // Engine Toggle Stop Logic
-        if (key == 'e' && pressedKeys.has (key)) {
-            setPressedKeys ((prevKeys) => {
-                const newKeys = new Set (prevKeys);
-                newKeys.delete (key);
-                setEngine (false);
-                console.log (`Engine Stopped.`);
-
-                return newKeys;
-            });
-        }
-
-        if (!pressedKeys.has (key)) {  // Check if thkey is already pressed
-            setPressedKeys ((prevKeys) => {
-                const newKeys = new Set (prevKeys);
-                newKeys.add (key);
-
-                // Key logics
-                if (key === 'e') {
-                    setEngine (true);
-                    console.log (`Engine Started.`);
-                    return newKeys;
-                }
-                ;
-
-                if (!engine) return prevKeys;
-
-                if (key === 'w') setMove ('w');
-                if (key === 's') setMove ('s');
-                if (key === 'a') setDirection ('a');
-                if (key === 'd') setDirection ('d');
-                if (key === 'shift' && move) {
-                    startIncreasingSpeed ();
-                    console.log ('hi');
-                }
-
-                return newKeys;
-            });
-        }
-        ;
-    };
-
-
-    const handleKeyUp = (e: KeyboardEvent) => {
-        const key = e.key.toLowerCase ();
-        if (!allowedKeys.has (key)) return;
-
-        // Engine logic is set to toggle and not hold
-        if (key == 'e') return;
-
-        if (!engine) {
+        // Engine Toggle Logic
+        if (key === 'e') {
+            setEngine(prev => !prev);
+            console.log(`Engine ${!engine ? 'Started' : 'Stopped'}.`);
             return;
         }
-        setPressedKeys ((prevKeys) => {
-            const newKeys = new Set (prevKeys);
-            newKeys.delete (key);
 
-            if (key === 'shift' || !move) startDecreasingSpeed ();
-            if (key === 'w' || key === 's') setMove (false);
-            if (key === 'a' || key === 'd') setDirection (false);
+        if (!engine) return;
 
-            console.log (`${key} released`);
+        setPressedKeys((prevKeys) => {
+            const newKeys = new Set(prevKeys);
+            newKeys.add(key);
             return newKeys;
         });
+
+        if (key === 'w') setMove('w');
+        if (key === 's') setMove('s');
+        if (key === 'a') setDirection('a');
+        if (key === 'd') setDirection('d');
+        if (key === 'shift' && move) startIncreasingSpeed();
     };
+
+    const handleInputUp = (key: string) => {
+        if (!allowedKeys.has(key)) return;
+
+        // Engine logic is set to toggle and not hold
+        if (key === 'e') return;
+
+        if (!engine) return;
+
+        setPressedKeys((prevKeys) => {
+            const newKeys = new Set(prevKeys);
+            newKeys.delete(key);
+            return newKeys;
+        });
+
+        if (key === 'shift' || !move) startDecreasingSpeed();
+        if (key === 'w' || key === 's') setMove(false);
+        if (key === 'a' || key === 'd') setDirection(false);
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+        const key = e.key.toLowerCase();
+        handleInputDown(key);
+    }
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+        const key = e.key.toLowerCase();
+        handleInputUp(key);
+    }
 
     const setEventListeners = () => {
-        window.addEventListener ('keydown', handleKeyDown);
-        window.addEventListener ('keyup', handleKeyUp);
+        window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('keyup', handleKeyUp);
     };
 
-    useEffect (() => {
-        setEventListeners ();
+    useEffect(() => {
+        setEventListeners();
 
         // Cleanup the event listeners when the component unmounts
         return () => {
-            window.removeEventListener ('keydown', handleKeyDown);
-            window.removeEventListener ('keyup', handleKeyUp);
+            window.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('keyup', handleKeyUp);
         };
-    }, [pressedKeys]);  // Add `pressedKeys` dependency to ensure effect cleanup on updates
+    });  // Add `pressedKeys` dependency to ensure effect cleanup on updates
 
 
     const getMoveStatus = (move: string | boolean): string => {
@@ -130,11 +111,11 @@ export default function Motor() {
     /** Starts increasing speed at intervals until it reaches MAX_SPEED */
     const startIncreasingSpeed = () => {
         if (!speedInterval.current) {
-            console.log ('Shift pressed, increasing speed...');
-            speedInterval.current = setInterval (() => {
-                setSpeed ((prevSpeed) => {
+            console.log('Shift pressed, increasing speed...');
+            speedInterval.current = setInterval(() => {
+                setSpeed((prevSpeed) => {
                     if (prevSpeed >= MAX_SPEED) {
-                        stopSpeedChange ();
+                        stopSpeedChange();
                         return MAX_SPEED;
                     }
                     return prevSpeed + SPEED_INCREASE_RATE;
@@ -144,13 +125,13 @@ export default function Motor() {
     };
     /** Starts decreasing speed until it reaches 0 */
     const startDecreasingSpeed = () => {
-        console.log ('Shift released, decreasing speed...');
-        stopSpeedChange ();
+        console.log('Shift released, decreasing speed...');
+        stopSpeedChange();
 
-        speedInterval.current = setInterval (() => {
-            setSpeed ((prevSpeed) => {
+        speedInterval.current = setInterval(() => {
+            setSpeed((prevSpeed) => {
                 if (prevSpeed <= BASE_SPEED) {
-                    stopSpeedChange ();
+                    stopSpeedChange();
                     return BASE_SPEED;
                 }
                 return prevSpeed - SPEED_DECREASE_RATE;
@@ -161,7 +142,7 @@ export default function Motor() {
     /** Stops any ongoing speed changes */
     const stopSpeedChange = () => {
         if (speedInterval.current) {
-            clearInterval (speedInterval.current);
+            clearInterval(speedInterval.current);
             speedInterval.current = null;
         }
     };
@@ -172,25 +153,18 @@ export default function Motor() {
             engine: engine,
             move: {
                 isMoving: move !== false,  // True if moving, false otherwise
-                value: move || "None"  // Move direction or "None" if not moving
+                value: move ? String(move) : "None"  // Move direction or "None" if not moving
             },
             direction: {
                 isTurning: direction !== false,  // True if turning, false otherwise
-                value: direction || "None"  // Turning direction or "None" if not turning
+                value: direction ? String(direction) : "None"  // Turning direction or "None" if not turning
             },
             speed: speed
         };
     };
 
-
-    /** Get overall status in JSON */
-    const publishMessage = () => {
-
-    };
-
-
-    const moveStats = getMoveStatus (move);
-    const directionStats = getDirectionStatus (direction);
+    const moveStats = getMoveStatus(move);
+    const directionStats = getDirectionStatus(direction);
 
 
     // Trigger the ServicePage whenever any of the state variables change
@@ -206,18 +180,66 @@ export default function Motor() {
             <p>Moving Status: {moveStats}</p>
             <p>Direction Status: {directionStats}</p>
             <p>Speed: {speed}</p>
-            <p>Status: {JSON.stringify (getStatus ())}</p>
-            <p>Pressed keys: {Array.from (pressedKeys).join (', ')}</p>
+            <p>Status: {JSON.stringify(getStatus())}</p>
+            <p>Pressed keys: {Array.from(pressedKeys).join(', ')}</p>
 
+            <div>
+                <button
+                    onMouseDown={() => handleInputDown('w')}
+                    onMouseUp={() => handleInputUp('w')}
+                    onTouchStart={() => handleInputDown('w')}
+                    onTouchEnd={() => handleInputUp('w')}
+                    className={pressedKeys.has('w') ? 'active' : ''}
+                > W
+                </button>
+            </div>
+            <div>
+                <button
+                    onMouseDown={() => handleInputDown('a')}
+                    onMouseUp={() => handleInputUp('a')}
+                    onTouchStart={() => handleInputDown('a')}
+                    onTouchEnd={() => handleInputUp('a')}
+                    className={pressedKeys.has('a') ? 'active' : ''}
+                > A
+                </button>
+                <button
+                    onMouseDown={() => handleInputDown('s')}
+                    onMouseUp={() => handleInputUp('s')}
+                    onTouchStart={() => handleInputDown('s')}
+                    onTouchEnd={() => handleInputUp('s')}
+                    className={pressedKeys.has('s') ? 'active' : ''}
+                > S
+                </button>
+                <button
+                    onMouseDown={() => handleInputDown('d')}
+                    onMouseUp={() => handleInputUp('d')}
+                    onTouchStart={() => handleInputDown('d')}
+                    onTouchEnd={() => handleInputUp('d')}
+                    className={pressedKeys.has('d') ? 'active' : ''}
+                > D
+                </button>
+            </div>
 
-            <button onClick={() => {
-                console.log (getStatus ())
-            }
-
-            }>Send Data
-            </button>
-
-            <ServicePage data={getStatus ()}/>
+            <div>
+                <button
+                onMouseDown={() => handleInputDown('shift')}
+                onMouseUp={() => handleInputUp('shift')}
+                onTouchStart={() => handleInputDown('shift')}
+                onTouchEnd={() => handleInputUp('shift')}
+                className={pressedKeys.has('shift') ? 'active' : ''}
+                > Boost
+                </button>
+            </div>
+            <div>
+                <button
+                onClick={() => handleInputDown('e')}
+                className={engine ? 'active' : ''}
+                >
+                    {engine ? "Stop Engine" : "Start Engine"}
+                </button>
+                <button className="btn btn-soft btn-accent">Accent</button>
+            </div>
+            {/*<ServicePage data={getStatus ()}/>*/}
         </>
     );
 }

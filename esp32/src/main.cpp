@@ -1,23 +1,9 @@
 #include <RPLidar.h>
 #include "lidar/lidar.h"
+#include "fns.h"
 
-// RPLidar lidar;
-// HardwareSerial LidarSerial(2);
-
-// #define RPLIDAR_MOTOR 25
-// #define RPLIDAR_RX 16
-// #define RPLIDAR_TX 17   
-// #define yellow 26
-// #define red 13
-// #define green 14
-// #define blue 0
-
-// const int pwmChannel = 0;
-// const int pwmFreq = 25000;
-// const int pwmResolution = 8;
-
-// void startMotor(); 
-// void lightLed(float angle, float dist);        
+Motor leftMotor(IN1, IN2, ENA, pwmChannel1); 
+Motor rightMotor(IN3, IN4, ENB, pwmChannel2);       
 
 void setup() {
 initializeHardware();

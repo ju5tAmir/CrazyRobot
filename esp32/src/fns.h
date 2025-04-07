@@ -13,7 +13,11 @@
 const int pwmChannel1 = 0;
 const int pwmChannel2 = 1;
 const int resolution = 8;
-enum Direction {FORWARD, BACKWARD,RIGHT,LEFT, STOP};
+
+extern Motor leftMotor; 
+extern Motor rightMotor;
+enum Direction {FORWARD, BACKWARD,RIGHT,LEFT, STOP,NONE};
+extern Direction allowedMovement;  
 
 void moveRobot(Direction dir, int speed) ;
 class Motor {

@@ -1,4 +1,4 @@
-import { ServiceOption } from "./ServiceOptions.tsx";
+
 import {BroadcastResponse, mqttTypes, useMqttPublish, useMqttSubscribe} from "../mqttclient.ts";
 import {useEffect, useState} from "react";
 import mqtt, {MqttClient} from "mqtt";
@@ -21,28 +21,28 @@ export const ServicePage = ({data}:{data: MoveDetails}) => {
 
     useEffect(() => {
         if (!client) {
-        const mqttClient = mqtt.connect(mqtt_host, mqttOptions);
+            const mqttClient = mqtt.connect(mqtt_host, mqttOptions);
 
-        mqttClient.on(mqttTypes.connect, () => {
-            console.log("✅ Connected to MQTT Server");
-            setClient(mqttClient);
+            mqttClient.on(mqttTypes.connect, () => {
+                console.log("✅ Connected to MQTT Server");
+                setClient(mqttClient);
 
-            setConnectStatus(true);
+                setConnectStatus(true);
 
-        });
+            });
 
-        mqttClient.on(mqttTypes.error, (err) => {
-            console.error(`❌ MQTT Connection Error: ${err.message}`);
-            setError(err.message);
-        });
+            mqttClient.on(mqttTypes.error, (err) => {
+                console.error(`❌ MQTT Connection Error: ${err.message}`);
+                setError(err.message);
+            });
 
-        mqttClient.on(mqttTypes.reconnect, () => {
-            console.log("🔄 Reconnecting...");
-            setConnectStatus(true);
-            if(!client?.connected){
-                setClient(null);
-            }
-        });
+            mqttClient.on(mqttTypes.reconnect, () => {
+                console.log("🔄 Reconnecting...");
+                setConnectStatus(true);
+                if(!client?.connected){
+                    setClient(null);
+                }
+            });
         }
 
 

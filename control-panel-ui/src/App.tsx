@@ -1,5 +1,5 @@
 import {Route, Routes} from "react-router-dom";
-import Motor from "./components/Motor.tsx"
+import Motor from "./components/Movement/Motor.tsx"
 import {UTTTPage} from "./components/UTTT/UTTTpage.tsx";
 import './App.css'
 function App() {

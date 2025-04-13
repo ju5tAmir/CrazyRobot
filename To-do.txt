@@ -1,0 +1,12 @@
+13/04/2025 Nelson:
+
+- Added the server architecture, some basic configuration, some boiler plate files 
+and a database configuration.
+- I have tested and the server was building and running, but I haven't tested with an example
+
+--> Test server with a basic request and websocket connection.
+
+Notes for others:
+- You need to add a .env file with CONN_STR="", and inside the "" 
+you place the connection string.
+

@@ -1,6 +1,6 @@
 using Application.Models.Enums;
 
-namespace Application;
+namespace Application.Models;
 
 public static class ErrorMessages
 {

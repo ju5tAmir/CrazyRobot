@@ -56,7 +56,7 @@
       },
       "StringConstants": {
         "type": "string",
-        "description": "Available eventType constants",
+        "description": "Available eventType and string constants",
         "enum": [
           "MemberLeftNotification",
           "ServerSendsErrorMessage"

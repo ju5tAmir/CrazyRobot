@@ -1,4 +1,5 @@
-﻿using Api.Rest;
+﻿using System.Text.Json;
+using Api.Rest;
 using Api.Websocket;
 using Application;
 using Infrastructure.Postgres;
@@ -6,10 +7,13 @@ using Infrastructure.Websocket;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NSwag.Generation;
 using Startup.Documentation;
 using Startup.Proxy;
+using Scalar.AspNetCore;
+
 
 namespace Startup;
 
@@ -45,14 +49,14 @@ public class Program
 
     public static async Task ConfigureMiddleware(WebApplication app)
     {
+        var logger = app.Services.GetRequiredService<ILogger<IOptionsMonitor<AppOptions>>>();
         var appOptions = app.Services.GetRequiredService<IOptionsMonitor<AppOptions>>().CurrentValue;
-
+        logger.LogInformation(JsonSerializer.Serialize(appOptions));
         using (var scope = app.Services.CreateScope())
         {
             if (appOptions.Seed)
                 await scope.ServiceProvider.GetRequiredService<Seeder>().Seed();
         }
-
 
         app.Urls.Clear();
         app.Urls.Add($"http://0.0.0.0:{appOptions.REST_PORT}");
@@ -61,8 +65,7 @@ public class Program
 
         app.ConfigureRestApi();
         await app.ConfigureWebsocketApi(appOptions.WS_PORT);
-
-
+        
         app.MapGet("Acceptance", () => "Accepted");
         
         app.UseOpenApi(conf => { conf.Path = "openapi/v1.json"; });
@@ -70,7 +73,7 @@ public class Program
         var document = await app.Services.GetRequiredService<IOpenApiDocumentGenerator>().GenerateAsync("v1");
         var json = document.ToJson();
         await File.WriteAllTextAsync("openapi.json", json);
-
-        app.GenerateTypeScriptClient("/../../client/src/generated-client.ts").GetAwaiter().GetResult();
+        app.GenerateTypeScriptClient("/../../control-panel-ui/src/api/generated-client.ts").GetAwaiter().GetResult();
+        app.MapScalarApiReference();
     }
 }

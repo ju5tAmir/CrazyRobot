@@ -21,7 +21,7 @@ export interface ServerSendsErrorMessage extends BaseDto {
     message?: string;
 }
 
-/** Available eventType constants */
+/** Available eventType and string constants */
 export enum StringConstants {
     MemberLeftNotification = "MemberLeftNotification",
     ServerSendsErrorMessage = "ServerSendsErrorMessage",

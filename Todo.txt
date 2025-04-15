@@ -3,14 +3,13 @@
 What I did:
 - Added the server architecture, some basic configuration, some boilerplate files 
 and a database configuration.
-- I have tested and the server was building and running, but I haven't tested with an example
+- I have tested and the server was building and running, but I haven't tested with Postman
 
 Todo:
---> Test server with a basic request and websocket connection;
+--> Test server with a basic request and websocket connection -> Postman;
 
 General Notes:
 - You need to add a .env file with CONN_STR="" 
 Inside the "" you place the connection string.
-
 - If you guys need any of the MQTT stuff, check Alex's template:
 https://github.com/uldahlalex/fs25_14_2/tree/master/template_onion_with_mqtt

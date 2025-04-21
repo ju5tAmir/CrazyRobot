@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using Api.Rest;
+
 using Api.Websocket;
 using Application;
 using Infrastructure.Postgres;
@@ -13,6 +14,7 @@ using NSwag.Generation;
 using Startup.Documentation;
 using Startup.Proxy;
 using Scalar.AspNetCore;
+ 
 
 
 namespace Startup;
@@ -35,6 +37,7 @@ public class Program
         services.RegisterApplicationServices();
 
         services.AddDataSourceAndRepositories();
+       
         services.AddWebsocketInfrastructure();
 
         services.RegisterWebsocketApiServices();
@@ -69,7 +72,11 @@ public class Program
         app.MapGet("Acceptance", () => "Accepted");
         
         app.UseOpenApi(conf => { conf.Path = "openapi/v1.json"; });
-
+        app.UseSwaggerUi(ui =>
+        {
+            ui.Path         = "/swagger";          // сторінка UI
+            ui.DocumentPath = "/openapi/v1.json";  // звідки брати JSON
+        });
         var document = await app.Services.GetRequiredService<IOpenApiDocumentGenerator>().GenerateAsync("v1");
         var json = document.ToJson();
         await File.WriteAllTextAsync("openapi.json", json);

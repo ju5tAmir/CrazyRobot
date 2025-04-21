@@ -7,6 +7,31 @@ BEGIN
 END $EF$;
 
 
+CREATE TABLE crazyrobot.contacts (
+    id text NOT NULL,
+    name text NOT NULL,
+    role text NOT NULL,
+    department text NOT NULL,
+    email text NOT NULL,
+    phone text NOT NULL,
+    "imageUrl" text,
+    CONSTRAINT contacts_pkey PRIMARY KEY (id)
+);
+
+
+CREATE TABLE crazyrobot.events (
+    id text NOT NULL,
+    title text NOT NULL,
+    description text NOT NULL,
+    date date NOT NULL,
+    time text NOT NULL,
+    location text NOT NULL,
+    category text NOT NULL,
+    status text NOT NULL,
+    CONSTRAINT events_pkey PRIMARY KEY (id)
+);
+
+
 CREATE TABLE crazyrobot."user" (
     id text NOT NULL,
     email text NOT NULL,

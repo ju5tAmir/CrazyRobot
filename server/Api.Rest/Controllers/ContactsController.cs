@@ -2,12 +2,14 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Application.Interfaces;
 using Application.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Rest.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    
     public class ContactsController : ControllerBase
     {
         private readonly IContactService _svc;
@@ -25,6 +27,7 @@ namespace Api.Rest.Controllers
         }
 
         [HttpPost]
+        
         public async Task<IActionResult> Create([FromBody] ContactDto dto)
         {
             var id = await _svc.CreateAsync(dto);
@@ -32,6 +35,7 @@ namespace Api.Rest.Controllers
         }
 
         [HttpPut("{id}")]
+       
         public async Task<IActionResult> Update(string id, [FromBody] ContactDto dto)
         {
             if (id != dto.Id) return BadRequest("Id mismatch");
@@ -40,6 +44,7 @@ namespace Api.Rest.Controllers
         }
 
         [HttpDelete("{id}")]
+        
         public async Task<IActionResult> Delete(string id)
         {
             await _svc.DeleteAsync(id);

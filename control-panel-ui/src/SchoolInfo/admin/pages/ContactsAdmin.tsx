@@ -2,9 +2,20 @@
 import { useState, useEffect } from 'react';
 import { ContactDto, ContactsClient } from '../../../api/generated-client';
 import ContactForm from '../../components/forms/ContactForm';
+import { useAuth } from '../../auth/AuthContext';
 
 export default function ContactsAdmin() {
-    const client = new ContactsClient(import.meta.env.VITE_API_URL);
+    const { jwt } = useAuth();
+    const client = new ContactsClient(import.meta.env.VITE_API_URL, {
+        fetch: (url, init) => fetch(url, {
+            ...init,
+            headers: {
+                ...init?.headers,
+                'Authorization': `Bearer ${jwt}`
+            }
+        })
+    });
+
     const [list, setList]     = useState<ContactDto[]>([]);
     const [editing, setEdit]  = useState<ContactDto | null>(null);
 
@@ -18,6 +29,7 @@ export default function ContactsAdmin() {
     function del(id?: string) {
         if (id) client.delete(id).then(refresh);
     }
+
 
     return (
         <>

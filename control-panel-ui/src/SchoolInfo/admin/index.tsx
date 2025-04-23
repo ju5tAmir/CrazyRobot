@@ -1,17 +1,28 @@
-
 import { Navigate, Route, Routes } from 'react-router-dom';
 import AdminLayout   from './layout/AdminLayout';
 import ContactsAdmin from './pages/ContactsAdmin';
 import EventsAdmin   from './pages/EventsAdmin';
+import { AuthProvider, useAuth } from '../auth/AuthContext';
+import LoginPage     from '../auth/LoginPage';
+
+function RequireAuth() {
+    const { jwt } = useAuth();
+    return jwt
+        ? <AdminLayout />
+        : <Navigate to="login" replace />;
+}
 
 export default function Admin() {
     return (
-        <Routes>
-            <Route element={<AdminLayout />}>
-                <Route index element={<Navigate to="contacts" replace />} />
-                <Route path="contacts" element={<ContactsAdmin />} />
-                <Route path="events"   element={<EventsAdmin />} />
-            </Route>
-        </Routes>
+        <AuthProvider>
+            <Routes>
+                <Route path="login" element={<LoginPage />} />
+                <Route element={<RequireAuth />}>
+                    <Route index element={<Navigate to="contacts" replace />} />
+                    <Route path="contacts" element={<ContactsAdmin />} />
+                    <Route path="events"   element={<EventsAdmin />} />
+                </Route>
+            </Routes>
+        </AuthProvider>
     );
 }

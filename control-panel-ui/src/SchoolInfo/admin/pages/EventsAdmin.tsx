@@ -2,11 +2,22 @@
 import { useState, useEffect } from 'react';
 import { EventDto, EventsClient } from '../../../api/generated-client';
 import EventForm     from '../../components/forms/EventForm';
+import { useAuth } from '../../auth/AuthContext';
 
 export default function EventsAdmin() {
-    const client       = new EventsClient(import.meta.env.VITE_API_URL);
-    const [list, setList]     = useState<EventDto[]>([]);
-    const [editing, setEdit]  = useState<EventDto | null>(null);
+    const { jwt } = useAuth();
+    const client = new EventsClient(import.meta.env.VITE_API_URL, {
+        fetch: (url, init) => fetch(url, {
+            ...init,
+            headers: {
+                ...init?.headers,
+                'Authorization': `Bearer ${jwt}`
+            }
+        })
+    });
+
+    const [list, setList] = useState<EventDto[]>([]);
+    const [editing, setEdit] = useState<EventDto | null>(null);
 
     useEffect(() => { refresh(); }, []);
     function refresh() { client.getAll().then(e => setList(e ?? [])); }

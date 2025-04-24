@@ -1,3 +1,4 @@
+using Application.Interfaces;
 using Application.Interfaces.Api.Websocket;
 using Application.Interfaces.Security;
 using Application.Services;
@@ -11,6 +12,8 @@ public static class ServicesExtensions
     {
         services.AddScoped<ISecurityService, SecurityService>();
         services.AddScoped<IWebsocketSubscriptionService, WebsocketSubscriptionService>();
+        services.AddScoped<IContactService, ContactService>();
+        services.AddScoped<IEventService,   EventService>();
         return services;
     }
 }

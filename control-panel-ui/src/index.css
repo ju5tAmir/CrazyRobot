@@ -1,3 +1,10 @@
+/* Tailwind + DaisyUI */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---------- твої кастом‑стилі ---------- */
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;

@@ -91,7 +91,7 @@ public class SecurityService(IOptionsMonitor<AppOptions> optionsMonitor, IUserRe
         var tokenBuilder = new JwtBuilder()
             .WithAlgorithm(new HMACSHA512Algorithm())
             .WithSecret(optionsMonitor.CurrentValue.JwtSecret)
-            .WithUrlEncoder(new JwtBase64UrlEncoder())
+            //.WithUrlEncoder(new JwtBase64UrlEncoder())
             .WithJsonSerializer(new JsonNetSerializer());
 
         foreach (var claim in claims.GetType().GetProperties())
@@ -104,7 +104,7 @@ public class SecurityService(IOptionsMonitor<AppOptions> optionsMonitor, IUserRe
         var token = new JwtBuilder()
             .WithAlgorithm(new HMACSHA512Algorithm())
             .WithSecret(optionsMonitor.CurrentValue.JwtSecret)
-            .WithUrlEncoder(new JwtBase64UrlEncoder())
+            //.WithUrlEncoder(new JwtBase64UrlEncoder())
             .WithJsonSerializer(new JsonNetSerializer())
             .MustVerifySignature()
             .Decode<JwtClaims>(jwt);

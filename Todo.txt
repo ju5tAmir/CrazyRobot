@@ -5,11 +5,21 @@ What I did:
 and a database configuration.
 
 Todo:
--> Implementation of surveys.
+-> Implementation of surveys ( METHOD BY METHOD ):
+    - Implement SurveysController.cs;
+    - Implement Surveys service;
+    - Implement Surveys repository;
+    - Check if its working;
+    - If yes, then we do frontend for that feature!
+    - Repeat METHOD BY METHOD.
+
+
 
 General Notes:
 - You need to add a .env file with CONN_STR="" 
 Inside the "" you place the connection string.
+
 - If you guys need any of the MQTT stuff, check Alex's template:
 https://github.com/uldahlalex/fs25_14_2/tree/master/template_onion_with_mqtt
-- I can't deploy because I can't configure secrets on the repository.
+
+- I can't deploy because I can't configure secrets on the repository --> Andrei please check if you can give access, or you need to do it :)

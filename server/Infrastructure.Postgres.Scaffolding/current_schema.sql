@@ -1,5 +1,10 @@
-drop schema if exists crazyrobot cascade;
-create schema if not exists crazyrobot;
+-- This schema is generated based on the current DBContext. Please check the class Seeder to see.
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = 'crazyrobot') THEN
+        CREATE SCHEMA crazyrobot;
+    END IF;
+END $EF$;
 
 
 CREATE TABLE crazyrobot."user" (
@@ -8,7 +13,7 @@ CREATE TABLE crazyrobot."user" (
     hash text NOT NULL,
     salt text NOT NULL,
     role text NOT NULL,
-    created_date timestamp without time zone NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    created_date timestamp with time zone NOT NULL,
     CONSTRAINT user_pkey PRIMARY KEY (id)
 );
 
@@ -20,7 +25,7 @@ CREATE TABLE crazyrobot.survey (
     survey_type text NOT NULL,
     created_by_user_id text NOT NULL,
     is_active boolean NOT NULL DEFAULT TRUE,
-    created_at timestamp without time zone NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    created_at timestamp with time zone NOT NULL,
     CONSTRAINT survey_pkey PRIMARY KEY (id),
     CONSTRAINT fk_survey_user FOREIGN KEY (created_by_user_id) REFERENCES crazyrobot."user" (id)
 );
@@ -41,7 +46,7 @@ CREATE TABLE crazyrobot.survey_response (
     id text NOT NULL,
     survey_id text NOT NULL,
     user_id text NOT NULL,
-    submitted_at timestamp without time zone NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    submitted_at timestamp with time zone NOT NULL,
     CONSTRAINT survey_response_pkey PRIMARY KEY (id),
     CONSTRAINT fk_response_survey FOREIGN KEY (survey_id) REFERENCES crazyrobot.survey (id),
     CONSTRAINT fk_response_user FOREIGN KEY (user_id) REFERENCES crazyrobot."user" (id)

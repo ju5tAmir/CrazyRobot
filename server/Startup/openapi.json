@@ -125,6 +125,197 @@
         }
       }
     },
+    "/api/surveys/CreateSurvey": {
+      "post": {
+        "tags": [
+          "Surveys"
+        ],
+        "operationId": "Surveys_CreateSurvey",
+        "requestBody": {
+          "x-name": "dto",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSurveyRequestDto"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurveyResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/surveys/UpdateSurvey": {
+      "put": {
+        "tags": [
+          "Surveys"
+        ],
+        "operationId": "Surveys_UpdateSurvey",
+        "requestBody": {
+          "x-name": "dto",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSurveyRequestDto"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurveyResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/surveys/DeleteSurvey": {
+      "delete": {
+        "tags": [
+          "Surveys"
+        ],
+        "operationId": "Surveys_DeleteSurvey",
+        "parameters": [
+          {
+            "name": "surveyId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/surveys/GetAllSurveys": {
+      "get": {
+        "tags": [
+          "Surveys"
+        ],
+        "operationId": "Surveys_GetAllSurveys",
+        "requestBody": {
+          "x-name": "requestDto",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSurveyRequestDto"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurveyResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/surveys/SubmitResponse": {
+      "post": {
+        "tags": [
+          "Surveys"
+        ],
+        "operationId": "Surveys_SubmitResponse",
+        "requestBody": {
+          "x-name": "requestDto",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSurveyRequestDto"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurveyResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/surveys/GetSurveysResults": {
+      "get": {
+        "tags": [
+          "Surveys"
+        ],
+        "operationId": "Surveys_GetSurveysResults",
+        "requestBody": {
+          "x-name": "requestDto",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSurveyRequestDto"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurveyResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/auth/Login": {
       "post": {
         "tags": [
@@ -237,6 +428,102 @@
           },
           "message": {
             "type": "string"
+          }
+        }
+      },
+      "SurveyResponseDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "surveyType": {
+            "type": "string"
+          },
+          "createdByUserId": {
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "questions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuestionDto"
+            }
+          }
+        }
+      },
+      "QuestionDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "questionText": {
+            "type": "string"
+          },
+          "questionType": {
+            "type": "string"
+          },
+          "orderNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuestionOptionDto"
+            }
+          }
+        }
+      },
+      "QuestionOptionDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "optionText": {
+            "type": "string"
+          },
+          "orderNumber": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "CreateSurveyRequestDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "surveyType": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "questions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuestionDto"
+            }
           }
         }
       },

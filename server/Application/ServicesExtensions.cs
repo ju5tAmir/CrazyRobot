@@ -1,3 +1,4 @@
+using Application.Interfaces.Api.Rest;
 using Application.Interfaces.Api.Websocket;
 using Application.Interfaces.Security;
 using Application.Services;
@@ -10,6 +11,7 @@ public static class ServicesExtensions
     public static IServiceCollection RegisterApplicationServices(this IServiceCollection services)
     {
         services.AddScoped<ISecurityService, SecurityService>();
+        services.AddScoped<ISurveyService, SurveyService>();
         services.AddScoped<IWebsocketSubscriptionService, WebsocketSubscriptionService>();
         return services;
     }

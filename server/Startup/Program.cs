@@ -38,7 +38,7 @@ public class Program
         services.AddWebsocketInfrastructure();
 
         services.RegisterWebsocketApiServices();
-        services.RegisterRestApiServices();
+        services.RegisterRestApiServices(configuration);
         services.AddOpenApiDocument(conf =>
         {
             conf.DocumentProcessors.Add(new AddAllDerivedTypesProcessor());
@@ -69,7 +69,7 @@ public class Program
         app.MapGet("Acceptance", () => "Accepted");
         
         app.UseOpenApi(conf => { conf.Path = "openapi/v1.json"; });
-
+        
         var document = await app.Services.GetRequiredService<IOpenApiDocumentGenerator>().GenerateAsync("v1");
         var json = document.ToJson();
         await File.WriteAllTextAsync("openapi.json", json);

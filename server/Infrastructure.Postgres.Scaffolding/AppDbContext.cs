@@ -32,6 +32,12 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("answer", "crazyrobot");
 
+            entity.HasIndex(e => e.QuestionId, "IX_answer_question_id");
+
+            entity.HasIndex(e => e.SelectedOptionId, "IX_answer_selected_option_id");
+
+            entity.HasIndex(e => e.SurveyResponseId, "IX_answer_survey_response_id");
+
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.AnswerText).HasColumnName("answer_text");
             entity.Property(e => e.QuestionId).HasColumnName("question_id");
@@ -59,6 +65,8 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("question", "crazyrobot");
 
+            entity.HasIndex(e => e.SurveyId, "IX_question_survey_id");
+
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.OrderNumber).HasColumnName("order_number");
             entity.Property(e => e.QuestionText).HasColumnName("question_text");
@@ -77,6 +85,8 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("question_option", "crazyrobot");
 
+            entity.HasIndex(e => e.QuestionId, "IX_question_option_question_id");
+
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.OptionText).HasColumnName("option_text");
             entity.Property(e => e.OrderNumber).HasColumnName("order_number");
@@ -94,11 +104,10 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("survey", "crazyrobot");
 
+            entity.HasIndex(e => e.CreatedByUserId, "IX_survey_created_by_user_id");
+
             entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("created_at");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
             entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
             entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.IsActive)
@@ -119,11 +128,12 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("survey_response", "crazyrobot");
 
+            entity.HasIndex(e => e.SurveyId, "IX_survey_response_survey_id");
+
+            entity.HasIndex(e => e.UserId, "IX_survey_response_user_id");
+
             entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.SubmittedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("submitted_at");
+            entity.Property(e => e.SubmittedAt).HasColumnName("submitted_at");
             entity.Property(e => e.SurveyId).HasColumnName("survey_id");
             entity.Property(e => e.UserId).HasColumnName("user_id");
 
@@ -145,10 +155,7 @@ public partial class AppDbContext : DbContext
             entity.ToTable("user", "crazyrobot");
 
             entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.CreatedDate)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("created_date");
+            entity.Property(e => e.CreatedDate).HasColumnName("created_date");
             entity.Property(e => e.Email).HasColumnName("email");
             entity.Property(e => e.Hash).HasColumnName("hash");
             entity.Property(e => e.Role).HasColumnName("role");

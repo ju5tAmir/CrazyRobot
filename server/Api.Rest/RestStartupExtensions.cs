@@ -8,7 +8,7 @@ namespace Api.Rest;
 
 public static class RestStartupExtensions
 {
-    public static IServiceCollection RegisterRestApiServices(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection RegisterRestApiServices(this IServiceCollection services)
     {
         services.AddEndpointsApiExplorer();
         services.AddExceptionHandler<GlobalExceptionHandler>();

@@ -38,7 +38,7 @@ public class Program
         services.AddWebsocketInfrastructure();
 
         services.RegisterWebsocketApiServices();
-        services.RegisterRestApiServices(configuration);
+        services.RegisterRestApiServices();
         services.AddOpenApiDocument(conf =>
         {
             conf.DocumentProcessors.Add(new AddAllDerivedTypesProcessor());

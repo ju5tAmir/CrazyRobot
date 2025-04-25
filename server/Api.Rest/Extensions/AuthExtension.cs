@@ -9,6 +9,7 @@ public static class AuthExtension
         var header = ctx.Request.Headers["Authorization"].ToString();
         return header.StartsWith("Bearer ") ? header.Substring(7) : header;
         
+        // I changed this because I was having errors when validating the JWT token. Nelson
         
         /*return ctx.Request.Headers.Authorization.FirstOrDefault() ??
                throw new AuthenticationException("No token provided");*/

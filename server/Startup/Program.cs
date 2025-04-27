@@ -3,6 +3,7 @@ using Api.Rest;
 
 using Api.Websocket;
 using Application;
+using Infrastructure.Mqtt;
 using Infrastructure.Postgres;
 using Infrastructure.Websocket;
 using Microsoft.AspNetCore.Builder;
@@ -24,6 +25,12 @@ public class Program
     public static async Task Main()
     {
         var builder = WebApplication.CreateBuilder();
+        builder.Services.AddLogging(logging =>
+        {
+            logging.ClearProviders();
+            logging.AddConsole();  // <-- This writes logs to the console
+            logging.AddDebug();    // <-- Useful if you use Visual Studio Debug Output
+        });
         ConfigureServices(builder.Services, builder.Configuration);
         var app = builder.Build();
         await ConfigureMiddleware(app);
@@ -33,13 +40,13 @@ public class Program
     public static void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
         var appOptions = services.AddAppOptions(configuration);
-
+      
         services.RegisterApplicationServices();
-
+          
         services.AddDataSourceAndRepositories();
        
         services.AddWebsocketInfrastructure();
-
+        services.AddMqttClient();
         services.RegisterWebsocketApiServices();
         services.RegisterRestApiServices();
         services.AddOpenApiDocument(conf =>

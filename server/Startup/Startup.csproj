@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Application\Application.csproj" />
+    <ProjectReference Include="..\Infrastructure.Mqtt\Infrastructure.Mqtt.csproj" />
     <ProjectReference Include="..\Infrastructure.Postgres\Infrastructure.Postgres.csproj" />
     <ProjectReference Include="..\Api.Rest\Api.Rest.csproj" />
     <ProjectReference Include="..\Api.WebSocket\Api.WebSocket.csproj" />

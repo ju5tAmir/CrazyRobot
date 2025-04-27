@@ -70,17 +70,17 @@ public class Program
         await app.ConfigureWebsocketApi(appOptions.WS_PORT);
         
         app.MapGet("Acceptance", () => "Accepted");
-        
-        app.UseOpenApi(conf => { conf.Path = "openapi/v1.json"; });
-        app.UseSwaggerUi(ui =>
-        {
-            ui.Path         = "/swagger";          // сторінка UI
-            ui.DocumentPath = "/openapi/v1.json";  // звідки брати JSON
-        });
+               app.UseOpenApi(conf => { conf.Path = "openapi/v1.json"; });
+                app.UseSwaggerUi(ui =>
+                {
+                    ui.Path         = "/swagger";          // сторінка UI
+                    ui.DocumentPath = "/openapi/v1.json";  // звідки брати JSON
+                });
+ 
         var document = await app.Services.GetRequiredService<IOpenApiDocumentGenerator>().GenerateAsync("v1");
         var json = document.ToJson();
         await File.WriteAllTextAsync("openapi.json", json);
-        app.GenerateTypeScriptClient("/../../control-panel-ui/src/api/generated-client.ts").GetAwaiter().GetResult();
+        app.GenerateTypeScriptClient("/../../control-panel-ui/src/api/generated-socketclient.ts").GetAwaiter().GetResult();
         app.MapScalarApiReference();
     }
 }

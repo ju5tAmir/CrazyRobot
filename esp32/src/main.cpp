@@ -1,17 +1,38 @@
 #include <RPLidar.h>
 #include "lidar/lidar.h"
 #include "fns.h"
+#include "websocket/websocket.h"
 
 Motor leftMotor(IN1, IN2, ENA, pwmChannel1); 
 Motor rightMotor(IN3, IN4, ENB, pwmChannel2);       
 
+
+
 void setup() {
+  Serial.begin(115200); 
 initializeHardware();
+initializeWebSocketServer();
 }
 
 void loop() {
-  readLidarData();
+  ws.cleanupClients();
+ // readLidarData();
+
+//  if (isDirectionAllowed(FORWARD)) {
+    moveRobotTwo(FORWARD, 170, 170, leftMotor, rightMotor);
+ // } 
+  // else if (isDirectionAllowed(LEFT) && isDirectionAllowed(RIGHT)) {
+  //   moveRobotTwo(LEFT, 255, 255, leftMotor, rightMotor);
+  // } 
+  // else if (isDirectionAllowed(BACKWARD)) {
+  //   moveRobotTwo(BACKWARD, 150, 150, leftMotor, rightMotor);
+  // }
+  // else {
+  //   moveRobotTwo(STOP, 0, 0, leftMotor, rightMotor);
+  //   Serial.println("All directions blocked! Stopping.");
+  // }
 }
+
 
 
 

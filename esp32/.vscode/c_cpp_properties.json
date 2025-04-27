@@ -1,3 +1,8 @@
+//
+// !!! WARNING !!! AUTO-GENERATED FILE!
+// PLEASE DO NOT MODIFY IT AND USE "platformio.ini":
+// https://docs.platformio.org/page/projectconf/section_env_build.html#build-flags
+//
 {
     "configurations": [
         {
@@ -5,6 +10,16 @@
             "includePath": [
                 "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/include",
                 "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/src",
+                "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/ESPmDNS/src",
+                "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/.pio/libdeps/dfrobot_firebeetle2_esp32e/WebSockets/src",
+                "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/WiFiClientSecure/src",
+                "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/SPI/src",
+                "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/Ethernet/src",
+                "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/.pio/libdeps/dfrobot_firebeetle2_esp32e/ESPAsyncWebServer/src",
+                "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/WebServer/src",
+                "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src",
+                "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/FS/src",
+                "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/.pio/libdeps/dfrobot_firebeetle2_esp32e/AsyncTCP/src",
                 "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/.pio/libdeps/dfrobot_firebeetle2_esp32e/RPLidar _DanCrank fork_",
                 "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/.pio/libdeps/dfrobot_firebeetle2_esp32e/PID Controller",
                 "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/.pio/libdeps/dfrobot_firebeetle2_esp32e/ArduinoJson/src",
@@ -213,10 +228,7 @@
                 "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/DNSServer/src",
                 "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/EEPROM/src",
                 "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/ESP32/src",
-                "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/ESPmDNS/src",
-                "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/Ethernet/src",
                 "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/FFat/src",
-                "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/FS/src",
                 "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/HTTPClient/src",
                 "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/HTTPUpdate/src",
                 "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/HTTPUpdateServer/src",
@@ -228,25 +240,30 @@
                 "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/RainMaker/src",
                 "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/SD/src",
                 "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/SD_MMC/src",
-                "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/SPI/src",
                 "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/SPIFFS/src",
                 "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/SimpleBLE/src",
                 "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/Ticker/src",
                 "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/USB/src",
                 "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/Update/src",
-                "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/WebServer/src",
-                "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src",
-                "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/WiFiClientSecure/src",
                 "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/WiFiProv/src",
                 "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/Wire/src",
-                "",
-                "${workspaceFolder}/src/lidar"
+                ""
             ],
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
                 "path": [
                     "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/include",
                     "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/src",
+                    "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/ESPmDNS/src",
+                    "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/.pio/libdeps/dfrobot_firebeetle2_esp32e/WebSockets/src",
+                    "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/WiFiClientSecure/src",
+                    "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/SPI/src",
+                    "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/Ethernet/src",
+                    "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/.pio/libdeps/dfrobot_firebeetle2_esp32e/ESPAsyncWebServer/src",
+                    "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/WebServer/src",
+                    "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src",
+                    "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/FS/src",
+                    "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/.pio/libdeps/dfrobot_firebeetle2_esp32e/AsyncTCP/src",
                     "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/.pio/libdeps/dfrobot_firebeetle2_esp32e/RPLidar _DanCrank fork_",
                     "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/.pio/libdeps/dfrobot_firebeetle2_esp32e/PID Controller",
                     "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/.pio/libdeps/dfrobot_firebeetle2_esp32e/ArduinoJson/src",
@@ -455,10 +472,7 @@
                     "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/DNSServer/src",
                     "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/EEPROM/src",
                     "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/ESP32/src",
-                    "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/ESPmDNS/src",
-                    "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/Ethernet/src",
                     "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/FFat/src",
-                    "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/FS/src",
                     "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/HTTPClient/src",
                     "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/HTTPUpdate/src",
                     "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/HTTPUpdateServer/src",
@@ -470,15 +484,11 @@
                     "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/RainMaker/src",
                     "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/SD/src",
                     "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/SD_MMC/src",
-                    "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/SPI/src",
                     "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/SPIFFS/src",
                     "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/SimpleBLE/src",
                     "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/Ticker/src",
                     "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/USB/src",
                     "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/Update/src",
-                    "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/WebServer/src",
-                    "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src",
-                    "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/WiFiClientSecure/src",
                     "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/WiFiProv/src",
                     "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/Wire/src",
                     ""

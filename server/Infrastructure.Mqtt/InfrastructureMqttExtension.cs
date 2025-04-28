@@ -10,7 +10,7 @@ namespace Infrastructure.Mqtt;
 public  static class InfrastructureMqttExtension
 { 
     public static IServiceCollection AddMqttClient(this IServiceCollection services)
-    {   
+    {  
         services.AddOptions<MqttOptions>()
             .BindConfiguration("Mqtt").ValidateDataAnnotations();
        
@@ -20,7 +20,6 @@ public  static class InfrastructureMqttExtension
             var logger = sp.GetRequiredService<ILogger<MqttClientService>>();
             var handler = sp.GetRequiredService<IMqttMessageHandler>();
             var mqttClientService = new MqttClientService(options, logger,handler);
-       
             return mqttClientService;
         });
         services.AddHostedService<MqttHostedService>();

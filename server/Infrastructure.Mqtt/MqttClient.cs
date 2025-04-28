@@ -27,24 +27,46 @@ public class MqttClientService
         _client = factory.CreateMqttClient();
     }
 
-    public async Task ConnectAsync()
+    public async Task<bool> ConnectAsync()
     {
-        Console.WriteLine(_mqttOptions.CurrentValue.broker + "dfdfhrssssssssssssss57333333333333333");
-        var options = new MqttClientOptionsBuilder()
-            .WithWebSocketServer(o => o.WithUri(_mqttOptions.CurrentValue.broker))
-            .WithCredentials(_mqttOptions.CurrentValue.Username)
-            .WithClientId(Guid.NewGuid().ToString())
-            .WithCleanSession()
-            .Build();
+        Console.WriteLine(_mqttOptions.CurrentValue.broker + " Trying to connect...");
+        Console.WriteLine(_mqttOptions.CurrentValue.Username + " Trying to connect... username");
 
-        var result = await _client.ConnectAsync(options);
-        _client.ApplicationMessageReceivedAsync += HandleIncomingMessageAsync;
-   
-        if (result.ResultCode == MqttClientConnectResultCode.Success)
-         _logger.LogInformation("Connected successfully to MQTT broker.");
-        else
-         _logger.LogError("Failed to connect to MQTT broker.");
+        try
+        {
+            var brokerUri = _mqttOptions.CurrentValue.broker;
+            var options = new MqttClientOptionsBuilder()
+                .WithWebSocketServer(o => o.WithUri(brokerUri))
+                .WithCredentials(_mqttOptions.CurrentValue.Username, "")
+                .WithClientId(Guid.NewGuid().ToString())
+                .WithCleanSession()
+                .Build();
+
+            var result = await _client.ConnectAsync(options);
+            _client.ApplicationMessageReceivedAsync += HandleIncomingMessageAsync;
+
+            if (result.ResultCode == MqttClientConnectResultCode.Success)
+            {
+                _logger.LogInformation("Connected successfully to MQTT broker.");
+
+                await SubscribeAsync("test");  // subscribe after success
+                await PublishAsync("test", "From server");  // publish after success
+
+                return true; 
+            }
+            else
+            {
+                _logger.LogError($"Failed to connect to MQTT broker. ResultCode: {result.ResultCode}");
+                return false; 
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception while connecting to MQTT broker.");
+            return false; 
+        }
     }
+
 
     public async Task SubscribeAsync(string topic)
     {
@@ -66,6 +88,7 @@ public class MqttClientService
     {
         var topic = e.ApplicationMessage.Topic;
         var payload = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
+        Console.WriteLine(payload);
         await _messageHandler.HandleAsync(topic, payload);
     }
     public async Task PublishAsync(string topic, object message)

@@ -21,19 +21,25 @@ public class MqttHostedService : BackgroundService
             try
             {
                 _logger.LogInformation("Attempting to connect to MQTT broker...");
-                await _mqttClientService.ConnectAsync();
-                
-                await _mqttClientService.SubscribeAsync("test");
-                _logger.LogInformation("MQTT connected successfully.");
+                var connected = await _mqttClientService.ConnectAsync();  // now returns bool
 
-                // ✅ Connected: wait here forever or until stopped
-                await Task.Delay(Timeout.Infinite, stoppingToken);
+                if (connected)
+                {
+                    _logger.LogInformation("MQTT connected successfully.");
+                    await Task.Delay(Timeout.Infinite, stoppingToken); // wait forever
+                }
+                else
+                {
+                    _logger.LogWarning("Failed to connect. Retrying in 5 seconds...");
+                    await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to connect to MQTT broker. Retrying in 5 seconds...");
-                await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken); // wait and retry
+                _logger.LogError(ex, "Exception while trying to connect. Retrying...");
+                await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
             }
         }
     }
+
 }

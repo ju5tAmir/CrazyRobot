@@ -24,12 +24,16 @@ public class Program
 {
     public static async Task Main()
     {
+        DotNetEnv.Env.Load();
         var builder = WebApplication.CreateBuilder();
+        builder.Configuration.AddEnvironmentVariables();
+        Console.WriteLine($"Loaded MQTT Username from environment: {Environment.GetEnvironmentVariable("Mqtt__Username")}");
+
         builder.Services.AddLogging(logging =>
         {
             logging.ClearProviders();
-            logging.AddConsole();  // <-- This writes logs to the console
-            logging.AddDebug();    // <-- Useful if you use Visual Studio Debug Output
+            logging.AddConsole();
+            logging.AddDebug();   
         });
         ConfigureServices(builder.Services, builder.Configuration);
         var app = builder.Build();

@@ -10,14 +10,14 @@
 import {useState, useEffect, useRef} from 'react';
 import MoveDetails from '../../mqtt/mqttComponents/MoveDetails.ts';
 import {Button} from "./Button.tsx";
-import {useMqtt} from "../../hooks";
+
 
 
 
 
 
 export default function Motor() {
-    const {messages,publish} = useMqtt();
+   // const {messages,publish} = useMqtt();
     const topic = import.meta.env.VITE_MQTT_TOPIC;
     const SPEED_INCREASE_RATE = 5;
     const SPEED_DECREASE_RATE = 10;
@@ -41,27 +41,27 @@ export default function Motor() {
         };
     },[]);
 
-    useEffect(() => {
-        messages.forEach((m)=>console.log(m));
-    }, [messages]);
-
-    useEffect(() => {
-        // When engine state changes, publish the new state
-        publish(topic, {
-            engine: engine,
-            move: {
-                isMoving: move !== false,
-                value: move ? String(move) : "None"
-            },
-            direction: {
-                isTurning: direction !== false,
-                value: direction ? String(direction) : "None"
-            },
-            speed: speed
-        });
-
-        console.log(`Engine ${engine ? 'Started' : 'Stopped'}.`);
-    }, [engine]);
+    // useEffect(() => {
+    //     messages.forEach((m)=>console.log(m));
+    // }, [messages]);
+    //
+    // useEffect(() => {
+    //     // When engine state changes, publish the new state
+    //     publish(topic, {
+    //         engine: engine,
+    //         move: {
+    //             isMoving: move !== false,
+    //             value: move ? String(move) : "None"
+    //         },
+    //         direction: {
+    //             isTurning: direction !== false,
+    //             value: direction ? String(direction) : "None"
+    //         },
+    //         speed: speed
+    //     });
+    //
+    //     console.log(`Engine ${engine ? 'Started' : 'Stopped'}.`);
+    // }, [engine]);
 
 
 

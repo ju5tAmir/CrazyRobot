@@ -745,6 +745,22 @@
           }
         ]
       },
+      "EngineStateDto": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseDto"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "engineState": {
+                "type": "boolean"
+              }
+            }
+          }
+        ]
+      },
       "ExampleClientDto": {
         "allOf": [
           {
@@ -761,6 +777,22 @@
           }
         ]
       },
+      "ServerConfirmsDto": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseDto"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "success": {
+                "type": "boolean"
+              }
+            }
+          }
+        ]
+      },
       "StringConstants": {
         "type": "string",
         "description": "Available eventType and string constants",
@@ -770,7 +802,9 @@
           "ServerSendsErrorMessage",
           "Ping",
           "Pong",
-          "ExampleClientDto"
+          "EngineStateDto",
+          "ExampleClientDto",
+          "ServerConfirmsDto"
         ]
       }
     }

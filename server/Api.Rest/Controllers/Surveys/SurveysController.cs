@@ -25,6 +25,7 @@ public class SurveysController(ISecurityService securityService, ISurveyService 
     [HttpPost]
     [Route(CreateRoute)]
     /*
+     To use Authorize, we need to adjust program.cs to UseAuthorization & UseAuthentication (and more stuff), but it doesn't work anyway?
     [Authorize(Roles = "admin")]
     */
     public async Task<ActionResult<SurveyResponseDto>> CreateSurvey(CreateSurveyRequestDto dto)
@@ -50,36 +51,73 @@ public class SurveysController(ISecurityService securityService, ISurveyService 
     }
     
     [HttpPut]
-    [Route(UpdateRoute)]
-    public async Task<ActionResult<SurveyResponseDto>> UpdateSurvey(CreateSurveyRequestDto dto)
+    [Route(UpdateRoute + "/{surveyId}")]
+    public async Task<ActionResult<SurveyResponseDto>> UpdateSurvey(UpdateSurveyRequestDto dto)
     {
-        return null;
+        try
+        {
+            var admin = securityService.VerifyJwtOrThrow(HttpContext.GetJwt());
+            if (string.IsNullOrWhiteSpace(admin.Id) || !Roles.All.Any(role =>
+                    string.Equals(role, admin.Role, StringComparison.OrdinalIgnoreCase)))
+                return BadRequestErrorMessage(ErrorMessages.GetMessage(ErrorCode.InvalidRole));
+
+            var result = await surveyService.UpdateSurvey(dto, admin.Id);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            logger.Log(LogLevel.Warning, ex.Message, ex);
+            return BadRequestErrorMessage(ex.Message);
+        }
     }
     
     [HttpDelete]
-    [Route(DeleteRoute)]
+    [Route(DeleteRoute + "/{surveyId}")]
     public async Task<ActionResult> DeleteSurvey(string surveyId)
     {
-        return null;
+        try
+        {
+            var admin = securityService.VerifyJwtOrThrow(HttpContext.GetJwt());
+            if (string.IsNullOrWhiteSpace(admin.Id) || !Roles.All.Any(role =>
+                    string.Equals(role, admin.Role, StringComparison.OrdinalIgnoreCase)))
+                return BadRequestErrorMessage(ErrorMessages.GetMessage(ErrorCode.InvalidRole));
+
+            await surveyService.DeleteSurvey(surveyId, admin.Id);
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            logger.Log(LogLevel.Warning, ex.Message, ex);
+            return BadRequestErrorMessage(ex.Message);
+        }
     }
     
     [HttpGet]
     [Route(GetAllRoute)]
-    public async Task<ActionResult<SurveyResponseDto>> GetAllSurveys(CreateSurveyRequestDto requestDto)
+    public async Task<ActionResult<SurveyResponseDto>> GetAllSurveys()
     {
-        return null;
+        try
+        {
+            var surveys = await surveyService.GetAllSurveys();
+            return Ok(surveys);
+        }
+        catch (Exception ex)
+        {
+            logger.Log(LogLevel.Warning, ex.Message, ex);
+            return BadRequestErrorMessage(ex.Message);
+        }
     }
     
     [HttpPost]
     [Route(SubmitRoute)]
-    public async Task<ActionResult<SurveyResponseDto>> SubmitResponse(CreateSurveyRequestDto requestDto)
+    public async Task<ActionResult<SurveyResponseDto>> SubmitResponse()
     {
         return null;
     }
     
     [HttpGet]
     [Route(GetResultsRoute)]
-    public async Task<ActionResult<SurveyResponseDto>> GetSurveysResults(CreateSurveyRequestDto requestDto)
+    public async Task<ActionResult<SurveyResponseDto>> GetSurveysResults()
     {
         return null;
     }

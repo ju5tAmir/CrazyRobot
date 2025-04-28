@@ -7,4 +7,7 @@ public interface ISurveyRepository
     Task<Survey> CreateSurvey(Survey survey);
     Task<Question> CreateQuestion(Question question);
     Task<QuestionOption> CreateQuestionOption(QuestionOption option);
+    Task<Survey> UpdateSurvey(Survey survey);
+    Task DeleteSurvey(string surveyId);
+    Task<List<Survey>> GetAllSurveys();
 }

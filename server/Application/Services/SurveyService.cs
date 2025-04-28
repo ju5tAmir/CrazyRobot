@@ -66,4 +66,54 @@ public class SurveyService(ISurveyRepository surveyRepository) : ISurveyService
             Questions = dto.Questions,
         };
     }
+
+    public async Task<SurveyResponseDto> UpdateSurvey(UpdateSurveyRequestDto dto, string userId)
+    {
+        if (string.IsNullOrEmpty(dto.Title))
+            throw new ValidationException("Survey title is required");
+        
+        var survey = new Survey
+        {
+            Id = dto.Id,
+            Title = dto.Title,
+            Description = dto.Description,
+            SurveyType = dto.SurveyType,
+            CreatedByUserId = userId,
+            IsActive = dto.IsActive,
+            CreatedAt = DateTime.UtcNow,
+        };
+
+        var updatedSurvey = await surveyRepository.UpdateSurvey(survey);
+        return new SurveyResponseDto
+        {
+            Id = updatedSurvey.Id,
+            Title = updatedSurvey.Title,
+            Description = updatedSurvey.Description,
+            SurveyType = updatedSurvey.SurveyType,
+            IsActive = updatedSurvey.IsActive,
+            CreatedByUserId = updatedSurvey.CreatedByUserId,
+            CreatedAt = updatedSurvey.CreatedAt,
+            Questions = dto.Questions
+        };
+    }
+
+    public async Task DeleteSurvey(string surveyId, string userId)
+    {
+        await surveyRepository.DeleteSurvey(surveyId);
+    }
+
+    public async Task<List<SurveyResponseDto>> GetAllSurveys()
+    {
+        var surveys = await surveyRepository.GetAllSurveys();
+        return surveys.Select(s => new SurveyResponseDto
+        {
+            Id = s.Id,
+            Title = s.Title,
+            Description = s.Description,
+            SurveyType = s.SurveyType,
+            IsActive = s.IsActive,
+            CreatedByUserId = s.CreatedByUserId,
+            CreatedAt = s.CreatedAt
+        }).ToList();
+    }
 }

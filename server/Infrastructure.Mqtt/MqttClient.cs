@@ -15,11 +15,11 @@ public class MqttClientService
     private readonly IOptionsMonitor<MqttOptions> _mqttOptions;
     private readonly ILogger<MqttClientService> _logger;
     private readonly IMqttMessageHandler _messageHandler;
-    
 
-    public MqttClientService(IOptionsMonitor<MqttOptions> mqttOptions, ILogger<MqttClientService> logger,IMqttMessageHandler messageHandler)
+
+    public MqttClientService(IOptionsMonitor<MqttOptions> mqttOptions, ILogger<MqttClientService> logger,
+        IMqttMessageHandler messageHandler)
     {
-      
         _mqttOptions = mqttOptions;
         _logger = logger;
         _messageHandler = messageHandler;
@@ -37,7 +37,7 @@ public class MqttClientService
             var brokerUri = _mqttOptions.CurrentValue.broker;
             var options = new MqttClientOptionsBuilder()
                 .WithWebSocketServer(o => o.WithUri(brokerUri))
-                .WithCredentials(_mqttOptions.CurrentValue.Username, "")
+                .WithCredentials("FlespiToken " + _mqttOptions.CurrentValue.Username, "")
                 .WithClientId(Guid.NewGuid().ToString())
                 .WithCleanSession()
                 .Build();
@@ -49,21 +49,23 @@ public class MqttClientService
             {
                 _logger.LogInformation("Connected successfully to MQTT broker.");
 
-                await SubscribeAsync("test");  // subscribe after success
-                await PublishAsync("test", "From server");  // publish after success
+                await SubscribeAsync(_mqttOptions.CurrentValue.SubscribeEngineTopic);
+                await SubscribeAsync(_mqttOptions.CurrentValue.SubscribeCommandsTopic); 
+                await PublishAsync(_mqttOptions.CurrentValue.PublishEngineTopic, "From server engine");
+                await PublishAsync("test", "From server");
 
-                return true; 
+                return true;
             }
             else
             {
                 _logger.LogError($"Failed to connect to MQTT broker. ResultCode: {result.ResultCode}");
-                return false; 
+                return false;
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Exception while connecting to MQTT broker.");
-            return false; 
+            return false;
         }
     }
 
@@ -77,28 +79,40 @@ public class MqttClientService
 
         _logger.LogInformation($"Subscribed to topic: {topic}");
     }
-    
-    
+
+
     //TODO extract the proper message from the mqtt 
     /// <summary>
-    /// 
+    /// For example when the esp32 sends commands back , that will tell the client that is initialized will send this message
+    /// {
+    /// CommandType : "Initialized"
+    /// Payload : Object
+    /// {
+    ///  InitializeEngine:true
+    /// }
+    ///} 
     /// </summary>
-    /// <param name="e"></param>
     private async Task HandleIncomingMessageAsync(MqttApplicationMessageReceivedEventArgs e)
     {
         var topic = e.ApplicationMessage.Topic;
-        var payload = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
-        Console.WriteLine(payload);
-        await _messageHandler.HandleAsync(topic, payload);
+        var payloadString = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
+        Console.WriteLine(payloadString);
+        var command = JsonSerializer.Deserialize<ClientCommandDto>(payloadString);
+        if (command == null)
+        {
+            throw new InvalidOperationException("Failed to deserialize ClientCommand.");
+        }
+        
+        await _messageHandler.HandleAsync(topic, command);
     }
+
     public async Task PublishAsync(string topic, object message)
     {
         var payload = JsonSerializer.Serialize(message);
-
         var mqttMessage = new MqttApplicationMessageBuilder()
             .WithTopic(topic)
             .WithPayload(payload)
-            .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
+            .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce).WithRetainFlag(true)
             .Build();
 
         await _client.PublishAsync(mqttMessage);

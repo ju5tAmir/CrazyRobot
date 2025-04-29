@@ -1,6 +1,5 @@
 // src/App.tsx
 import {  Navigate, Route, Routes } from 'react-router-dom';
-import Motor      from './components/Movement/Motor';
 import { UTTTPage } from './components/UTTT/UTTTpage';
 import SchoolInfo from './SchoolInfo';
 import Admin      from './SchoolInfo/admin';
@@ -9,8 +8,8 @@ import {WsClientProvider} from "ws-request-hook";
 import {useClientIdState} from "./hooks/Wsclient";
 import {KEYS} from "./hooks/KEYS";
 import {useEffect, useState} from "react";
-import {WebsocketConnectionIndicator} from "./components/general";
 import {ControlMotor} from "./components/Movement/MovementNew/Movement/ControlMotor.tsx";
+import {Toaster} from "react-hot-toast";
 const baseUrl = import.meta.env.VITE_API_BASE_URL
 const prod = import.meta.env.PROD
 export default function App() {
@@ -33,6 +32,7 @@ export default function App() {
                     <Route path="/tic-tac-toe"         element={<UTTTPage />} />
                     <Route path="/"                    element={<Navigate to="/school-info" replace />} />
                 </Routes>
+                <Toaster/>
             </WsClientProvider>}
 
         </>)

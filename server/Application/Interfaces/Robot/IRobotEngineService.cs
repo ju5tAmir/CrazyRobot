@@ -1,6 +1,8 @@
-﻿namespace Application.Interfaces.Robot;
+﻿using Core.Domain.Entities.Robot;
+
+namespace Application.Interfaces.Robot;
 
 public interface IRobotEngineService
 {
-   Task ManageEngine(bool engineState);
+   Task ManageEngine(Command<EngineManagement> command);
 }

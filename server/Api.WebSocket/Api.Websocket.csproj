@@ -8,10 +8,6 @@
     <PackageReference Include="uldahlalex.websocket.boilerplate" Version="2.3.4" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="EventHandlers\Robot\EngineControll\" />
-  </ItemGroup>
-
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>

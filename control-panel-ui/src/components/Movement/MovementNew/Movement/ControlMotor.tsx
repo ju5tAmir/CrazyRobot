@@ -1,15 +1,25 @@
-import { Button } from "./Button.tsx";
+import {Button} from "./Button.tsx";
 import {useCallback, useEffect, useState} from "react";
 import {InfoDisplay} from "./index.ts";
 import {FaPlay, FaStop} from "react-icons/fa";
 import MoveDetails from "../../../../mqtt/mqttComponents/MoveDetails.ts";
+import {useWsClient} from "ws-request-hook";
+import {
+    EngineStateDto, InitializeEnginResponseDto,
+    ServerConfirmsDto,
+    ServerSendsErrorMessageDto,
+    StringConstants
+} from "../../../../api/webSocketApi.ts";
+import toast from "react-hot-toast";
+import {CommandType} from "../../../../models/mqttModels/MqttModels.ts";
+
 
 export const ControlMotor = () => {
     // const { messages, publ`ishMovement,publishStartStopEvent } = useMqtt();
+
+    const {onMessage, sendRequest, send, readyState} = useWsClient();
     const [engine, setEngine] = useState<boolean>(false);
     const [initSequence,setInitSequence] = useState<boolean>(false);
-
-    const  [startStop,setStartStop] =  useState<Set<string>>(new Set());
     const [pressedKeys,setPressedKeys] = useState<Set<string>>(new Set());
     const movementKeys = new Set(['w', 'a', 's', 'd',"e"]);
 
@@ -33,25 +43,52 @@ export const ControlMotor = () => {
     //     }
     //
     // }, [messages]);
+    useEffect(() => {
+        if(!readyState)return
+        console.log("✅ WebSocket is ready! Subscribing to messages...");
 
+        const unsubscribe = onMessage<InitializeEnginResponseDto>(
+            StringConstants.InitializeEnginResponseDto,
+            (message) => {
+                console.log("----------------=================");
+                console.log(message.command.payload);
+                const payloade = message.command.payload;
+
+                console.log(payloade?.initializeEngine);
+
+                toast.success(`New Question ID: ${message.command}`);
+                // setCurrentQuestion({
+                //     gameId: message.gameId || "",
+                //     questionId: message.questionId || "",
+                //     options: message.questionOptions || []
+                // });
+                setInitSequence(message.command.payload!.initializeEngine);
+                toast.success(`New Question ID: ${message.command.payload+""}`);
+            }
+        );
+
+        return () => {
+            unsubscribe();
+        };
+    }, [onMessage, readyState]);
 
 
     const handleInputDown = useCallback((value: string) => {
         console.log(value + " pressed");
 
         if (value === "e") {
-            setEngine(prev => !prev);
+            const newEngineState = !engine;
+            setEngine(newEngineState);
+            sendEngineCommand(newEngineState);
             setInitSequence(prev => !prev);
             setPressedKeys(prev => {
                 const newSet = new Set(prev);
                 if (newSet.has('e')) {
                     console.log("deleted");
-                    sendEngineCommand(false);
                     newSet.delete('e');
                 } else {
                     console.log("added");
                     newSet.add('e');
-                    sendEngineCommand(true);
                 }
                 return newSet;
             });
@@ -69,6 +106,7 @@ export const ControlMotor = () => {
         });
 
     }, [initSequence]);
+
 
 
     const handleInputUp = useCallback((value: string) => {
@@ -109,8 +147,30 @@ export const ControlMotor = () => {
      * @param b The second number.
      * @returns The sum of `a` and `b`.
      */
-    const sendEngineCommand = (value:boolean)=>{
-
+    const sendEngineCommand = async (value:boolean)=>{
+         const request:EngineStateDto = {
+             eventType:StringConstants.EngineStateDto,
+             requestId:crypto.randomUUID(),
+             command:{
+                 command:CommandType.Initialize,
+                 payload:{
+                     engine:value
+                 }
+             }
+         }
+         try{
+            const signInResult: ServerConfirmsDto = await sendRequest<EngineStateDto
+                , ServerConfirmsDto>(request,StringConstants.ServerConfirmsDto).finally(()=>console.log("er"));
+            console.log(signInResult);
+            if (signInResult?.Success) {
+                toast.success("Engine send")
+            } else {
+                toast.error("Retry")
+            }
+        }catch (error){
+            const errorDto = error as unknown as ServerSendsErrorMessageDto;
+            toast.error(errorDto.error!.toString);
+        }
     }
 
 

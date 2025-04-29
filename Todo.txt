@@ -1,9 +1,3 @@
-13/04/2025 Nelson:
-
-What I did:
-- Added the server architecture, some basic configuration, some boilerplate files 
-and a database configuration.
-
 Todo:
 -> Implementation of surveys:
     - Implement SurveysController.cs;
@@ -16,11 +10,17 @@ Todo:
 
 -> Reformat the code to handle multiple transitions (on create and update)
 
-General Notes:
-- You need to add a .env file with CONN_STR="" 
-Inside the "" you place the connection string.
 
-- If you guys need any of the MQTT stuff, check Alex's template:
-https://github.com/uldahlalex/fs25_14_2/tree/master/template_onion_with_mqtt
+!!!! TALK WITH THE GUYS ABOUT THIS ON package.json "@tailwindcss/oxide-win32-x64-msvc": "^4.1.4"" !!!!
 
-- I can't deploy because I can't configure secrets on the repository --> Andrei please check if you can give access, or you need to do it :)
+
+Need adjust because of merging:
+sql file;
+DbContext;
+
+
+NOTES:
+
+SQL:
+drop schema if exists crazyrobot cascade;
+create schema if not exists crazyrobot;

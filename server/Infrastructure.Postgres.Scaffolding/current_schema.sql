@@ -27,7 +27,7 @@ CREATE TABLE crazyrobot.events (
     time text NOT NULL,
     location text NOT NULL,
     category text NOT NULL,
-    status text NOT NULL,
+    status integer NOT NULL,
     CONSTRAINT events_pkey PRIMARY KEY (id)
 );
 

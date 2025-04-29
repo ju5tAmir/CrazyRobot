@@ -1,7 +1,6 @@
-export type {CellProps as CellProps} from "./CellProps.ts"
-export {Player as Player} from "./CellProps.ts"
-export type {SmallBoardProps as SmallBoardProps} from "./CellProps.ts"
-export type  {WonProps as WonProps} from "./CellProps.ts"
-export type {UTTTWonBoard as UTTTWonBoard} from "./State.ts"
-export type {InfoDisplayProps as InfoDisplayProps} from "./InfoDisplayState.ts"
-export type {StartStopProps as StartStopProps} from "./StartStopProps.ts"
+export type { CellProps as CellProps } from './CellProps.ts';
+export { Player as Player } from './CellProps.ts';
+export type { SmallBoardProps as SmallBoardProps } from './CellProps.ts';
+export type { WonProps as WonProps } from './CellProps.ts';
+export type { UTTTWonBoard as UTTTWonBoard } from './State.ts';
+export type { InfoDisplayProps as InfoDisplayProps } from './InfodisplayProps.ts';

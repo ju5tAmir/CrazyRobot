@@ -1,7 +1,7 @@
 import {Route, Routes} from "react-router-dom";
-import Motor from "./components/Movement/Motor.tsx"
 import {UTTTPage} from "./components/UTTT/UTTTpage.tsx";
 import './App.css'
+import {ControlMotor} from "./components/Movement/ControlMotor.tsx";
 function App() {
 
   return (
@@ -10,7 +10,7 @@ function App() {
             <Route
                 path="/RobotMovement"
                 element={<>
-                    <Motor/>
+                    <ControlMotor/>
                 </>}
             />
 

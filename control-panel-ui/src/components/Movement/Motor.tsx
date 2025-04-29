@@ -1,54 +1,48 @@
-
-
-
-
-
-
-// Notes: There is an issue with increasing speed when speed is already set to decrease.
-//        When shift is pressed, w or s doesn't work.
-//
-import {useState, useEffect, useRef} from 'react';
+import { useState, useEffect, useRef } from 'react';
 import MoveDetails from '../../mqtt/mqttComponents/MoveDetails.ts';
-import {Button} from "./Button.tsx";
-import {useMqtt} from "../../hooks";
-
-
-
-
+import { Button } from "./Button.tsx";
+import { useMqtt } from "../../hooks";
 
 export default function Motor() {
-    const {messages,publish} = useMqtt();
+    const { messages, publish } = useMqtt();
     const topic = import.meta.env.VITE_MQTT_TOPIC;
+
     const SPEED_INCREASE_RATE = 5;
     const SPEED_DECREASE_RATE = 10;
     const SPEED_INTERVAL_MS = 150;
-    const BASE_SPEED = 150; // It's different in each motor
+    const BASE_SPEED = 150;
     const MAX_SPEED = 255;
-    const [pressedKeys, setPressedKeys] = useState<Set<string>>(new Set());
+
     const allowedKeys = new Set(['w', 'a', 's', 'd', 'e', 'shift', 'space']);
+
+    const [pressedKeys, setPressedKeys] = useState<Set<string>>(new Set());
+    const pressedKeysRef = useRef<Set<string>>(new Set());
+
     const [engine, setEngine] = useState<boolean>(false);
     const [move, setMove] = useState<string | boolean>(false);
     const [direction, setDirection] = useState<string | boolean>(false);
     const [speed, setSpeed] = useState<number>(BASE_SPEED);
-    const speedInterval = useRef<NodeJS.Timeout | null>(null); // Store interval reference
 
+    const speedInterval = useRef<NodeJS.Timeout | null>(null);
+
+    // Event Listeners Setup
     useEffect(() => {
-        setEventListeners();
-        // Cleanup the event listeners when the component unmounts
+        window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('keyup', handleKeyUp);
+
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
             window.removeEventListener('keyup', handleKeyUp);
         };
-    },[]);
+    }, []);
 
     useEffect(() => {
-        messages.forEach((m)=>console.log(m));
+        messages.forEach((m) => console.log(m));
     }, [messages]);
 
     useEffect(() => {
-        // When engine state changes, publish the new state
         publish(topic, {
-            engine: engine,
+            engine,
             move: {
                 isMoving: move !== false,
                 value: move ? String(move) : "None"
@@ -57,50 +51,54 @@ export default function Motor() {
                 isTurning: direction !== false,
                 value: direction ? String(direction) : "None"
             },
-            speed: speed
+            speed
         });
 
         console.log(`Engine ${engine ? 'Started' : 'Stopped'}.`);
-    }, [engine]);
+    }, [engine, move, direction, speed]);
 
-
-
-
-
-    const handleInputDown = (key: string) => {
+    const handleInputDown = (value: string) => {
+        const key = value.toLowerCase();
         if (!allowedKeys.has(key)) return;
-        if (key === 'e') {
-            console.log(`Engine ${engine ? 'Started' : 'Stopped'}.`);
-            setEngine(!engine);
-            return;
-        }
 
-        if (!engine) return;
-        setPressedKeys((prevKeys) => {
-            const newKeys = new Set(prevKeys);
+        if (pressedKeysRef.current.has(key)) return; // Already pressed, ignore
+
+        setPressedKeys(prev => {
+            const newKeys = new Set(prev);
             newKeys.add(key);
+            pressedKeysRef.current = newKeys;
+
+            // Key logic
+            if (key === 'e') {
+                setEngine(true);
+                console.log('Engine Started.');
+                return newKeys;
+            }
+
+            if (!engine) return prev;
+
+            if (key === 'w') setMove('w');
+            if (key === 's') setMove('s');
+            if (key === 'a') setDirection('a');
+            if (key === 'd') setDirection('d');
+            if (key === 'shift' && move) {
+                startIncreasingSpeed();
+            }
+
             return newKeys;
         });
-
-        if (key === 'w') setMove('w');
-        if (key === 's') setMove('s');
-        if (key === 'a') setDirection('a');
-        if (key === 'd') setDirection('d');
-        if (key === 'shift' && move) startIncreasingSpeed();
     };
 
-
-    const handleInputUp = (key: string) => {
+    const handleInputUp = (value: string) => {
+        const key = value.toLowerCase();
         if (!allowedKeys.has(key)) return;
-
-        // Engine logic is set to toggle and not hold
-        if (key === 'e') return;
-
         if (!engine) return;
+        if (key === 'e') return; // Engine toggle only on down
 
-        setPressedKeys((prevKeys) => {
-            const newKeys = new Set(prevKeys);
+        setPressedKeys(prev => {
+            const newKeys = new Set(prev);
             newKeys.delete(key);
+            pressedKeysRef.current = newKeys;
             return newKeys;
         });
 
@@ -110,74 +108,42 @@ export default function Motor() {
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
-        const key = e.key.toLowerCase();
-        console.log(key);
-        handleInputDown(key);
-    }
+        handleInputDown(e.key);
+    };
 
     const handleKeyUp = (e: KeyboardEvent) => {
-        const key = e.key.toLowerCase();
-        handleInputUp(key);
-    }
-
-    const setEventListeners = () => {
-        window.addEventListener('keydown', handleKeyDown);
-        window.addEventListener('keyup', handleKeyUp);
+        handleInputUp(e.key);
     };
 
-   // Add `pressedKeys` dependency to ensure effect cleanup on updates
-
-
-    const getMoveStatus = (move: string | boolean): string => {
-        if (move === "w") {
-            return "Forward";
-        } else if (move === "s") {
-            return "Backward";
-        }
-        return "Not Moving";
-    };
-
-    const getDirectionStatus = (move: string | boolean): string => {
-        if (move === "a") {
-            return "Left";
-        } else if (move === "d") {
-            return "Right";
-        }
-        return "No Direction";
-    };
-
-    /** Starts increasing speed at intervals until it reaches MAX_SPEED */
     const startIncreasingSpeed = () => {
         if (!speedInterval.current) {
-            console.log('Shift pressed, increasing speed...');
+            console.log('Starting to boost...');
             speedInterval.current = setInterval(() => {
-                setSpeed((prevSpeed) => {
-                    if (prevSpeed >= MAX_SPEED) {
+                setSpeed(prev => {
+                    if (prev >= MAX_SPEED) {
                         stopSpeedChange();
                         return MAX_SPEED;
                     }
-                    return prevSpeed + SPEED_INCREASE_RATE;
+                    return prev + SPEED_INCREASE_RATE;
                 });
             }, SPEED_INTERVAL_MS);
         }
     };
-    /** Starts decreasing speed until it reaches 0 */
-    const startDecreasingSpeed = () => {
-        console.log('Shift released, decreasing speed...');
-        stopSpeedChange();
 
+    const startDecreasingSpeed = () => {
+        console.log('Decreasing speed...');
+        stopSpeedChange();
         speedInterval.current = setInterval(() => {
-            setSpeed((prevSpeed) => {
-                if (prevSpeed <= BASE_SPEED) {
+            setSpeed(prev => {
+                if (prev <= BASE_SPEED) {
                     stopSpeedChange();
                     return BASE_SPEED;
                 }
-                return prevSpeed - SPEED_DECREASE_RATE;
+                return prev - SPEED_DECREASE_RATE;
             });
         }, SPEED_INTERVAL_MS);
     };
 
-    /** Stops any ongoing speed changes */
     const stopSpeedChange = () => {
         if (speedInterval.current) {
             clearInterval(speedInterval.current);
@@ -185,92 +151,103 @@ export default function Motor() {
         }
     };
 
-    /** Get overall status in JSON */
-    const getStatus = (): MoveDetails => {
-        return {
-            engine: engine,
-            move: {
-                isMoving: move !== false,  // True if moving, false otherwise
-                value: move ? String(move) : "None"  // Move direction or "None" if not moving
-            },
-            direction: {
-                isTurning: direction !== false,  // True if turning, false otherwise
-                value: direction ? String(direction) : "None"  // Turning direction or "None" if not turning
-            },
-            speed: speed
-        };
+    const getMoveStatus = (move: string | boolean): string => {
+        if (move === "w") return "Forward";
+        if (move === "s") return "Backward";
+        return "Not Moving";
     };
 
-    const moveStats = getMoveStatus(move);
-    const directionStats = getDirectionStatus(direction);
+    const getDirectionStatus = (direction: string | boolean): string => {
+        if (direction === "a") return "Left";
+        if (direction === "d") return "Right";
+        return "No Direction";
+    };
 
+    const getStatus = (): MoveDetails => ({
+        engine,
+        move: {
+            isMoving: move !== false,
+            value: move ? String(move) : "None"
+        },
+        direction: {
+            isTurning: direction !== false,
+            value: direction ? String(direction) : "None"
+        },
+        speed
+    });
 
-    // // Trigger the ServicePage whenever any of the state variables change
-    // useEffect(() => {
-    //     // This effect runs whenever the engine, move, direction, or speed changes
-    //
-    // }, [engine, move, direction, speed]);  // Add dependencies for all states you want to trigger on
-
-    // const sendTestServer=()=>{
-    //     sendData("toggle");
-    // };
     return (
         <>
-            <div className={"grid grid-cols-2 gap-2 justify-center"}>
-                {//this will be the info div
-                }
-                <div className={"flex flex-col justify-start items-start"}>
-                    <h1>Engine Control Panel</h1>
+            <div className="grid grid-cols-2 gap-4 p-4">
+                <div className="flex flex-col gap-2">
+                    <h1 className="text-xl font-bold">Engine Control Panel</h1>
                     <p>Engine Status: {engine ? "ON" : "OFF"}</p>
-                    <p>Moving Status: {moveStats}</p>
-                    <p>Direction Status: {directionStats}</p>
+                    <p>Moving Status: {getMoveStatus(move)}</p>
+                    <p>Direction Status: {getDirectionStatus(direction)}</p>
                     <p>Speed: {speed}</p>
                     <p>Status: {JSON.stringify(getStatus())}</p>
                     <p>Pressed keys: {Array.from(pressedKeys).join(', ')}</p>
                 </div>
 
-                <div>
-                    <div className={"flex flex-row justify-center items-center mb-2"}>
-                        <Button value={"w"} color={""} handlePressed={() => handleInputDown("w")}
-                                handleReleased={() => handleInputUp("w")} handleEngineState={engine}
-                                handleIsKeyPressed={pressedKeys}></Button>
+                <div className="flex flex-col gap-4">
+                    <div className="flex justify-center">
+                        <Button
+                            value="w"
+                            color=""
+                            handlePressed={() => handleInputDown('w')}
+                            handleReleased={() => handleInputUp('w')}
+                            handleEngineState={engine}
+                            handleIsKeyPressed={pressedKeys}
+                        />
                     </div>
-                    <div className={"flex flex-row justify-center gap-2 items-center "}>
-                        <Button value={"a"} handleReleased={() => handleInputUp("a")}
-                                handlePressed={() => handleInputDown("a")} color={""} handleEngineState={engine}
-                                handleIsKeyPressed={pressedKeys}></Button>
-                        <Button value={"s"} handleReleased={() => handleInputUp("s")}
-                                handlePressed={() => handleInputDown("s")} color={""} handleEngineState={engine}
-                                handleIsKeyPressed={pressedKeys}></Button>
-                        <Button value={"d"} handleReleased={() => handleInputUp("d")}
-                                handlePressed={() => handleInputDown("d")} color={""} handleEngineState={engine}
-                                handleIsKeyPressed={pressedKeys}></Button>
+
+                    <div className="flex justify-center gap-4">
+                        <Button
+                            value="a"
+                            color=""
+                            handlePressed={() => handleInputDown('a')}
+                            handleReleased={() => handleInputUp('a')}
+                            handleEngineState={engine}
+                            handleIsKeyPressed={pressedKeys}
+                        />
+                        <Button
+                            value="s"
+                            color=""
+                            handlePressed={() => handleInputDown('s')}
+                            handleReleased={() => handleInputUp('s')}
+                            handleEngineState={engine}
+                            handleIsKeyPressed={pressedKeys}
+                        />
+                        <Button
+                            value="d"
+                            color=""
+                            handlePressed={() => handleInputDown('d')}
+                            handleReleased={() => handleInputUp('d')}
+                            handleEngineState={engine}
+                            handleIsKeyPressed={pressedKeys}
+                        />
                     </div>
-                </div>
 
+                    <div className="flex flex-col gap-2 mt-4">
+                        <button
+                            onMouseDown={() => handleInputDown('shift')}
+                            onMouseUp={() => handleInputUp('shift')}
+                            onTouchStart={() => handleInputDown('shift')}
+                            onTouchEnd={() => handleInputUp('shift')}
+                            className={`btn ${pressedKeys.has('shift') ? 'bg-purple-600' : ''}`}
+                        >
+                            Boost
+                        </button>
 
-                <div>
-                    <button
-                        onMouseDown={() => handleInputDown('shift')}
-                        onMouseUp={() => handleInputUp('shift')}
-                        onTouchStart={() => handleInputDown('shift')}
-                        onTouchEnd={() => handleInputUp('shift')}
-                        className={pressedKeys.has('shift') ? 'active' : ''}
-                    > Boost
-                    </button>
-                </div>
-                <div>
-                    <button
-                        onClick={() => handleInputDown('e')}
-                        className={engine ? 'active' : ''}
-                    >
-                        {engine ? "Stop Engine" : "Start Engine"}
-                    </button>
-                    <button className="btn btn-soft btn-accent">Accent</button>
+                        <button
+                            onClick={() => handleInputDown('e')}
+                            className={`btn ${engine ? 'bg-red-600' : 'bg-green-600'}`}
+                        >
+                            {engine ? "Stop Engine" : "Start Engine"}
+                        </button>
+                    </div>
                 </div>
             </div>
         </>
-
     );
 }
-

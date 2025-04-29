@@ -1,25 +1,46 @@
 #include <RPLidar.h>
 #include "lidar/lidar.h"
 #include "fns.h"
-#include "websocket/websocket.h"
+#include "mqtt/mqtt.h"
+
 
 Motor leftMotor(IN1, IN2, ENA, pwmChannel1); 
-Motor rightMotor(IN3, IN4, ENB, pwmChannel2);       
+Motor rightMotor(IN3, IN4, ENB, pwmChannel2);
 
+RobotData robot = RobotData(); 
 
 
 void setup() {
   Serial.begin(115200); 
-initializeHardware();
-initializeWebSocketServer();
+// initializeHardware();
+connectWiFi();
+connectMQTT(&robot);
+
 }
 
 void loop() {
-  ws.cleanupClients();
+      if(WiFi.status()!=WL_CONNECTED){
+        connectWiFi();
+    }
+    if(!client.connected()){
+        connectMQTT(&robot);
+    }
+    client.loop(); 
+    
+    unsigned long currentMillis = millis();
+
+    if (buzzerActive) {
+        if (currentMillis - buzzerStartTime >= buzzerDuration) {
+            // 100 ms passed -> stop buzzer
+            digitalWrite(buzzer, LOW);
+            buzzerActive = false;
+            Serial.println("Buzzer OFF");
+        }
+    }
  // readLidarData();
 
 //  if (isDirectionAllowed(FORWARD)) {
-    moveRobotTwo(FORWARD, 170, 170, leftMotor, rightMotor);
+    // moveRobotTwo(FORWARD, 170, 170, leftMotor, rightMotor);
  // } 
   // else if (isDirectionAllowed(LEFT) && isDirectionAllowed(RIGHT)) {
   //   moveRobotTwo(LEFT, 255, 255, leftMotor, rightMotor);

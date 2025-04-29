@@ -3,7 +3,7 @@ export interface ButtonProps {
     handlePressed:(key:string)=>void,
     handleReleased:(key:string)=>void,
     color:string,
-    handleIsKeyPressed:Set<string>,
-    handleEngineState:boolean
+    handleEngineState:boolean,
+    isPressed:boolean;
 }
 

@@ -691,6 +691,60 @@
           }
         }
       },
+      "InitializeEnginResponseDto": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseDto"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "command": {
+                "$ref": "#/components/schemas/ClientCommandOfInitializeEngineResponse"
+              }
+            }
+          }
+        ]
+      },
+      "ClientCommandOfInitializeEngineResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "commandType": {
+            "$ref": "#/components/schemas/ClientCommandType"
+          },
+          "payload": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/InitializeEngineResponse"
+              }
+            ]
+          }
+        }
+      },
+      "ClientCommandType": {
+        "type": "string",
+        "description": "",
+        "x-enumNames": [
+          "Initialized",
+          "BatteryStatus"
+        ],
+        "enum": [
+          "Initialized",
+          "BatteryStatus"
+        ]
+      },
+      "InitializeEngineResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "initializeEngine": {
+            "type": "boolean"
+          }
+        }
+      },
       "ExampleServerResponse": {
         "allOf": [
           {
@@ -745,22 +799,6 @@
           }
         ]
       },
-      "EngineStateDto": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/BaseDto"
-          },
-          {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "engineState": {
-                "type": "boolean"
-              }
-            }
-          }
-        ]
-      },
       "ExampleClientDto": {
         "allOf": [
           {
@@ -776,6 +814,62 @@
             }
           }
         ]
+      },
+      "EngineStateDto": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseDto"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "command": {
+                "$ref": "#/components/schemas/CommandOfEngineManagement"
+              }
+            }
+          }
+        ]
+      },
+      "CommandOfEngineManagement": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "commandType": {
+            "$ref": "#/components/schemas/CommandType"
+          },
+          "payload": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/EngineManagement"
+              }
+            ]
+          }
+        }
+      },
+      "CommandType": {
+        "type": "string",
+        "description": "",
+        "x-enumNames": [
+          "Initialize",
+          "Move",
+          "Stop"
+        ],
+        "enum": [
+          "Initialize",
+          "Move",
+          "Stop"
+        ]
+      },
+      "EngineManagement": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "engine": {
+            "type": "boolean"
+          }
+        }
       },
       "ServerConfirmsDto": {
         "allOf": [
@@ -798,12 +892,13 @@
         "description": "Available eventType and string constants",
         "enum": [
           "MemberLeftNotification",
+          "InitializeEnginResponseDto",
           "ExampleServerResponse",
           "ServerSendsErrorMessage",
           "Ping",
           "Pong",
-          "EngineStateDto",
           "ExampleClientDto",
+          "EngineStateDto",
           "ServerConfirmsDto"
         ]
       }

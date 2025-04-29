@@ -1,17 +1,23 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
 using Application.Interfaces.Infrastructure.Websocket;
+using Application.Services;
 using Fleck;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Infrastructure.Websocket;
 
 public sealed class WebSocketConnectionManager : IConnectionManager
 {
+    private readonly ILogger<WebSocketConnectionManager> _logger;
+    private IOptionsMonitor<MqttOptions> _mqttOptionsMonitor;
+    private List<string> topics = new List<string>();
+
+
     private readonly ConcurrentDictionary<string /*Connection ID*/, IWebSocketConnection /*Websocket ID*/>
         _connectionIdToSocket = new();
 
-    private readonly ILogger<WebSocketConnectionManager> _logger;
     private readonly ConcurrentDictionary<string /*Connection ID*/, HashSet<string>> _memberTopics = new();
 
     private readonly ConcurrentDictionary<string /*Websocket ID*/, string /*Connection ID*/> _socketToConnectionId =
@@ -19,17 +25,26 @@ public sealed class WebSocketConnectionManager : IConnectionManager
 
     private readonly ConcurrentDictionary<string, HashSet<string> /*Connection IDs*/> _topicMembers = new();
 
-    public WebSocketConnectionManager(ILogger<WebSocketConnectionManager> logger)
+    public WebSocketConnectionManager(ILogger<WebSocketConnectionManager> logger,
+        IOptionsMonitor<MqttOptions> mqttOptionsMonitor)
     {
         _logger = logger;
+        _mqttOptionsMonitor = mqttOptionsMonitor;
+        topics.Add(_mqttOptionsMonitor.CurrentValue.SubscribeEngineTopic);
+        topics.Add(_mqttOptionsMonitor.CurrentValue.SubscribeCommandsTopic);
     }
 
+
+    private async  void SubscribeToDefaultTopics( string clientId)
+    {
+        foreach (var topicId in topics) await AddToTopic(topicId, clientId);  
+    }
 
     public ConcurrentDictionary<string, object> GetConnectionIdToSocketDictionary()
     {
         var idToSocket = new ConcurrentDictionary<string, object>();
         foreach (var (key, value) in _connectionIdToSocket) idToSocket.TryAdd(key, value);
-
+      
         return idToSocket;
     }
 
@@ -61,6 +76,8 @@ public sealed class WebSocketConnectionManager : IConnectionManager
         if (_memberTopics.TryGetValue(clientId, out var topics))
             foreach (var topic in topics)
                 await AddToTopic(topic, clientId);
+        //add to defaoult topic 
+        SubscribeToDefaultTopics(clientId);
 
         await LogCurrentState();
     }

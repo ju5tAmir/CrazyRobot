@@ -2,5 +2,5 @@
 
 public interface IMqttPublisher
 {
-  Task Publish(object dto, string topic);
+  Task Publish( string topic,object dto);
 }

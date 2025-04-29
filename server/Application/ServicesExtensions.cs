@@ -4,6 +4,7 @@ using Application.Interfaces.Infrastructure.mqtt;
 using Application.Interfaces.Robot;
 using Application.Interfaces.Security;
 using Application.Services;
+using Core.Domain.Entities.Robot;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Application;
@@ -12,6 +13,7 @@ public static class ServicesExtensions
 {
     public static IServiceCollection RegisterApplicationServices(this IServiceCollection services)
     {
+        services.AddTransient<InitializeEngineHandler> ();
         services.AddSingleton<IMqttMessageHandler, MqttMessageHandler>();
         services.AddScoped<ISecurityService, SecurityService>();
         services.AddScoped<IWebsocketSubscriptionService, WebsocketSubscriptionService>();

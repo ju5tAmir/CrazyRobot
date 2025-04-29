@@ -2,8 +2,10 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text.Json;
 using System.Web;
+using Api.Websocket.EventHandlers.Robot.EngineControll;
 using Api.Websocket.ServerDto;
 using Application.Interfaces.Infrastructure.Websocket;
+using Application.Interfaces.Robot;
 using Fleck;
 using WebSocketBoilerplate;
 
@@ -16,6 +18,7 @@ public static class WebsocketStartupExtensions
         services.AddEndpointsApiExplorer();
         var assembly = typeof(WebsocketStartupExtensions).Assembly;
         services.InjectEventHandlers(assembly);
+        services.AddSingleton<IClientNotifier, InitializeEngineResponseHandler>();
         return services;
     }
 

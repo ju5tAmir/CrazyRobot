@@ -27,7 +27,7 @@ CREATE TABLE crazyrobot.survey (
     is_active boolean NOT NULL DEFAULT TRUE,
     created_at timestamp with time zone NOT NULL,
     CONSTRAINT survey_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_survey_user FOREIGN KEY (created_by_user_id) REFERENCES crazyrobot."user" (id)
+    CONSTRAINT fk_survey_user FOREIGN KEY (created_by_user_id) REFERENCES crazyrobot."user" (id) ON DELETE CASCADE
 );
 
 
@@ -38,7 +38,7 @@ CREATE TABLE crazyrobot.question (
     question_type text NOT NULL,
     order_number integer NOT NULL,
     CONSTRAINT question_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_question_survey FOREIGN KEY (survey_id) REFERENCES crazyrobot.survey (id)
+    CONSTRAINT fk_question_survey FOREIGN KEY (survey_id) REFERENCES crazyrobot.survey (id) ON DELETE CASCADE
 );
 
 
@@ -48,8 +48,8 @@ CREATE TABLE crazyrobot.survey_response (
     user_id text NOT NULL,
     submitted_at timestamp with time zone NOT NULL,
     CONSTRAINT survey_response_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_response_survey FOREIGN KEY (survey_id) REFERENCES crazyrobot.survey (id),
-    CONSTRAINT fk_response_user FOREIGN KEY (user_id) REFERENCES crazyrobot."user" (id)
+    CONSTRAINT fk_response_survey FOREIGN KEY (survey_id) REFERENCES crazyrobot.survey (id) ON DELETE CASCADE,
+    CONSTRAINT fk_response_user FOREIGN KEY (user_id) REFERENCES crazyrobot."user" (id) ON DELETE CASCADE
 );
 
 
@@ -59,7 +59,7 @@ CREATE TABLE crazyrobot.question_option (
     option_text text NOT NULL,
     order_number integer NOT NULL,
     CONSTRAINT question_option_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_option_question FOREIGN KEY (question_id) REFERENCES crazyrobot.question (id)
+    CONSTRAINT fk_option_question FOREIGN KEY (question_id) REFERENCES crazyrobot.question (id) ON DELETE CASCADE
 );
 
 
@@ -70,9 +70,9 @@ CREATE TABLE crazyrobot.answer (
     answer_text text,
     selected_option_id text,
     CONSTRAINT answer_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_answer_option FOREIGN KEY (selected_option_id) REFERENCES crazyrobot.question_option (id),
-    CONSTRAINT fk_answer_question FOREIGN KEY (question_id) REFERENCES crazyrobot.question (id),
-    CONSTRAINT fk_answer_response FOREIGN KEY (survey_response_id) REFERENCES crazyrobot.survey_response (id)
+    CONSTRAINT fk_answer_option FOREIGN KEY (selected_option_id) REFERENCES crazyrobot.question_option (id) ON DELETE CASCADE,
+    CONSTRAINT fk_answer_question FOREIGN KEY (question_id) REFERENCES crazyrobot.question (id) ON DELETE CASCADE,
+    CONSTRAINT fk_answer_response FOREIGN KEY (survey_response_id) REFERENCES crazyrobot.survey_response (id) ON DELETE CASCADE
 );
 
 

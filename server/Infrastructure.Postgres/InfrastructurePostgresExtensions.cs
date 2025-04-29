@@ -21,7 +21,8 @@ public static class InfrastructurePostgresExtensions
         });
 
         services.AddScoped<IUserRepository, UserRepository>();
-        services.AddScoped<ISurveyRepository, SurveyRepository>();
+        services.AddScoped<IAdminSurveyRepository, AdminSurveyRepository>();
+        services.AddScoped<IUserSurveyRepository, UserSurveyRepository>();
         services.AddScoped<Seeder>();
 
         return services;

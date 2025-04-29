@@ -11,15 +11,15 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Rest.Controllers.Surveys;
 
 [ApiController]
-public class SurveysController(ISecurityService securityService, ISurveyService surveyService, ILogger<SurveysController> logger) : ControllerBase
+public class AdminSurveysController(ISecurityService securityService, IAdminSurveyService adminSurveyService, ILogger<AdminSurveysController> logger) : ControllerBase
 {
     private const string ControllerRoute = "api/surveys/";
     private const string CreateRoute = ControllerRoute + nameof(CreateSurvey);
     private const string UpdateRoute = ControllerRoute + nameof(UpdateSurvey);
     private const string DeleteRoute = ControllerRoute + nameof(DeleteSurvey);
     private const string GetAllRoute = ControllerRoute + nameof(GetAllSurveys);
-    private const string SubmitRoute = ControllerRoute + nameof(SubmitResponse);
-    private const string GetResultsRoute = ControllerRoute + nameof(GetSurveysResults);
+    private const string GetResultsRoute = ControllerRoute + nameof(GetSurveyResultById);
+    private const string GetAllResultsRoute = ControllerRoute + nameof(GetSurveysResults);
 
         
     [HttpPost]
@@ -40,7 +40,7 @@ public class SurveysController(ISecurityService securityService, ISurveyService 
                     string.Equals(role, admin.Role, StringComparison.OrdinalIgnoreCase)))
                 return BadRequestErrorMessage(ErrorMessages.GetMessage(ErrorCode.InvalidRole));
 
-            var result = await surveyService.CreateSurvey(dto, admin.Id);
+            var result = await adminSurveyService.CreateSurvey(dto, admin.Id);
             return Ok(result);
         }
         catch (ApplicationException ex)
@@ -61,7 +61,7 @@ public class SurveysController(ISecurityService securityService, ISurveyService 
                     string.Equals(role, admin.Role, StringComparison.OrdinalIgnoreCase)))
                 return BadRequestErrorMessage(ErrorMessages.GetMessage(ErrorCode.InvalidRole));
 
-            var result = await surveyService.UpdateSurvey(dto, admin.Id);
+            var result = await adminSurveyService.UpdateSurvey(dto, admin.Id);
             return Ok(result);
         }
         catch (Exception ex)
@@ -82,7 +82,7 @@ public class SurveysController(ISecurityService securityService, ISurveyService 
                     string.Equals(role, admin.Role, StringComparison.OrdinalIgnoreCase)))
                 return BadRequestErrorMessage(ErrorMessages.GetMessage(ErrorCode.InvalidRole));
 
-            await surveyService.DeleteSurvey(surveyId, admin.Id);
+            await adminSurveyService.DeleteSurvey(surveyId, admin.Id);
             return Ok();
         }
         catch (Exception ex)
@@ -98,7 +98,7 @@ public class SurveysController(ISecurityService securityService, ISurveyService 
     {
         try
         {
-            var surveys = await surveyService.GetAllSurveys();
+            var surveys = await adminSurveyService.GetAllSurveys();
             return Ok(surveys);
         }
         catch (Exception ex)
@@ -108,18 +108,44 @@ public class SurveysController(ISecurityService securityService, ISurveyService 
         }
     }
     
-    [HttpPost]
-    [Route(SubmitRoute)]
-    public async Task<ActionResult<SurveyResponseDto>> SubmitResponse()
+    [HttpGet]
+    [Route(GetResultsRoute + "/{surveyId}")]
+    public async Task<ActionResult<SurveyResultsDto>> GetSurveyResultById(string surveyId)
     {
-        return null;
+        try
+        {
+            var admin = securityService.VerifyJwtOrThrow(HttpContext.GetJwt());
+            if (!Roles.All.Any(role => string.Equals(role, admin.Role, StringComparison.OrdinalIgnoreCase)))
+                return BadRequestErrorMessage(ErrorMessages.GetMessage(ErrorCode.InvalidRole));
+
+            var results = await adminSurveyService.GetSurveyResults(surveyId);
+            return Ok(results);
+        }
+        catch (Exception ex)
+        {
+            logger.Log(LogLevel.Warning, ex.Message, ex);
+            return BadRequestErrorMessage(ex.Message);
+        }
     }
     
     [HttpGet]
-    [Route(GetResultsRoute)]
-    public async Task<ActionResult<SurveyResponseDto>> GetSurveysResults()
+    [Route(GetAllResultsRoute)]
+    public async Task<ActionResult<List<SurveyResultsDto>>> GetSurveysResults()
     {
-        return null;
+        try
+        {
+            var admin = securityService.VerifyJwtOrThrow(HttpContext.GetJwt());
+            if (!Roles.All.Any(role => string.Equals(role, admin.Role, StringComparison.OrdinalIgnoreCase)))
+                return BadRequestErrorMessage(ErrorMessages.GetMessage(ErrorCode.InvalidRole));
+
+            var results = await adminSurveyService.GetAllSurveysResults();
+            return Ok(results);
+        }
+        catch (Exception ex)
+        {
+            logger.Log(LogLevel.Warning, ex.Message, ex);
+            return BadRequestErrorMessage(ex.Message);
+        }
     }
     
     private ActionResult BadRequestErrorMessage(string errorMessage)

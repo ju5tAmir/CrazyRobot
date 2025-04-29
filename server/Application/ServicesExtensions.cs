@@ -11,7 +11,8 @@ public static class ServicesExtensions
     public static IServiceCollection RegisterApplicationServices(this IServiceCollection services)
     {
         services.AddScoped<ISecurityService, SecurityService>();
-        services.AddScoped<ISurveyService, SurveyService>();
+        services.AddScoped<IAdminSurveyService, AdminSurveyService>();
+        services.AddScoped<IUserSurveyService, UserSurveyService>();
         services.AddScoped<IWebsocketSubscriptionService, WebsocketSubscriptionService>();
         return services;
     }

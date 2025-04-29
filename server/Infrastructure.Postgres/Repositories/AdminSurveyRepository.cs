@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Postgres.Repositories;
 
-public class SurveyRepository(AppDbContext dbContext) :  ISurveyRepository
+public class AdminSurveyRepository(AppDbContext dbContext) :  IAdminSurveyRepository
 {
     public async Task<Survey> CreateSurvey(Survey survey)
     {
@@ -54,7 +54,27 @@ public class SurveyRepository(AppDbContext dbContext) :  ISurveyRepository
             .ThenInclude(q => q.QuestionOptions)
             .ToListAsync();
     }
-    
+
+    public async Task<List<Survey>> GetAllSurveysWithResponses()
+    {
+        return await dbContext.Surveys
+            .Include(s => s.Questions)
+            .ThenInclude(q => q.QuestionOptions)
+            .Include(s => s.SurveyResponses)
+            .ThenInclude(sr => sr.Answers)
+            .ToListAsync();
+    }
+
+    public async Task<Survey?> GetSurveyWithResponses(string surveyId)
+    {
+        return await dbContext.Surveys
+            .Include(s => s.Questions)
+            .ThenInclude(q => q.QuestionOptions)
+            .Include(s => s.SurveyResponses)
+            .ThenInclude(sr => sr.Answers)
+            .FirstOrDefaultAsync(s => s.Id == surveyId);
+    }
+
     public async Task<Survey> GetSurveyById(string surveyId)
     {
         return await dbContext.Surveys.FindAsync(surveyId);

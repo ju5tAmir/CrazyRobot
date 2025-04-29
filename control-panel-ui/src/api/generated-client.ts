@@ -148,7 +148,7 @@ export class SubscriptionClient {
     }
 }
 
-export class SurveysClient {
+export class AdminSurveysClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
@@ -309,29 +309,32 @@ export class SurveysClient {
         return Promise.resolve<SurveyResponseDto>(null as any);
     }
 
-    submitResponse(): Promise<SurveyResponseDto> {
-        let url_ = this.baseUrl + "/api/surveys/SubmitResponse";
+    getSurveyResultById(surveyId: string): Promise<SurveyResultsDto> {
+        let url_ = this.baseUrl + "/api/surveys/GetSurveyResultById/{surveyId}";
+        if (surveyId === undefined || surveyId === null)
+            throw new Error("The parameter 'surveyId' must be defined.");
+        url_ = url_.replace("{surveyId}", encodeURIComponent("" + surveyId));
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
-            method: "POST",
+            method: "GET",
             headers: {
                 "Accept": "application/json"
             }
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processSubmitResponse(_response);
+            return this.processGetSurveyResultById(_response);
         });
     }
 
-    protected processSubmitResponse(response: Response): Promise<SurveyResponseDto> {
+    protected processGetSurveyResultById(response: Response): Promise<SurveyResultsDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
-            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as SurveyResponseDto;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as SurveyResultsDto;
             return result200;
             });
         } else if (status !== 200 && status !== 204) {
@@ -339,10 +342,10 @@ export class SurveysClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<SurveyResponseDto>(null as any);
+        return Promise.resolve<SurveyResultsDto>(null as any);
     }
 
-    getSurveysResults(): Promise<SurveyResponseDto> {
+    getSurveysResults(): Promise<SurveyResultsDto[]> {
         let url_ = this.baseUrl + "/api/surveys/GetSurveysResults";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -358,13 +361,13 @@ export class SurveysClient {
         });
     }
 
-    protected processGetSurveysResults(response: Response): Promise<SurveyResponseDto> {
+    protected processGetSurveysResults(response: Response): Promise<SurveyResultsDto[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
-            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as SurveyResponseDto;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as SurveyResultsDto[];
             return result200;
             });
         } else if (status !== 200 && status !== 204) {
@@ -372,7 +375,55 @@ export class SurveysClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<SurveyResponseDto>(null as any);
+        return Promise.resolve<SurveyResultsDto[]>(null as any);
+    }
+}
+
+export class UserSurveysClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    submitResponse(requestDto: SurveySubmissionRequestDto): Promise<SurveySubmissionResponseDto> {
+        let url_ = this.baseUrl + "/api/survey-submission/SubmitResponse";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(requestDto);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSubmitResponse(_response);
+        });
+    }
+
+    protected processSubmitResponse(response: Response): Promise<SurveySubmissionResponseDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as SurveySubmissionResponseDto;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<SurveySubmissionResponseDto>(null as any);
     }
 }
 
@@ -547,6 +598,42 @@ export interface UpdateSurveyRequestDto {
     surveyType?: string;
     isActive?: boolean;
     questions?: QuestionDto[];
+}
+
+export interface SurveyResultsDto {
+    surveyId?: string;
+    title?: string;
+    totalResponses?: number;
+    questionResults?: QuestionResultDto[];
+}
+
+export interface QuestionResultDto {
+    questionId?: string;
+    questionText?: string;
+    questionType?: string;
+    statistics?: AnswerStatisticDto[];
+}
+
+export interface AnswerStatisticDto {
+    optionText?: string;
+    count?: number;
+    percentage?: number;
+}
+
+export interface SurveySubmissionResponseDto {
+    id?: string;
+    surveyId?: string;
+    responses?: QuestionResponseDto[];
+}
+
+export interface QuestionResponseDto {
+    questionId?: string;
+    response?: string;
+}
+
+export interface SurveySubmissionRequestDto {
+    surveyId?: string;
+    responses?: QuestionResponseDto[];
 }
 
 export interface AuthResponseDto {

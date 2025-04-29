@@ -113,7 +113,18 @@ public class SurveyService(ISurveyRepository surveyRepository) : ISurveyService
             SurveyType = s.SurveyType,
             IsActive = s.IsActive,
             CreatedByUserId = s.CreatedByUserId,
-            CreatedAt = s.CreatedAt
+            CreatedAt = s.CreatedAt,
+            Questions = s.Questions.Select(q => new QuestionDto
+            {
+            QuestionText = q.QuestionText,
+            QuestionType = q.QuestionType,
+            OrderNumber = q.OrderNumber,
+            Options = q.QuestionOptions.Select(o => new QuestionOptionDto
+            {
+                OptionText = o.OptionText,
+                OrderNumber = o.OrderNumber
+            }).ToList()
+        }).ToList()
         }).ToList();
     }
 }

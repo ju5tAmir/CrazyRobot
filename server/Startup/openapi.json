@@ -157,18 +157,29 @@
         }
       }
     },
-    "/api/surveys/UpdateSurvey": {
+    "/api/surveys/UpdateSurvey/{surveyId}": {
       "put": {
         "tags": [
           "Surveys"
         ],
         "operationId": "Surveys_UpdateSurvey",
+        "parameters": [
+          {
+            "name": "surveyId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 2
+          }
+        ],
         "requestBody": {
           "x-name": "dto",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateSurveyRequestDto"
+                "$ref": "#/components/schemas/UpdateSurveyRequestDto"
               }
             }
           },
@@ -189,7 +200,7 @@
         }
       }
     },
-    "/api/surveys/DeleteSurvey": {
+    "/api/surveys/DeleteSurvey/{surveyId}": {
       "delete": {
         "tags": [
           "Surveys"
@@ -198,7 +209,8 @@
         "parameters": [
           {
             "name": "surveyId",
-            "in": "query",
+            "in": "path",
+            "required": true,
             "schema": {
               "type": "string"
             },
@@ -226,18 +238,6 @@
           "Surveys"
         ],
         "operationId": "Surveys_GetAllSurveys",
-        "requestBody": {
-          "x-name": "requestDto",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateSurveyRequestDto"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
         "responses": {
           "200": {
             "description": "",
@@ -258,18 +258,6 @@
           "Surveys"
         ],
         "operationId": "Surveys_SubmitResponse",
-        "requestBody": {
-          "x-name": "requestDto",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateSurveyRequestDto"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
         "responses": {
           "200": {
             "description": "",
@@ -290,18 +278,6 @@
           "Surveys"
         ],
         "operationId": "Surveys_GetSurveysResults",
-        "requestBody": {
-          "x-name": "requestDto",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateSurveyRequestDto"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
         "responses": {
           "200": {
             "description": "",
@@ -506,6 +482,34 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "surveyType": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "questions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuestionDto"
+            }
+          }
+        }
+      },
+      "UpdateSurveyRequestDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
           "title": {
             "type": "string"
           },

@@ -46,16 +46,15 @@ public partial class AppDbContext : DbContext
 
             entity.HasOne(d => d.Question).WithMany(p => p.Answers)
                 .HasForeignKey(d => d.QuestionId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_answer_question");
 
             entity.HasOne(d => d.SelectedOption).WithMany(p => p.Answers)
                 .HasForeignKey(d => d.SelectedOptionId)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("fk_answer_option");
 
             entity.HasOne(d => d.SurveyResponse).WithMany(p => p.Answers)
                 .HasForeignKey(d => d.SurveyResponseId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_answer_response");
         });
 
@@ -75,7 +74,6 @@ public partial class AppDbContext : DbContext
 
             entity.HasOne(d => d.Survey).WithMany(p => p.Questions)
                 .HasForeignKey(d => d.SurveyId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_question_survey");
         });
 
@@ -94,7 +92,6 @@ public partial class AppDbContext : DbContext
 
             entity.HasOne(d => d.Question).WithMany(p => p.QuestionOptions)
                 .HasForeignKey(d => d.QuestionId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_option_question");
         });
 
@@ -118,7 +115,6 @@ public partial class AppDbContext : DbContext
 
             entity.HasOne(d => d.CreatedByUser).WithMany(p => p.Surveys)
                 .HasForeignKey(d => d.CreatedByUserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_survey_user");
         });
 
@@ -139,12 +135,10 @@ public partial class AppDbContext : DbContext
 
             entity.HasOne(d => d.Survey).WithMany(p => p.SurveyResponses)
                 .HasForeignKey(d => d.SurveyId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_response_survey");
 
             entity.HasOne(d => d.User).WithMany(p => p.SurveyResponses)
                 .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_response_user");
         });
 

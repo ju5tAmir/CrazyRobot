@@ -195,8 +195,11 @@ export class SurveysClient {
         return Promise.resolve<SurveyResponseDto>(null as any);
     }
 
-    updateSurvey(dto: CreateSurveyRequestDto): Promise<SurveyResponseDto> {
-        let url_ = this.baseUrl + "/api/surveys/UpdateSurvey";
+    updateSurvey(dto: UpdateSurveyRequestDto, surveyId: string): Promise<SurveyResponseDto> {
+        let url_ = this.baseUrl + "/api/surveys/UpdateSurvey/{surveyId}";
+        if (surveyId === undefined || surveyId === null)
+            throw new Error("The parameter 'surveyId' must be defined.");
+        url_ = url_.replace("{surveyId}", encodeURIComponent("" + surveyId));
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(dto);
@@ -232,12 +235,11 @@ export class SurveysClient {
         return Promise.resolve<SurveyResponseDto>(null as any);
     }
 
-    deleteSurvey(surveyId: string | undefined): Promise<FileResponse> {
-        let url_ = this.baseUrl + "/api/surveys/DeleteSurvey?";
-        if (surveyId === null)
-            throw new Error("The parameter 'surveyId' cannot be null.");
-        else if (surveyId !== undefined)
-            url_ += "surveyId=" + encodeURIComponent("" + surveyId) + "&";
+    deleteSurvey(surveyId: string): Promise<FileResponse> {
+        let url_ = this.baseUrl + "/api/surveys/DeleteSurvey/{surveyId}";
+        if (surveyId === undefined || surveyId === null)
+            throw new Error("The parameter 'surveyId' must be defined.");
+        url_ = url_.replace("{surveyId}", encodeURIComponent("" + surveyId));
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -274,17 +276,13 @@ export class SurveysClient {
         return Promise.resolve<FileResponse>(null as any);
     }
 
-    getAllSurveys(requestDto: CreateSurveyRequestDto): Promise<SurveyResponseDto> {
+    getAllSurveys(): Promise<SurveyResponseDto> {
         let url_ = this.baseUrl + "/api/surveys/GetAllSurveys";
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = JSON.stringify(requestDto);
-
         let options_: RequestInit = {
-            body: content_,
             method: "GET",
             headers: {
-                "Content-Type": "application/json",
                 "Accept": "application/json"
             }
         };
@@ -311,17 +309,13 @@ export class SurveysClient {
         return Promise.resolve<SurveyResponseDto>(null as any);
     }
 
-    submitResponse(requestDto: CreateSurveyRequestDto): Promise<SurveyResponseDto> {
+    submitResponse(): Promise<SurveyResponseDto> {
         let url_ = this.baseUrl + "/api/surveys/SubmitResponse";
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = JSON.stringify(requestDto);
-
         let options_: RequestInit = {
-            body: content_,
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
                 "Accept": "application/json"
             }
         };
@@ -348,17 +342,13 @@ export class SurveysClient {
         return Promise.resolve<SurveyResponseDto>(null as any);
     }
 
-    getSurveysResults(requestDto: CreateSurveyRequestDto): Promise<SurveyResponseDto> {
+    getSurveysResults(): Promise<SurveyResponseDto> {
         let url_ = this.baseUrl + "/api/surveys/GetSurveysResults";
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = JSON.stringify(requestDto);
-
         let options_: RequestInit = {
-            body: content_,
             method: "GET",
             headers: {
-                "Content-Type": "application/json",
                 "Accept": "application/json"
             }
         };
@@ -543,6 +533,15 @@ export interface QuestionOptionDto {
 }
 
 export interface CreateSurveyRequestDto {
+    title?: string;
+    description?: string | undefined;
+    surveyType?: string;
+    isActive?: boolean;
+    questions?: QuestionDto[];
+}
+
+export interface UpdateSurveyRequestDto {
+    id?: string;
     title?: string;
     description?: string | undefined;
     surveyType?: string;

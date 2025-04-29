@@ -49,7 +49,10 @@ public class SurveyRepository(AppDbContext dbContext) :  ISurveyRepository
 
     public async Task<List<Survey>> GetAllSurveys()
     {
-        return await dbContext.Surveys.ToListAsync();
+        return await dbContext.Surveys
+            .Include(s => s.Questions)
+            .ThenInclude(q => q.QuestionOptions)
+            .ToListAsync();
     }
     
     public async Task<Survey> GetSurveyById(string surveyId)

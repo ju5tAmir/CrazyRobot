@@ -6,17 +6,19 @@ export default {
   ],
   theme: {
     extend: {
-      colors:{
-        contrast:"#217B61"
+      colors: {
+        contrast: "#217B61"
       }
-
-
-
     },
   },
-  plugins: [],
+  plugins: [
+    require('daisyui')
+  ],
+  daisyui: {
+    themes: [
+      'light',
+      'dark',
+      // якщо потрібні ще — наприклад 'cupcake','garden' і т.д.
+    ]
+  }
 }
-
-
-
-

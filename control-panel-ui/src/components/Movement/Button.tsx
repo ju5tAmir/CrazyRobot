@@ -1,49 +1,36 @@
-import {ButtonProps} from "../../models/ButtonProps.ts";
-import {useEffect,useState} from "react";
+import { ButtonProps } from "../../models/ButtonProps.ts";
 import { FaArrowUp, FaArrowDown, FaArrowLeft, FaArrowRight } from "react-icons/fa";
 
-export const Button =(props:ButtonProps)=>{
-   const [pressed,setPressed] = useState<boolean>(false);
-   const [isActive,setIsActive] = useState<boolean>(props.handleEngineState);
-    useEffect(() => {
-        if(props.handleIsKeyPressed.has(props.value)){
-            setPressed(true);
-        }else{
-            setPressed(false);
-        }
-        setIsActive(props.handleEngineState);
+export const Button = (props: ButtonProps) => {
 
-    }, [props.handleEngineState, props.handleIsKeyPressed, props.value]);
-   const handlePressed = ()=>{
-       setPressed(true);
-       props.handlePressed(props.value);
-    }
+    const handlePressed = () => {
+        props.handlePressed(props.value);
+    };
 
-    const handleReleased=()=>{
-        setPressed(false);
+    const handleReleased = () => {
         props.handleReleased(props.value);
-    }
-    const decideUi=(val:string)=>{
-        switch(val.toLowerCase()){
-            case "w":return <FaArrowUp/>
-            case "s":return <FaArrowDown/>
-            case "a":return <FaArrowLeft/>
-            case "d" :return <FaArrowRight/>
-            default : return val
+    };
+
+    const decideUi = (val: string) => {
+        switch (val.toLowerCase()) {
+            case "w": return <FaArrowUp />;
+            case "s": return <FaArrowDown />;
+            case "a": return <FaArrowLeft />;
+            case "d": return <FaArrowRight />;
+            default: return val.toUpperCase();
         }
-    }
+    };
 
     return (
         <button
-            onMouseDown={() => handlePressed()}
-            onMouseUp={() =>handleReleased()}
-            onTouchStart={() => handlePressed()}
-            onTouchEnd={() => handleReleased()}
-            className={`btn  ${isActive?"btn-neutral":""}  ${pressed?"bg-purple-600":""} `}
-            disabled={!isActive}
-        > {decideUi(props.value)}
+            onMouseDown={handlePressed}
+            onMouseUp={handleReleased}
+            onTouchStart={handlePressed}
+            onTouchEnd={handleReleased}
+            disabled={!props.handleEngineState}
+            className={`w-1/6 btn ${props.handleEngineState ? "btn-neutral" : ""} ${props.isPressed ? "bg-purple-600" : ""} transition-all duration-150`}
+        >
+            {decideUi(props.value)}
         </button>
-    )
-
-
-}
+    );
+};

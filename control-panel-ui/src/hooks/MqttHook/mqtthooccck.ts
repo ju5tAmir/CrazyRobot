@@ -35,8 +35,8 @@ export const useMqtt = () => {
             isConnectedRef.current = true;
             client.current=mqttClient;
             setConnectStatus(true);
-
-            subscribeToTopic(mqttClient);
+            subscribeToTopic(mqttClient,mqtt_subscribe);
+            subscribeToTopic(mqttClient,"start");
         });
 
         mqttClient.on(mqttTypes.error, (err) => {
@@ -49,11 +49,14 @@ export const useMqtt = () => {
             console.log("🔄 Reconnecting...");
             setConnectStatus(false);
             if (mqttClient.connected) {
-                subscribeToTopic(mqttClient);
+                subscribeToTopic(mqttClient,mqtt_subscribe);
+                subscribeToTopic(mqttClient,"start");
+
             } else {
                 mqttClient.once(mqttTypes.connect, () => {
                     console.log("Reconnected, re-subscribing...");
-                    subscribeToTopic(mqttClient);
+                    subscribeToTopic(mqttClient,mqtt_subscribe);
+                    subscribeToTopic(mqttClient,"start");
                 });
             }
         });
@@ -78,17 +81,17 @@ export const useMqtt = () => {
         };
     }, [mqtt_host, mqtt_username, mqtt_subscribe]);
 
-    const subscribeToTopic = (mqttClient: MqttClient) => {
-        mqttClient.subscribe(mqtt_subscribe, (err) => {
+    const subscribeToTopic = (mqttClient: MqttClient,topic:string) => {
+        mqttClient.subscribe(topic, (err) => {
             if (err) {
-                console.error(`Subscribe error for topic ${mqtt_subscribe}: ${err.message}`);
+                console.error(`Subscribe error for topic ${topic}: ${err.message}`);
             } else {
-                console.log(`Subscribed to topic: ${mqtt_subscribe}`);
+                console.log(`Subscribed to topic: ${topic}`);
             }
         });
     };
 
-    const publish = (topic: string, request:MoveDetails) => {
+    const publishMovement = (topic: string, request:MoveDetails) => {
         if (!client.current || !client.current.connected) {
             console.error("Cannot publish, client not connected.");
             return;
@@ -102,12 +105,29 @@ export const useMqtt = () => {
             }
         });
     };
+    const publishStartStopEvent = (topic:string,value:boolean)=>{
+        if (!client.current || !client.current.connected) {
+            console.error("Cannot publish, client not connected.");
+            return;
+        }
+        const payload= value+""
+        client.current.publish(topic, payload, { qos: 0 }, (err) => {
+            if (err) {
+                console.error(`Publish error for topic ${topic}: ${err.message}`);
+            } else {
+                console.log(`Published message to ${topic}: ${payload}`);
+            }
+        });
+    }
+
+
 
     return {
         client,
         connectStatus,
         error,
         messages,
-        publish,
+        publishMovement,
+        publishStartStopEvent
     };
 };

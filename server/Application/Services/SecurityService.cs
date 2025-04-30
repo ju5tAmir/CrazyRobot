@@ -91,7 +91,8 @@ public class SecurityService(IOptionsMonitor<AppOptions> optionsMonitor, IUserRe
         var tokenBuilder = new JwtBuilder()
             .WithAlgorithm(new HMACSHA512Algorithm())
             .WithSecret(optionsMonitor.CurrentValue.JwtSecret)
-            .WithUrlEncoder(new JwtBase64UrlEncoder())
+            // I changed this because I was having errors when validating the JWT token.Nelson
+            //.WithUrlEncoder(new JwtBase64UrlEncoder())
             .WithJsonSerializer(new JsonNetSerializer());
 
         foreach (var claim in claims.GetType().GetProperties())
@@ -104,7 +105,8 @@ public class SecurityService(IOptionsMonitor<AppOptions> optionsMonitor, IUserRe
         var token = new JwtBuilder()
             .WithAlgorithm(new HMACSHA512Algorithm())
             .WithSecret(optionsMonitor.CurrentValue.JwtSecret)
-            .WithUrlEncoder(new JwtBase64UrlEncoder())
+            // I changed this because I was having errors when validating the JWT token. Nelson
+            //.WithUrlEncoder(new JwtBase64UrlEncoder())
             .WithJsonSerializer(new JsonNetSerializer())
             .MustVerifySignature()
             .Decode<JwtClaims>(jwt);

@@ -5,3 +5,6 @@
 .vscode/ipch
 **/dotenv.h
 **/.env
+
+Todo.txt
+TestApi.http

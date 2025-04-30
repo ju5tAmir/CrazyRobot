@@ -3,9 +3,10 @@
 #include <esp32-hal-ledc.h>
 #include <esp32-hal-gpio.h>
 #include <Arduino.h>
+#include "fns.h"
 #ifndef LIDAR_h
 #define LIDAR_h
-#define RPLIDAR_MOTOR 25
+#define RPLIDAR_MOTOR 4
 #define RPLIDAR_RX 16
 #define RPLIDAR_TX 17   
 #define red 13
@@ -30,8 +31,8 @@ struct Gap {
 
 enum DIRECTION {
     FRONT,
-    RIGHT,
-    LEFT,
+    RIGHTR,
+    LEFTL,
     BACK,
 };
 
@@ -52,7 +53,7 @@ void mergeOverlappingObstacles();
 float getClosestFrontObstacleDistance();
 void decayTrust();
 float getClosestFrontObstacleDistance();
-
+bool checkIfCanMove(float averageDistance);
 void removeMovement(Direction moveToRemove);
 void addMovement(Direction moveToAdd);
 
@@ -70,6 +71,6 @@ void initializeHardware();
 void startMotor();
 void readLidarData();
 
-void CheckAvailableSpace(float frontAvg);
-
+void CheckAvailableSpace(float frontAvg, float rightAvg, float leftAvg, float backAvg);
+bool isDirectionAllowed(Direction dir);
 #endif

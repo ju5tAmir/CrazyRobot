@@ -28,7 +28,7 @@ int backDangerCount = 0;
 
 
 void initializeHardware() {
-    Serial.begin(115200);  
+   
     delay(1000);           
     pinMode(red, OUTPUT);
     pinMode(green, OUTPUT);
@@ -104,7 +104,7 @@ void readLidarData() {
                 Serial.print("Back Avg: "); Serial.println(backAvg);
 
                 // === Movement Decision or LED Indication ===
-                CheckAvailableSpace(frontAvg);
+                CheckAvailableSpace(frontAvg,rightAvg,leftAvg,backAvg);
 
                 frontDangerSum = 0;
                 frontDangerCount = 0;
@@ -156,7 +156,7 @@ void CheckAvailableSpace(float frontAvg, float rightAvg, float leftAvg, float ba
     bool stopped = false;
 
     if (!canForward) {
-        moveRobotTwo(STOP, 0, 0, leftMotor, rightMotor);
+      //  moveRobotTwo(STOP, 0, 0, leftMotor, rightMotor);
         removeMovement(FORWARD);
         stopped = true;
         Serial.println("Obstacle detected in FRONT! Stopping...");
@@ -168,7 +168,7 @@ void CheckAvailableSpace(float frontAvg, float rightAvg, float leftAvg, float ba
 
     if (!canBackward) {
         if(!stopped){
-            moveRobotTwo(STOP, 0, 0, leftMotor, rightMotor);
+        //    moveRobotTwo(STOP, 0, 0, leftMotor, rightMotor);
             stopped = true;
         }
         removeMovement(BACKWARD);
@@ -486,5 +486,13 @@ void removeMovement(Direction moveToRemove) {
       }
     }
   }
+
+  bool isDirectionAllowed(Direction dir) {
+    for (int i = 0; i < 5; i++) {
+      if (allowedMovement[i] == dir) return true;
+    }
+    return false;
+  }
+  
   
 

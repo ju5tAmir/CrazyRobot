@@ -1,6 +1,11 @@
+
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.IdentityModel.Tokens.Jwt;
 using Api.Rest.Middleware;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Api.Rest;
 
@@ -11,6 +16,7 @@ public static class RestStartupExtensions
         services.AddEndpointsApiExplorer();
         services.AddExceptionHandler<GlobalExceptionHandler>();
         services.AddProblemDetails();
+
         var controllersAssembly = typeof(RestStartupExtensions).Assembly;
         services.AddControllers().AddApplicationPart(controllersAssembly).AddJsonOptions(options =>
         {
@@ -21,6 +27,9 @@ public static class RestStartupExtensions
             );
 
         });
+
+
+
         return services;
     }
 

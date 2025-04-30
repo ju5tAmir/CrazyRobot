@@ -439,6 +439,219 @@
         }
       }
     },
+    "/api/surveys/CreateSurvey": {
+      "post": {
+        "tags": [
+          "AdminSurveys"
+        ],
+        "operationId": "AdminSurveys_CreateSurvey",
+        "requestBody": {
+          "x-name": "dto",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSurveyRequestDto"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurveyResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/surveys/UpdateSurvey/{surveyId}": {
+      "put": {
+        "tags": [
+          "AdminSurveys"
+        ],
+        "operationId": "AdminSurveys_UpdateSurvey",
+        "parameters": [
+          {
+            "name": "surveyId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 2
+          }
+        ],
+        "requestBody": {
+          "x-name": "dto",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSurveyRequestDto"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurveyResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/surveys/DeleteSurvey/{surveyId}": {
+      "delete": {
+        "tags": [
+          "AdminSurveys"
+        ],
+        "operationId": "AdminSurveys_DeleteSurvey",
+        "parameters": [
+          {
+            "name": "surveyId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/surveys/GetAllSurveys": {
+      "get": {
+        "tags": [
+          "AdminSurveys"
+        ],
+        "operationId": "AdminSurveys_GetAllSurveys",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurveyResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/surveys/GetSurveyResultById/{surveyId}": {
+      "get": {
+        "tags": [
+          "AdminSurveys"
+        ],
+        "operationId": "AdminSurveys_GetSurveyResultById",
+        "parameters": [
+          {
+            "name": "surveyId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurveyResultsDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/surveys/GetSurveysResults": {
+      "get": {
+        "tags": [
+          "AdminSurveys"
+        ],
+        "operationId": "AdminSurveys_GetSurveysResults",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SurveyResultsDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/survey-submission/SubmitResponse": {
+      "post": {
+        "tags": [
+          "UserSurveys"
+        ],
+        "operationId": "UserSurveys_SubmitResponse",
+        "requestBody": {
+          "x-name": "requestDto",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SurveySubmissionRequestDto"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurveySubmissionResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/auth/Login": {
       "post": {
         "tags": [
@@ -626,6 +839,235 @@
           },
           "message": {
             "type": "string"
+          }
+        }
+      },
+      "SurveyResponseDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "surveyType": {
+            "type": "string"
+          },
+          "createdByUserId": {
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "questions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuestionDto"
+            }
+          }
+        }
+      },
+      "QuestionDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "questionText": {
+            "type": "string"
+          },
+          "questionType": {
+            "type": "string"
+          },
+          "orderNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuestionOptionDto"
+            }
+          }
+        }
+      },
+      "QuestionOptionDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "optionText": {
+            "type": "string"
+          },
+          "orderNumber": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "CreateSurveyRequestDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "surveyType": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "questions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuestionDto"
+            }
+          }
+        }
+      },
+      "UpdateSurveyRequestDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "surveyType": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "questions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuestionDto"
+            }
+          }
+        }
+      },
+      "SurveyResultsDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "surveyId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "totalResponses": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "questionResults": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuestionResultDto"
+            }
+          }
+        }
+      },
+      "QuestionResultDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "questionId": {
+            "type": "string"
+          },
+          "questionText": {
+            "type": "string"
+          },
+          "questionType": {
+            "type": "string"
+          },
+          "statistics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AnswerStatisticDto"
+            }
+          }
+        }
+      },
+      "AnswerStatisticDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "optionText": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "percentage": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "SurveySubmissionResponseDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "surveyId": {
+            "type": "string"
+          },
+          "responses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuestionResponseDto"
+            }
+          }
+        }
+      },
+      "QuestionResponseDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "questionId": {
+            "type": "string"
+          },
+          "response": {
+            "type": "string"
+          }
+        }
+      },
+      "SurveySubmissionRequestDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "surveyId": {
+            "type": "string"
+          },
+          "responses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuestionResponseDto"
+            }
           }
         }
       },

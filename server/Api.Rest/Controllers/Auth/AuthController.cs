@@ -1,4 +1,4 @@
-using Api.Rest.AuthExtensions;
+using Api.Rest.Extensions;
 using Application.Interfaces.Security;
 using Application.Models.Dtos.Auth;
 using Microsoft.AspNetCore.Mvc;

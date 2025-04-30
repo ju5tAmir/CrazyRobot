@@ -7,3 +7,4 @@
 **/.env
 /server/Startup/*.json
 server/Startup/*.json
+server/Startup/*.json

@@ -11,4 +11,10 @@ public class RobotEngineService(IMqttPublisher mqttPublisher,IOptionsMonitor<Mqt
     {
       await   mqttPublisher.Publish(mqttOptionsMonitor.CurrentValue.PublishEngineTopic,command);
     }
+
+    public async Task ManageMovement(Command<MovementCommand> command)
+    {
+     Console.WriteLine(command.CommandType);
+     Console.WriteLine(command.Payload);
+    } 
 }

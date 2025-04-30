@@ -1,3 +1,6 @@
+
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.IdentityModel.Tokens.Jwt;
 using Api.Rest.Middleware;
 using System.Text;
@@ -15,7 +18,18 @@ public static class RestStartupExtensions
         services.AddProblemDetails();
 
         var controllersAssembly = typeof(RestStartupExtensions).Assembly;
-        services.AddControllers().AddApplicationPart(controllersAssembly);
+        services.AddControllers().AddApplicationPart(controllersAssembly).AddJsonOptions(options =>
+        {
+            options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+            options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            options.JsonSerializerOptions.Converters.Add(
+                new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
+            );
+
+        });
+
+
+
         return services;
     }
 

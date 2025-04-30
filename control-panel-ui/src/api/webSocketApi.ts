@@ -4,6 +4,10 @@ import {ClientCommand, Command, InitializeEngineResponse} from "../models/mqttMo
 export interface EngineStateDto extends BaseDto {
     command:Command
 }
+
+export interface RobotMovementDto extends BaseDto {
+    command:Command
+}
 export interface ServerConfirmsDto extends BaseDto {
     Success:boolean
 }
@@ -22,4 +26,5 @@ export enum StringConstants {
     ServerConfirmsDto="ServerConfirmsDto",
     ServerSendsErrorMessageDto = "ServerSendsErrorMessageDto",
     InitializeEnginResponseDto="InitializeEnginResponseDto",
+    RobotMovementDto = "RobotMovementDto"
 }

@@ -1,25 +1,38 @@
 import {Button} from "./Button.tsx";
-import {useCallback, useEffect, useState} from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
 import {InfoDisplay} from "./index.ts";
 import {FaPlay, FaStop} from "react-icons/fa";
 import {useWsClient} from "ws-request-hook";
 import {
-    EngineStateDto, InitializeEnginResponseDto,
+    EngineStateDto, InitializeEnginResponseDto, RobotMovementDto,
     ServerConfirmsDto,
     ServerSendsErrorMessageDto,
     StringConstants
 } from "../../../../api/webSocketApi.ts";
 import toast from "react-hot-toast";
-import {CommandType} from "../../../../models/mqttModels/MqttModels.ts";
+import {CommandType, MovementCommand} from "../../../../models/mqttModels/MqttModels.ts";
 
+  //Todo implement to skip short bursts to avoid esp32 overload
 
+// const currentCommand = JSON.stringify(directions); // serialize for comparison
+//
+// if (lastSentCommandRef.current === currentCommand) {
+//     console.log("🚫 Duplicate command skipped");
+//     return;
+// }
+//
+// lastSentCommandRef.current = currentCommand;
 export const ControlMotor = () => {
     const {onMessage, sendRequest, send, readyState} = useWsClient();
+    const previousPressed = useRef<Set<string>>(new Set());
     const [engine, setEngine] = useState<boolean>(false);
     const [startProcedure,setStartProcedure] = useState(false);
     // prevent user to stop the start procedure prematurely
     const [engineLocked,setEngineLocked] = useState(false);
+    //holds the pressed keys, to prevent sending continuos commands to esp32
     const [pressedKeys,setPressedKeys] = useState<Set<string>>(new Set());
+    //last movement command that has been pressed
+    const [lastPressed,setLastPressed] = useState<string>("");
     const movementKeys = new Set(['w', 'a', 's', 'd',"e"]);
 
     useEffect(() => {
@@ -46,11 +59,21 @@ export const ControlMotor = () => {
         };
     }, [onMessage, readyState]);
 
+    useEffect(() => {
+        console.log(pressedKeys + "press");
+        const keysChanged = [...pressedKeys].some(k => !previousPressed.current.has(k)) ||
+            [...previousPressed.current].some(k => !pressedKeys.has(k));
+
+        if (keysChanged) {
+            sendMovementCommand();
+        }
+        previousPressed.current = new Set(pressedKeys);
+
+    }, [pressedKeys]);
+
 
     const handleInputDown = useCallback((value: string) => {
         console.log(value + " pressed");
-
-
         if (value === "e") {
             if (engineLocked || startProcedure) {
                 console.log("Engine is locked or initializing... blocking 'e' press.");
@@ -58,12 +81,10 @@ export const ControlMotor = () => {
             }
             console.log(engine + " engineState")
             if (!engine) {
-                // Start engine
                 console.log("Starting engine...");
                 setStartProcedure(true);
                 sendEngineCommand(true);
             } else {
-                // Stop engine
                 console.log("Stopping engine...");
                 setStartProcedure(true);
                 sendEngineCommand(false);
@@ -85,6 +106,7 @@ export const ControlMotor = () => {
             const newSet = new Set(prev);
             console.log("added " + value);
             newSet.add(value);
+            setLastPressed(value);
             return newSet;
         });
 
@@ -109,8 +131,8 @@ export const ControlMotor = () => {
 
 
     /**
-     * Adds two numbers together.
-     * @returns The sum of `a` and `b`.
+     * send start stop commands
+     * @returns false meaning that initialization is completed and true meaning that initialization can start again
      * @param value
      */
     const sendEngineCommand = async (value:boolean)=>{
@@ -120,7 +142,7 @@ export const ControlMotor = () => {
              eventType:StringConstants.EngineStateDto,
              requestId:crypto.randomUUID(),
              command:{
-                 command:CommandType.Initialize,
+                 commandType:CommandType.Initialize,
                  payload:{
                      engine:value
                  }
@@ -131,6 +153,33 @@ export const ControlMotor = () => {
                 , ServerConfirmsDto>(request,StringConstants.ServerConfirmsDto).finally(()=>console.log("er"));
             console.log(signInResult);
             if (signInResult?.Success) {
+                toast.success("Engine send")
+            } else {
+                toast.error("Retry")
+            }
+        }catch (error){
+            const errorDto = error as unknown as ServerSendsErrorMessageDto;
+            toast.error(errorDto.error!.toString);
+        }
+    }
+
+    const sendMovementCommand=async ()=>{
+        const directions:MovementCommand = {activeMovements:Array.from(pressedKeys).filter((i)=>i!=="e"),lastCommand:lastPressed};
+        const request:RobotMovementDto = {
+            eventType:StringConstants.RobotMovementDto,
+            requestId:crypto.randomUUID(),
+            command:{
+            commandType:CommandType.Move,
+            payload:{
+                directions
+            }}
+        }
+        console.log(request);
+        try{
+            const sentCommandResult: ServerConfirmsDto = await sendRequest<RobotMovementDto,
+                ServerConfirmsDto>(request,StringConstants.ServerConfirmsDto).finally(()=>console.log("er"));
+
+            if (sentCommandResult?.Success) {
                 toast.success("Engine send")
             } else {
                 toast.error("Retry")

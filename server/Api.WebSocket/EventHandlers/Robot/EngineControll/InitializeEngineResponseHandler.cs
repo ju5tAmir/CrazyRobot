@@ -34,10 +34,13 @@ public class InitializeEngineResponseHandler(IConnectionManager connectionManage
             requestId = Guid.NewGuid().ToString()
         };
 
+         
         connectionManager.BroadcastToTopic(
             mqttOptions.CurrentValue.SubscribeEngineTopic,
             response
         );
+        Console.WriteLine(mqttOptions.CurrentValue.SubscribeEngineTopic);
+        Console.WriteLine("Ana are mere");
 
         return Task.CompletedTask;
     }

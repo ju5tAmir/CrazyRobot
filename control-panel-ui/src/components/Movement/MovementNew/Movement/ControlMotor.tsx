@@ -2,7 +2,6 @@ import {Button} from "./Button.tsx";
 import {useCallback, useEffect, useState} from "react";
 import {InfoDisplay} from "./index.ts";
 import {FaPlay, FaStop} from "react-icons/fa";
-import MoveDetails from "../../../../mqtt/mqttComponents/MoveDetails.ts";
 import {useWsClient} from "ws-request-hook";
 import {
     EngineStateDto, InitializeEnginResponseDto,
@@ -15,54 +14,29 @@ import {CommandType} from "../../../../models/mqttModels/MqttModels.ts";
 
 
 export const ControlMotor = () => {
-    // const { messages, publ`ishMovement,publishStartStopEvent } = useMqtt();
-
     const {onMessage, sendRequest, send, readyState} = useWsClient();
     const [engine, setEngine] = useState<boolean>(false);
-    const [initSequence,setInitSequence] = useState<boolean>(false);
+    const [startProcedure,setStartProcedure] = useState(false);
+    // prevent user to stop the start procedure prematurely
+    const [engineLocked,setEngineLocked] = useState(false);
     const [pressedKeys,setPressedKeys] = useState<Set<string>>(new Set());
     const movementKeys = new Set(['w', 'a', 's', 'd',"e"]);
 
-    // useEffect(() => {
-    //     console.log("Engine Status:", initSequence);
-    //     console.log(pressedKeys);
-    //      if(startStop.has("e")||startStop.has("q")){
-    //          publishStartStopEvent("start",initSequence);
-    //      }
-    //     publishMovement("drive",getStatus());
-    // }, [pressedKeys,initSequence]);
-    //
-    // useEffect(() => {
-    //     console.log("I can receive now");
-    //     console.log(messages);
-    //     if(messages.length>0){
-    //         if(messages[0].value==="true"){
-    //             setEngine(true);
-    //             pressedKeys.delete("e");
-    //         }
-    //     }
-    //
-    // }, [messages]);
     useEffect(() => {
         if(!readyState)return
         console.log("✅ WebSocket is ready! Subscribing to messages...");
-
         const unsubscribe = onMessage<InitializeEnginResponseDto>(
             StringConstants.InitializeEnginResponseDto,
             (message) => {
+                const status = message.command.payload?.initializeEngine;
+                console.log(pressedKeys.has("e")+ "pressed keys");
                 console.log("----------------=================");
-                console.log(message.command.payload);
-                const payloade = message.command.payload;
-
-                console.log(payloade?.initializeEngine);
-
+                console.log(status);
                 toast.success(`New Question ID: ${message.command}`);
-                // setCurrentQuestion({
-                //     gameId: message.gameId || "",
-                //     questionId: message.questionId || "",
-                //     options: message.questionOptions || []
-                // });
-                setInitSequence(message.command.payload!.initializeEngine);
+                setStartProcedure(false);
+                const newEngineState = !status
+                setEngine(newEngineState);
+                setEngineLocked(false);
                 toast.success(`New Question ID: ${message.command.payload+""}`);
             }
         );
@@ -76,28 +50,37 @@ export const ControlMotor = () => {
     const handleInputDown = useCallback((value: string) => {
         console.log(value + " pressed");
 
+
         if (value === "e") {
-            const newEngineState = !engine;
-            setEngine(newEngineState);
-            sendEngineCommand(newEngineState);
-            setInitSequence(prev => !prev);
+            if (engineLocked || startProcedure) {
+                console.log("Engine is locked or initializing... blocking 'e' press.");
+                return;
+            }
+            console.log(engine + " engineState")
+            if (!engine) {
+                // Start engine
+                console.log("Starting engine...");
+                setStartProcedure(true);
+                sendEngineCommand(true);
+            } else {
+                // Stop engine
+                console.log("Stopping engine...");
+                setStartProcedure(true);
+                sendEngineCommand(false);
+            }
             setPressedKeys(prev => {
                 const newSet = new Set(prev);
                 if (newSet.has('e')) {
-                    console.log("deleted");
                     newSet.delete('e');
                 } else {
-                    console.log("added");
                     newSet.add('e');
                 }
                 return newSet;
             });
 
-
             return;
         }
-
-        if (!initSequence) return;
+        if (!engine) return;
         setPressedKeys(prev => {
             const newSet = new Set(prev);
             console.log("added " + value);
@@ -105,7 +88,7 @@ export const ControlMotor = () => {
             return newSet;
         });
 
-    }, [initSequence]);
+    }, [startProcedure]);
 
 
 
@@ -122,33 +105,18 @@ export const ControlMotor = () => {
     }, [engine]);
 
 
-    // const handleKeyDown = (e: KeyboardEvent) => {
-    //     const current = e.key.toLowerCase();
-    //
-    //     if(!movementKeys.has(current)){
-    //         return;
-    //     }
-    //     handleInputDown(current);
-    // };
-    //
-    // const handleKeyUp = (e: KeyboardEvent) => {
-    //     const current = e.key.toLowerCase();
-    //
-    //     if(!movementKeys.has(current)){
-    //         return;
-    //     }
-    //     handleInputUp(current);
-    // };
+
 
 
     /**
      * Adds two numbers together.
-     * @param a The first number.
-     * @param b The second number.
      * @returns The sum of `a` and `b`.
+     * @param value
      */
     const sendEngineCommand = async (value:boolean)=>{
-         const request:EngineStateDto = {
+          console.log("value"+ value +"");
+            setEngineLocked(true);
+        const request:EngineStateDto = {
              eventType:StringConstants.EngineStateDto,
              requestId:crypto.randomUUID(),
              command:{
@@ -173,12 +141,6 @@ export const ControlMotor = () => {
         }
     }
 
-
-
-
-
-
-
     const handleKeyDown = useCallback((e: KeyboardEvent) => {
         const current = e.key.toLowerCase();
         if (!movementKeys.has(current)) return;
@@ -201,24 +163,20 @@ export const ControlMotor = () => {
         };
     }, [handleKeyDown, handleKeyUp]);
 
-    const getStatus = (): MoveDetails => ({
-        engine:initSequence,
-        move: {
-            isMoving:  false,
-            value: "None"
-        },
-        direction: {
-            isTurning:  false,
-            value:  "None"
-        },
-        speed:3
-    });
+    const engineStartedColor = ()=>{
+        if(engineLocked){
+            return "bg-orange-600";
+        }else if(engine){
+            return "bg-green-600";
+        }else{
+            return "bg-red-600"
+        }
+    }
 
     return (
         <>
-            <div className={"grid grid-cols-2 gap-2 justify-center"}>
-            <InfoDisplay engineState={engine} batteryStatus={0} initializeStatus={initSequence}></InfoDisplay>
-
+            <div className={"flex flex-col gap-2 justify-center"}>
+            <InfoDisplay engineState={engine} batteryStatus={0} initializeStatus={engineLocked}></InfoDisplay>
                 <div>
                     <div className={"flex flex-row justify-center items-center mb-2 gap-2"}>
                         <button  disabled={true} className={"btn btn-neutral w-1/6 invisible"}>
@@ -228,9 +186,9 @@ export const ControlMotor = () => {
                                 handleReleased={() => handleInputUp("w")}
                                 handleEngineState={engine}
                                 isPressed={pressedKeys.has("w")}/>
-                        <button className={"btn btn-neutral w-1/6"}
+                        <button className={`btn btn-neutral w-1/6 ${engineStartedColor()}` }
                                 onClick={() => handleInputDown('e')} >
-                            {initSequence ? <FaStop/> : <FaPlay/>}
+                            {engine ? <FaStop/> : <FaPlay/>}
                         </button>
                     </div>
 

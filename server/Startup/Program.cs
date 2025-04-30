@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 using Api.Rest;
-
+using Google.Cloud.Storage.V1;
 using Api.Websocket;
 using Application;
 using Infrastructure.Postgres;
@@ -39,7 +39,7 @@ public class Program
         services.AddDataSourceAndRepositories();
        
         services.AddWebsocketInfrastructure();
-
+        services.AddSingleton(StorageClient.Create());
         services.RegisterWebsocketApiServices();
         services.RegisterRestApiServices();
         services.AddOpenApiDocument(conf =>
@@ -54,6 +54,7 @@ public class Program
     {
         var logger = app.Services.GetRequiredService<ILogger<IOptionsMonitor<AppOptions>>>();
         var appOptions = app.Services.GetRequiredService<IOptionsMonitor<AppOptions>>().CurrentValue;
+        
         logger.LogInformation(JsonSerializer.Serialize(appOptions));
         using (var scope = app.Services.CreateScope())
         {

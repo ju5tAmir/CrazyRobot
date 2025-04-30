@@ -6,7 +6,7 @@ public static class AuthExtension
 {
     public static string GetJwt(this HttpContext ctx)
     {
-        return ctx.Request.Headers.Authorization.FirstOrDefault() ??
-               throw new AuthenticationException("No token provided");
+        var header = ctx.Request.Headers["Authorization"].ToString();
+        return header.StartsWith("Bearer ") ? header.Substring(7) : header;
     }
 }

@@ -163,6 +163,43 @@
         }
       }
     },
+    "/api/Contacts/upload": {
+      "post": {
+        "tags": [
+          "Contacts"
+        ],
+        "operationId": "Contacts_UploadPhoto",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Events": {
       "get": {
         "tags": [

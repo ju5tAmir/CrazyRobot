@@ -1,0 +1,65 @@
+### Register a new user
+POST http://localhost:5001/api/auth/Register
+Content-Type: application/json
+
+{
+  "email": "admin@a.com",
+  "password": "string!"
+}
+
+###Login a user
+POST http://localhost:5001/api/auth/Login
+Content-Type: application/json
+
+{
+  "email": "admin@a.com",
+  "password": "string!"
+}
+
+### Test the Secured endpoint
+GET http://localhost:5001/api/auth/Secured
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJSb2xlIjoiYWRtaW4iLCJFbWFpbCI6ImFkbWluQGEuY29tIiwiSWQiOiJkODNiZmQ3NS1hMzM4LTRkMzYtOGMxZC00ZDgxMGQwNTQyMjMiLCJFeHAiOiIxNzQ5MTc0NTU5In0.qcJAFs71OS2wReP6nQf7YtpiHNfArf_OVbmwoZOl4tww7clCpqbgCUbzWiaHr7aI-1w8aNhHknFiw7rp10TeZA
+
+
+### Create a Survey
+POST http://localhost:5001/api/surveys/CreateSurvey
+Content-Type: application/json
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJSb2xlIjoiYWRtaW4iLCJFbWFpbCI6ImFkbWluQGFkbWluLmNvbSIsIklkIjoiZWE0MTk4YTUtZjA5My00NTFkLWE1Y2ItYmVkNGJhZDU3Y2QwIiwiRXhwIjoiMTc0OTE3MDI0MCJ9.SHA5mi9knaF3pY27oVXuQCJc2xJ-7OfzBch-y5a8CD9JStrJDVuIIT1VCtyXbEpcskSvk1rtSyQbccMburIfCA
+
+{
+"title": "Employee Satisfaction Survey",
+"description": "Annual employee satisfaction survey 2024",
+"surveyType": "satisfaction",
+"isActive": true,
+"questions": [
+{
+"questionText": "How satisfied are you with your work environment?",
+"questionType": "multiple_choice",
+"orderNumber": 1,
+"options": [
+{
+"optionText": "Very Satisfied",
+"orderNumber": 1
+},
+{
+"optionText": "Satisfied",
+"orderNumber": 2
+},
+{
+"optionText": "Neutral",
+"orderNumber": 3
+},
+{
+"optionText": "Dissatisfied",
+"orderNumber": 4
+}
+]
+},
+{
+"questionText": "Any additional comments?",
+"questionType": "text",
+"orderNumber": 2,
+"options": []
+}
+]
+}

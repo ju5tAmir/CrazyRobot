@@ -1,33 +1,72 @@
+import { useState, ChangeEvent, FormEvent } from 'react';
+import { ContactsClient, ContactDto, FileParameter } from '../../../api/generated-client';
+import { useAuth }               from '../../auth/AuthContext';
 
-import { useState } from 'react';
-import { ContactDto } from '../../../api/generated-client';
+type Props = {
+    initial : ContactDto;
+    onSubmit: (dto: ContactDto) => void;   // ← void, не Promise
+    onCancel: () => void;
+};
 
-interface Props {
-    initial?: ContactDto;
-    onSubmit(dto: ContactDto): void;
-}
+export default function ContactForm({ initial, onSubmit, onCancel }: Props) {
+    const [dto,  setDto]  = useState<ContactDto>(initial);
+    const [file, setFile] = useState<File | null>(null);
+    const [busy, setBusy] = useState(false);
+    const { jwt }         = useAuth();
 
-export default function ContactForm({ initial, onSubmit }: Props) {
-    const [dto, setDto] = useState<ContactDto>(initial ?? {});
+    const api = new ContactsClient(import.meta.env.VITE_API_URL, {
+        fetch : (u,i)=> fetch(u,{...i, headers:{...i?.headers, Authorization:`Bearer ${jwt}`}})
+    });
 
-    function bind<K extends keyof ContactDto>(key: K) {
-        return {
-            value: dto[key] ?? '',
-            onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-                setDto({ ...dto, [key]: e.target.value }),
-        };
-    }
+    /* ───────── helpers ─────── */
+    const handleText = (e: ChangeEvent<HTMLInputElement>) =>
+        setDto({ ...dto, [e.target.name]: e.target.value });
 
+    const handleFile = (e: ChangeEvent<HTMLInputElement>) =>
+        setFile(e.target.files?.[0] ?? null);
+
+    /* ───────── submit ──────── */
+    const submit = async (e: FormEvent) => {
+        e.preventDefault();
+        setBusy(true);
+
+        let imageUrl = dto.imageUrl;
+
+        if (file) {
+            const fp: FileParameter = { data: file, fileName: file.name };
+            const blobResp   = await api.uploadPhoto(fp);
+            const json       = JSON.parse(await blobResp.data.text());
+            imageUrl         = json.url as string;
+        }
+
+        onSubmit({ ...dto, imageUrl });
+        setBusy(false);
+    };
+
+    /* ───────── JSX ─────────── */
     return (
-        <div className="flex flex-col gap-3">
-            <input {...bind('name')} placeholder="Name" className="input input-bordered" />
-            <input {...bind('role')} placeholder="Role" className="input input-bordered" />
-            <input {...bind('department')} placeholder="Department" className="input input-bordered" />
-            <input {...bind('email')} type="email" placeholder="Email" className="input input-bordered" />
-            <input {...bind('phone')} placeholder="Phone" className="input input-bordered" />
-            <button className="btn btn-primary" onClick={() => onSubmit(dto)}>
-                {initial?.id ? 'Save' : 'Create'}
+        <form onSubmit={submit} className="flex flex-col gap-2">
+            <input className="input input-bordered" name="name"       value={dto.name??''}
+                   placeholder="Name"       onChange={handleText} required />
+            <input className="input input-bordered" name="role"       value={dto.role??''}
+                   placeholder="Role"       onChange={handleText}/>
+            <input className="input input-bordered" name="department" value={dto.department??''}
+                   placeholder="Department" onChange={handleText}/>
+            <input className="input input-bordered" name="email"      value={dto.email??''}
+                   placeholder="Email" type="email" onChange={handleText}/>
+            <input className="input input-bordered" name="phone"      value={dto.phone??''}
+                   placeholder="Phone"      onChange={handleText}/>
+
+            <input type="file" accept="image/*"
+                   className="file-input file-input-bordered"
+                   onChange={handleFile}/>
+
+            <button className="btn btn-primary" disabled={busy || !dto.name}>
+                {busy ? 'Saving…' : 'Save'}
             </button>
-        </div>
+            <button type="button" className="btn btn-ghost" onClick={onCancel}>
+                Cancel
+            </button>
+        </form>
     );
 }

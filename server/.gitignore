@@ -9,7 +9,6 @@ TestApi.http
 Todo.txt
 # dotenv files
 .env
-
 # User-specific files
 *.rsuser
 *.suo

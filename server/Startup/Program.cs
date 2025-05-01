@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
 using Api.Rest;
-
 using Api.Websocket;
 using Application;
 using Infrastructure.Mqtt;
@@ -15,7 +14,6 @@ using NSwag.Generation;
 using Startup.Documentation;
 using Startup.Proxy;
 using Scalar.AspNetCore;
- 
 
 
 namespace Startup;
@@ -84,16 +82,14 @@ public class Program
                app.UseOpenApi(conf => { conf.Path = "openapi/v1.json"; });
                 app.UseSwaggerUi(ui =>
                 {
-                    ui.Path         = "/swagger";          // сторінка UI
-                    ui.DocumentPath = "/openapi/v1.json";  // звідки брати JSON
+                    ui.Path         = "/swagger";         
+                    ui.DocumentPath = "/openapi/v1.json";  
                 });
  
         var document = await app.Services.GetRequiredService<IOpenApiDocumentGenerator>().GenerateAsync("v1");
         var json = document.ToJson();
         await File.WriteAllTextAsync("openapi.json", json);
-        await app.GenerateTypeScriptClient("/../../control-panel-ui/src/api/generated-socketclient.ts");
-
-        // app.GenerateTypeScriptClient("/../../control-panel-ui/src/api/generated-socketclient.ts").GetAwaiter().GetResult();
+        app.GenerateTypeScriptClient("/../../control-panel-ui/src/api/generated-client.ts").GetAwaiter().GetResult();
         app.MapScalarApiReference();
     }
 }

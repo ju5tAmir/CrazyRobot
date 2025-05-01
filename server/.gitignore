@@ -6,7 +6,7 @@
 # appsettings.json & http files
 appsettings.json
 TestApi.http
-
+Todo.txt
 # dotenv files
 .env
 

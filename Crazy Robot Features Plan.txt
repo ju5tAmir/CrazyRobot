@@ -1,18 +1,20 @@
 Crazy Robot Features:
 
 - Directions 
-- Driving
-- Chat (What type of chat?)
-- Surveys / Statistics:
+- Driving 
+
+- Chat (What type of chat?) 
+
+- Surveys / Statistics: --> Nelson
 	- How was your day?
 	- Feedback on how to improve / what is good or bad
 	
-- School Informations:
+- School Informations: --> Andrii
 	- Contacts
 	- School Events
 
 - Entertainment:
-	- Games (UTTT)
+	- Games (UTTT) --> Andrei
 	- Jokes?
 	
-- Logging how people interact with Robot.
+- Logging how people interact with Robot. 

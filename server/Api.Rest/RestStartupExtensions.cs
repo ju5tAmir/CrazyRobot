@@ -1,11 +1,11 @@
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.IdentityModel.Tokens.Jwt;
+ 
 using Api.Rest.Middleware;
 using System.Text;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
+ 
+ 
 
 namespace Api.Rest;
 

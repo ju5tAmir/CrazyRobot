@@ -12,6 +12,6 @@ namespace Application.Models
         public string Time         { get; set; } = string.Empty;
         public string Location     { get; set; } = string.Empty;
         public string Category     { get; set; } = string.Empty;
-        public EventStatus Status  { get; set; } = EventStatus.Upcoming;
+        public string  Status  { get; set; } = EventStatus.Upcoming;
     }
 }

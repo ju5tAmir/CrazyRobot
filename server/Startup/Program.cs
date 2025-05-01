@@ -75,8 +75,8 @@ public class Program
         app.UseOpenApi(conf => { conf.Path = "openapi/v1.json"; });
         app.UseSwaggerUi(ui =>
         {
-            ui.Path         = "/swagger";          // сторінка UI
-            ui.DocumentPath = "/openapi/v1.json";  // звідки брати JSON
+            ui.Path         = "/swagger";          
+            ui.DocumentPath = "/openapi/v1.json";   
         });
         var document = await app.Services.GetRequiredService<IOpenApiDocumentGenerator>().GenerateAsync("v1");
         var json = document.ToJson();

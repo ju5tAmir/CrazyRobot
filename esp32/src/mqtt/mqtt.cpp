@@ -13,6 +13,7 @@ WiFiClient espClient;
 PubSubClient client(espClient);
 
 const char* engineManagementUserTopic = "engineManagementUser";
+const char* commanduser = "commandsuser";
 const char* driveTopic = "drive";
 
 unsigned long buzzerStartTime = 0;
@@ -74,6 +75,7 @@ void connectWiFi() {
       if (client.connect("ESP32Client", MQTT_TOKEN, "")) {
           Serial.println("Connected to MQTT");
           client.subscribe(engineManagementUserTopic);
+          client.subscribe(commanduser);
           return;
       } else {
           Serial.print("MQTT connection failed. State: ");
@@ -127,20 +129,42 @@ RobotData parseJson(String jsonString) {
 
     RobotData data;
 
-    if (doc.containsKey("CommandType") && doc["CommandType"] == "Initialize") {
-        startBuzzer(); 
-
-        if (doc.containsKey("Payload")) {
-            JsonObject payload = doc["Payload"]; // Access the Payload object
-            
-            if (payload.containsKey("Engine")) {
-                data.Engine = payload["Engine"];
-            }
-
-            if (payload.containsKey("move") && payload["move"].containsKey("isMoving")) {
-                data.isMoving = payload["move"]["isMoving"];
+    if(doc.containsKey("CommandType")){
+        if(doc["CommandType"] == "Initialize"){
+            startBuzzer(); 
+            if (doc.containsKey("Payload")) {
+                JsonObject payload = doc["Payload"]; 
+                
+                if (payload.containsKey("Engine")) {
+                    data.Engine = payload["Engine"];
+                }
+    
+                if (payload.containsKey("move") && payload["move"].containsKey("isMoving")) {
+                    data.isMoving = payload["move"]["isMoving"];
+                }
             }
         }
+        if (doc.containsKey("Payload")) {
+            JsonObject payload = doc["Payload"];
+            if (payload.containsKey("Directions")) {
+                JsonObject directions = payload["Directions"];
+                if (directions.containsKey("ActiveMovements")) {
+                    JsonArray movements = directions["ActiveMovements"];
+                    int i = 0;
+                    for (JsonVariant v : movements) {
+                        if (i < 4 && v.is<const char*>()) {
+                            data.activeMovements[i++] = v.as<const char*>();
+                        } else {
+                            data.activeMovements[i++] = nullptr;
+                        }
+                    }
+                    while (i < 4) {
+                        data.activeMovements[i++] = nullptr;
+                    }
+                }
+            }
+        }
+        
     }
 
     return data;
@@ -156,6 +180,10 @@ void receiveData(String value ,RobotData * robotData){
 
     robotData->Engine=data.Engine;
     robotData->isMoving=data.isMoving;
+    for (int i = 0; i < 4; i++) {
+        robotData->activeMovements[i] = data.activeMovements[i];
+    }
+    
  
 }
 

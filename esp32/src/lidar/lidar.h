@@ -29,6 +29,7 @@ struct Gap {
     int width;
 };
 
+
 enum DIRECTION {
     FRONT,
     RIGHTR,

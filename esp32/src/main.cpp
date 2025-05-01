@@ -1,13 +1,17 @@
 #include <RPLidar.h>
-#include "lidar/lidar.h"
+// #include "lidar/lidar.h"
 #include "fns.h"
 #include "mqtt/mqtt.h"
-
+#define blue 12
+#define orange 4
+#define yellow 26
+#define green 25
 
 Motor leftMotor(IN1, IN2, ENA, pwmChannel1); 
 Motor rightMotor(IN3, IN4, ENB, pwmChannel2);
 
 RobotData robot = RobotData(); 
+void actOnMovements();
 
 
 void setup() {
@@ -15,6 +19,10 @@ void setup() {
 // initializeHardware();
 connectWiFi();
 connectMQTT(&robot);
+pinMode(blue,OUTPUT);
+pinMode(orange,OUTPUT);
+pinMode(yellow,OUTPUT);
+pinMode(green,OUTPUT);
 
 }
 
@@ -37,6 +45,7 @@ void loop() {
             Serial.println("Buzzer OFF");
         }
     }
+    actOnMovements();
  // readLidarData();
 
 //  if (isDirectionAllowed(FORWARD)) {
@@ -51,6 +60,54 @@ void loop() {
   // else {
   //   moveRobotTwo(STOP, 0, 0, leftMotor, rightMotor);
   //   Serial.println("All directions blocked! Stopping.");
+  // }
+}
+void actOnMovements() {
+  bool moveForwardFlag = false;
+  bool moveBackwardFlag = false;
+  bool turnLeftFlag = false;
+  bool turnRightFlag = false;
+  for (int i = 0; i < 4; i++) {
+      if (robot.activeMovements[i] == nullptr)continue;
+      Serial.print(robot.activeMovements[i]);
+      if (strcmp(robot.activeMovements[i], "w") == 0) {
+         moveForwardFlag=true;
+      } else if (strcmp(robot.activeMovements[i], "s") == 0) {
+        moveBackwardFlag=true;
+      } else if (strcmp(robot.activeMovements[i], "a") == 0) {
+       turnLeftFlag = true;
+        
+      } else if (strcmp(robot.activeMovements[i], "d") == 0) {
+      
+        turnRightFlag = true;
+      }
+   
+  }
+
+  digitalWrite(blue,moveForwardFlag?HIGH:LOW);
+  digitalWrite(orange,moveBackwardFlag?HIGH:LOW);
+  digitalWrite(yellow,turnLeftFlag?HIGH:LOW);
+  digitalWrite(green,turnRightFlag?HIGH:LOW);
+
+  // // Handle combined logic
+  // if (moveForwardFlag && turnLeftFlag) {
+  //     moveForwardLeft();  // Custom function to combine both
+  // } else if (moveForwardFlag && turnRightFlag) {
+  //     moveForwardRight();
+  // } else if (moveForwardFlag) {
+  //     moveForward();
+  // } else if (moveBackwardFlag && turnLeftFlag) {
+  //     moveBackwardLeft();
+  // } else if (moveBackwardFlag && turnRightFlag) {
+  //     moveBackwardRight();
+  // } else if (moveBackwardFlag) {
+  //     moveBackward();
+  // } else if (turnLeftFlag) {
+  //     turnLeft();
+  // } else if (turnRightFlag) {
+  //     turnRight();
+  // } else {
+  //     stopMotors(); // Default action
   // }
 }
 

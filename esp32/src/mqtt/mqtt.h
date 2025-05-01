@@ -12,6 +12,7 @@ extern PubSubClient client;
 
 extern const char* engineManagementUserTopic;
 extern const char* driveTopic;
+extern const char* commanduser;
 
 extern unsigned long buzzerStartTime;
 extern bool buzzerActive;
@@ -19,6 +20,7 @@ extern const unsigned long buzzerDuration;
 struct RobotData {
     bool Engine=false;
     bool isMoving=false;
+    const char* activeMovements[4]={ nullptr, nullptr, nullptr, nullptr };  
     // const char* moveValue;
     // bool isTurning;
     // const char* directionValue;

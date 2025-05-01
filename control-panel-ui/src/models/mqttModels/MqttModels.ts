@@ -1,5 +1,5 @@
 export enum CommandType {
-    Initialize = "initialize",
+    Initialize = "Initialize",
     Move = "move",
     Stop = "stop"
 }
@@ -12,14 +12,14 @@ export enum ClientCommandType{
 
 
 export enum Direction {
-    FORWARD="forward",
-    BACKWARD="backward",
-    LEFT="left",
-    RIGHT="right"
+    FORWARD="w",
+    BACKWARD="s",
+    LEFT="l",
+    RIGHT="r"
 }
 
 export interface Command<TPayload = any> {
-    command: CommandType;
+    commandType: CommandType;
     payload?: TPayload;
 }
 
@@ -34,13 +34,10 @@ export interface Robot {
     activeMovements:Set<Direction>
 }
 export interface MovementCommand {
-    activeMovements: Set<Direction>;
-    speed: number;
+    activeMovements: string[]
+    lastCommand:string
 }
 
-export interface EngineManagement  {
-    engine:boolean
-}
 export interface InitializeEngineResponse {
     initializeEngine:boolean;
 }

@@ -4,7 +4,7 @@ import {InfoDisplayProps} from "../../../../../models";
 
 //TODO change the value off initialize to false when the engine is started from esp32
 export const InfoDisplay =(props:InfoDisplayProps)=> {
-    console.log(props.initializeStatus+ "from info");
+    console.log(props.initializeStatus+ "from info display");
     return( <div className={"flex flex-col justify-start items-start"}>
         <h1>Info Panel</h1>
         <div className={"flex flex-row justify-center items-center p-2"}>

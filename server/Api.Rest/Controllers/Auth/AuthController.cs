@@ -1,7 +1,6 @@
-using Api.Rest.AuthExtensions;
+using Api.Rest.Extensions;
 using Application.Interfaces.Security;
 using Application.Models.Dtos.Auth;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Rest.Controllers.Auth;
@@ -35,8 +34,7 @@ public class AuthController(ISecurityService securityService) : ControllerBase
     }
 
     [HttpGet]
-   
-    [Route(ControllerRoute + "Secured")]
+    [Route(SecuredRoute)]
     public ActionResult Secured()
     {
         securityService.VerifyJwtOrThrow(HttpContext.GetJwt());

@@ -34,7 +34,12 @@ public static class GenerateTypescriptClient
         var lines = code.Split(new[] { Environment.NewLine }, StringSplitOptions.None).ToList();
         var startIndex = lines.FindIndex(l => l.Contains("export interface BaseDto"));
         if (startIndex >= 0)
-            lines.RemoveRange(startIndex, 4); // Remove 3 lines (interface declaration and two properties)
+        {
+            var linesToRemove = Math.Min(4, lines.Count - startIndex); // Remove up to 4 lines, but not more than available
+            lines.RemoveRange(startIndex, linesToRemove);
+        }
+
+        
 
         lines.Insert(0, "import { BaseDto } from 'ws-request-hook';");
 

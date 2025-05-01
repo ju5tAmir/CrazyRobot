@@ -6,10 +6,9 @@
 # appsettings.json & http files
 appsettings.json
 TestApi.http
-
+Todo.txt
 # dotenv files
 .env
-/server/Startup/robot-458219-94bc38b4d720.json
 # User-specific files
 *.rsuser
 *.suo

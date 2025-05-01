@@ -9,6 +9,7 @@ public static class ErrorMessages
         { ErrorCode.ErrorUserId, "Id is required" },
         { ErrorCode.InvalidUserEmail, "Invalid user email" },
         { ErrorCode.UnexpectedError, "An unexpected error occured, please try again" },
+        { ErrorCode.InvalidRole, "Invalid role" },
         
     };
     

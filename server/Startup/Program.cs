@@ -3,6 +3,7 @@ using Api.Rest;
 using Google.Cloud.Storage.V1;
 using Api.Websocket;
 using Application;
+using Infrastructure.Mqtt;
 using Infrastructure.Postgres;
 using Infrastructure.Websocket;
 using Microsoft.AspNetCore.Builder;
@@ -16,14 +17,23 @@ using Startup.Proxy;
 using Scalar.AspNetCore;
  
 
-
 namespace Startup;
 
 public class Program
 {
     public static async Task Main()
     {
+        DotNetEnv.Env.Load();
         var builder = WebApplication.CreateBuilder();
+        builder.Configuration.AddEnvironmentVariables();
+        Console.WriteLine($"Loaded MQTT Username from environment: {Environment.GetEnvironmentVariable("Mqtt__Username")}");
+
+        builder.Services.AddLogging(logging =>
+        {
+            logging.ClearProviders();
+            logging.AddConsole();
+            logging.AddDebug();   
+        });
         ConfigureServices(builder.Services, builder.Configuration);
         var app = builder.Build();
         await ConfigureMiddleware(app);
@@ -54,7 +64,6 @@ public class Program
     {
         var logger = app.Services.GetRequiredService<ILogger<IOptionsMonitor<AppOptions>>>();
         var appOptions = app.Services.GetRequiredService<IOptionsMonitor<AppOptions>>().CurrentValue;
-        
         logger.LogInformation(JsonSerializer.Serialize(appOptions));
         using (var scope = app.Services.CreateScope())
         {
@@ -71,7 +80,6 @@ public class Program
         await app.ConfigureWebsocketApi(appOptions.WS_PORT);
         
         app.MapGet("Acceptance", () => "Accepted");
-        
         app.UseOpenApi(conf => { conf.Path = "openapi/v1.json"; });
         app.UseSwaggerUi(ui =>
         {

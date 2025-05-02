@@ -2,27 +2,45 @@
 // #include "lidar/lidar.h"
 #include "fns.h"
 #include "mqtt/mqtt.h"
+#include <ESP32Servo.h>
+#include <ServoEasing.hpp>
+#include "lidar/lidar.h"
+#include <ArduinoJson.h>
+#include "messages/messages.h"
 #define blue 12
 #define orange 4
 #define yellow 26
 #define green 25
+#define servo 14
+
 
 Motor leftMotor(IN1, IN2, ENA, pwmChannel1); 
 Motor rightMotor(IN3, IN4, ENB, pwmChannel2);
-
-RobotData robot = RobotData(); 
+ServoEasing myServo;
+RobotData robot = RobotData();
 void actOnMovements();
+void checkRobotState(RobotData& robot);
+bool moveForwardFlag = false;
+bool moveBackwardFlag = false;
+bool turnLeftFlag = false;
+bool turnRightFlag = false; 
+int initializeRetries= 3;
+int countRetries=0;
 
 
 void setup() {
+
   Serial.begin(115200); 
-// initializeHardware();
+
 connectWiFi();
 connectMQTT(&robot);
 pinMode(blue,OUTPUT);
 pinMode(orange,OUTPUT);
 pinMode(yellow,OUTPUT);
 pinMode(green,OUTPUT);
+myServo.attach(servo);
+myServo.setEasingType(EASE_CUBIC_IN_OUT);  // Smooth curve
+myServo.startEaseTo(90, 2000); 
 
 }
 
@@ -34,8 +52,18 @@ void loop() {
         connectMQTT(&robot);
     }
     client.loop(); 
-    
+
+    checkRobotState(robot);
     unsigned long currentMillis = millis();
+    Serial.println(robot.lidarReady);
+    Serial.print("Loop: lidarReady = ");
+Serial.println(robot.lidarReady);
+Serial.print("robot.isStopped = ");
+Serial.println(robot.isStopped);
+Serial.print("robot.initializing = ");
+Serial.println(robot.initializing);
+    if (robot.lidarReady) {
+      readLidarData(); }
 
     if (buzzerActive) {
         if (currentMillis - buzzerStartTime >= buzzerDuration) {
@@ -45,7 +73,7 @@ void loop() {
             Serial.println("Buzzer OFF");
         }
     }
-    actOnMovements();
+
  // readLidarData();
 
 //  if (isDirectionAllowed(FORWARD)) {
@@ -63,31 +91,42 @@ void loop() {
   // }
 }
 void actOnMovements() {
-  bool moveForwardFlag = false;
-  bool moveBackwardFlag = false;
-  bool turnLeftFlag = false;
-  bool turnRightFlag = false;
+  bool foundW = false;
+  bool foundS = false;
+  bool foundA = false;
+  bool foundD = false;
+  // Check which directions are active
   for (int i = 0; i < 4; i++) {
-      if (robot.activeMovements[i] == nullptr)continue;
-      Serial.print(robot.activeMovements[i]);
-      if (strcmp(robot.activeMovements[i], "w") == 0) {
-         moveForwardFlag=true;
-      } else if (strcmp(robot.activeMovements[i], "s") == 0) {
-        moveBackwardFlag=true;
-      } else if (strcmp(robot.activeMovements[i], "a") == 0) {
-       turnLeftFlag = true;
-        
-      } else if (strcmp(robot.activeMovements[i], "d") == 0) {
-      
-        turnRightFlag = true;
-      }
-   
+    if (robot.activeMovements[i] == nullptr) continue;
+    char dir = robot.activeMovements[i][0];
+    switch (dir) {
+      case 'w': foundW = true; break;
+      case 's': foundS = true; break;
+      case 'a': foundA = true; break;
+      case 'd': foundD = true; break;
+    }
   }
 
-  digitalWrite(blue,moveForwardFlag?HIGH:LOW);
-  digitalWrite(orange,moveBackwardFlag?HIGH:LOW);
-  digitalWrite(yellow,turnLeftFlag?HIGH:LOW);
-  digitalWrite(green,turnRightFlag?HIGH:LOW);
+  // Update global flags (and thus LED state) only when needed
+  if (moveForwardFlag != foundW) {
+    moveForwardFlag = foundW;
+    digitalWrite(blue, moveForwardFlag ? HIGH : LOW);
+  }
+
+  if (moveBackwardFlag != foundS) {
+    moveBackwardFlag = foundS;
+    digitalWrite(orange, moveBackwardFlag ? HIGH : LOW);
+  }
+
+  if (turnLeftFlag != foundA) {
+    turnLeftFlag = foundA;
+    digitalWrite(yellow, turnLeftFlag ? HIGH : LOW);
+  }
+
+  if (turnRightFlag != foundD) {
+    turnRightFlag = foundD;
+    digitalWrite(green, turnRightFlag ? HIGH : LOW);
+  }
 
   // // Handle combined logic
   // if (moveForwardFlag && turnLeftFlag) {
@@ -111,6 +150,47 @@ void actOnMovements() {
   // }
 }
 
+
+
+
+void checkRobotState(RobotData& robot){
+  if (robot.initializing){
+   bool  lidarReadyTemp = initializeHardware();
+    if(lidarReadyTemp){
+       robot.initializing=false;
+       robot.isStopped=false;  
+       robot.lidarReady=true; 
+       sendInitializeMessage(false,"");
+    }else{
+      robot.lidarReady=false; 
+      robot.initializing=false;
+      robot.isStopped=true; 
+      stopLidar();
+      sendInitializeMessage(true,InitializeError);
+      Serial.println("error occured while starting");
+    }
+    return;
+  }
+
+  //Add retry to stop if stop fails
+  if(robot.isStopping){
+    Serial.println("Stopping");
+    bool stopped = stopLidar();
+    if(stopped){
+      robot.lidarReady=false;
+      robot.isStopped=true;
+      sendTurnOffMessage("");
+    }else{
+      sendTurnOffMessage(StopError);
+    }
+    return;
+  }
+
+  if(robot.isStopped ){
+     return;  
+  }
+  actOnMovements();
+}
 
 
 

@@ -6,11 +6,11 @@
 #include "fns.h"
 #ifndef LIDAR_h
 #define LIDAR_h
-#define RPLIDAR_MOTOR 4
+#define RPLIDAR_MOTOR 14
 #define RPLIDAR_RX 16
 #define RPLIDAR_TX 17   
-#define red 13
-#define green 14
+// #define red 13
+// #define green 14
 struct Point
 {
     float angle;
@@ -30,7 +30,7 @@ struct Gap {
 };
 
 
-enum DIRECTION {
+enum DIRECTION { 
     FRONT,
     RIGHTR,
     LEFTL,
@@ -40,6 +40,7 @@ enum DIRECTION {
 
 
 extern RPLidar lidar;
+bool stopLidar();
 extern HardwareSerial LidarSerial;
 const int ANGLE_BUCKET_SIZE = 5; 
 const int NUM_BUCKETS = 360 / ANGLE_BUCKET_SIZE;
@@ -60,15 +61,15 @@ void addMovement(Direction moveToAdd);
 
 void printGaps();
 void findGaps(int degrees);
-
 const int pwmChannel = 0;
 const int pwmFreq = 25000;
 const int pwmResolution = 8;
+
 // void printObstacles(const Obstacle* obstacles, int obstacleCount);
 
 void averageDistances(const Point* measurements, int size,float* output);
 float chordLength(float radius_mm, float angle_deg);
-void initializeHardware();
+bool initializeHardware();
 void startMotor();
 void readLidarData();
 

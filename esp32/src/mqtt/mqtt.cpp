@@ -11,17 +11,19 @@
 
 WiFiClient espClient;
 PubSubClient client(espClient);
+Publisher publisher = Publisher();
 
 const char* engineManagementUserTopic = "engineManagementUser";
 const char* commanduser = "commandsuser";
 const char* driveTopic = "drive";
+const char* engineManagementTopic = "engineManagementEsp";
 
 unsigned long buzzerStartTime = 0;
 bool buzzerActive = false;
 const unsigned long buzzerDuration = 100; 
 
 
-
+//solve the arriving message trough mqtt
 void callback(const char* topic, byte* payload, unsigned int length,RobotData* robotData) {
       Serial.print("Message arrived on topic: ");
       Serial.println(topic);
@@ -33,7 +35,7 @@ void callback(const char* topic, byte* payload, unsigned int length,RobotData* r
     receiveData(response,robotData);
 }
 
-
+//connect to wifi
 void connectWiFi() {
     digitalWrite(LED_BUILTIN, HIGH);
     delay(50);
@@ -62,7 +64,11 @@ void connectWiFi() {
         Serial.println(" Failed to connect to WiFi.");
     }
 }
+
+
+//Method to connect to the mqtt broker
  void connectMQTT(RobotData* robotData){
+    
     client.setServer(MQTT_HOST, MQTT_PORT);
     client.setCallback([robotData](char* topic, byte* payload, unsigned int length) {
         callback(topic, payload, length, robotData);
@@ -76,6 +82,7 @@ void connectWiFi() {
           Serial.println("Connected to MQTT");
           client.subscribe(engineManagementUserTopic);
           client.subscribe(commanduser);
+          publisher.client=client;
           return;
       } else {
           Serial.print("MQTT connection failed. State: ");
@@ -90,34 +97,11 @@ void connectWiFi() {
       ESP.restart(); 
   } 
  };
-// void connectMQTT() {
-//   client.setServer(MQTT_HOST, MQTT_PORT);
-//   client.setCallback(callback);
-//   digitalWrite(LED_BUILTIN,HIGH);
-//   int attempts = 0;
-//   while (!client.connected() && attempts < 5) {
-//       digitalWrite(LED_BUILTIN,HIGH);
-//      Serial.println("Connecting to MQTT...");
-//       if (client.connect("ESP32Client", MQTT_TOKEN, "")) {
-//           Serial.println("Connected to MQTT");
-//           client.subscribe(engineManagementUserTopic);
-//           return;
-//       } else {
-//           Serial.print("MQTT connection failed. State: ");
-//           Serial.println(client.state());
-//           attempts++;
-//           delay(2000);
-//       }
-//   }
 
-//   if (!client.connected()) {
-//       Serial.println("Failed to connect to MQTT after multiple attempts, rebooting...");
-//       ESP.restart(); 
-//   }
-// }
 
+//parse message into rbot struct that will be used to controll the robot
 RobotData parseJson(String jsonString) {
-    DynamicJsonDocument doc(512); // Correct declaration
+    DynamicJsonDocument doc(512); 
 
     DeserializationError error = deserializeJson(doc, jsonString);
 
@@ -134,11 +118,14 @@ RobotData parseJson(String jsonString) {
             startBuzzer(); 
             if (doc.containsKey("Payload")) {
                 JsonObject payload = doc["Payload"]; 
-                
                 if (payload.containsKey("Engine")) {
-                    data.Engine = payload["Engine"];
+                    bool startInitialize = payload["Engine"];
+                    if(startInitialize){
+                        data.initializing= true; 
+                    }else{
+                        data.isStopping= true;
+                    }
                 }
-    
                 if (payload.containsKey("move") && payload["move"].containsKey("isMoving")) {
                     data.isMoving = payload["move"]["isMoving"];
                 }
@@ -170,21 +157,20 @@ RobotData parseJson(String jsonString) {
     return data;
 }
 
+
+//map the temporary object to the one used in the main.cpp
 void receiveData(String value ,RobotData * robotData){
-    // Get parsed values
     RobotData data = parseJson(value);
     Serial.print("Engine: ");
-    Serial.println(data.Engine);
-    Serial.print("IsMoving: ");
+     Serial.print("IsMoving: ");
     Serial.println(data.isMoving);
-
-    robotData->Engine=data.Engine;
+    robotData->initializing =data.initializing;
     robotData->isMoving=data.isMoving;
+    robotData->isStopping=data.isStopping;
     for (int i = 0; i < 4; i++) {
         robotData->activeMovements[i] = data.activeMovements[i];
     }
-    
- 
+
 }
 
 void startBuzzer() {
@@ -193,4 +179,31 @@ void startBuzzer() {
     buzzerActive = true;             // Now it's active
     Serial.println("Buzzer ON");
 }
+
+
+//send response back to the server recarding intialization process
+void sendInitializeMessage(bool initialized, String error){ 
+    DynamicJsonDocument doc(256);
+    doc["CommandType"] = "Initialized";
+    JsonObject pl = doc.createNestedObject("Payload");
+    pl["InitializeEngine"] = initialized;
+    pl["ErrorMessage"] = error;
+    String out;
+    serializeJson(doc, out);
+    Serial.println(out);
+    publisher.publish(engineManagementTopic, out.c_str());
+    }
+//send shut off performed message
+void sendTurnOffMessage(String error){
+    DynamicJsonDocument doc(256);
+    doc["CommandType"] = "Initialized";
+    JsonObject pl = doc.createNestedObject("Payload");
+    pl["InitializeEngine"] = true;
+    pl["ErrorMessage"] = error;
+    String out;
+    serializeJson(doc, out);  
+    publisher.publish(engineManagementTopic,out.c_str());
+}
+
+
 

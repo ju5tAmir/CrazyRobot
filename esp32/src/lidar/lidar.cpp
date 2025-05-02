@@ -8,6 +8,7 @@ Gap gaps[10];
 int gapCount = 0;
 Direction  allowedMovement[]= {FORWARD, BACKWARD,RIGHT,LEFT,STOP};
 Point* scanPoints = nullptr;     
+
 int pointCount = 0;              
 bool collectingScan = false;
 int obstacleCount = 0;
@@ -26,127 +27,269 @@ int rightDangerCount = 0;
 float backDangerSum = 0;
 int backDangerCount = 0;
 
-
-void initializeHardware() {
-   
-    delay(1000);           
-    pinMode(red, OUTPUT);
-    pinMode(green, OUTPUT);
+bool initializeHardware() {
+    delay(1000);
     pinMode(RPLIDAR_MOTOR, OUTPUT);
-  
-    // Start Lidar serial
     LidarSerial.begin(115200, SERIAL_8N1, RPLIDAR_RX, RPLIDAR_TX);
     lidar.begin(LidarSerial);
 
-    // Allocate memory for scan points ONCE
     scanPoints = (Point*) malloc(MAX_POINTS * sizeof(Point));
-    if (scanPoints == nullptr) {
+    delay(1000);
+    if (!scanPoints) {
         Serial.println("Failed to allocate memory for scanPoints!");
-        while (true); // Stop program if critical error
+        return false;
     }
-  
-    // Detect the device and print info
+
     rplidar_response_device_info_t info;
-    if (IS_OK(lidar.getDeviceInfo(info, 1000))) {
-        Serial.println("RPLIDAR detected.");
-        Serial.print("Model: "); Serial.println(info.model);
-        Serial.print("Firmware: "); Serial.print(info.firmware_version >> 8);
-        Serial.print("."); Serial.println(info.firmware_version & 0xFF);
-        Serial.print("Hardware: "); Serial.println(info.hardware_version);
-        Serial.print("Serial: ");
-        for (int i = 0; i < 16; i++) Serial.printf("%02X", info.serialnum[i]);
-        startMotor();
-        delay(1000); 
-        lidar.startScan();
-       
-    } else {
+    if (!IS_OK(lidar.getDeviceInfo(info, 1000))) {
         Serial.println("RPLIDAR not detected!");
+        return false;
+    }
+
+    Serial.println("RPLIDAR detected.");
+    startMotor();
+    delay(3000);
+    rplidar_response_device_health_t health;
+if (IS_OK(lidar.getHealth(health))) {
+    Serial.print("Health status: ");
+    Serial.println(health.status);  // 0 = Good
+    if (health.status != 0) {
+        Serial.println("LIDAR health not good. Trying to reset.");
+        return false;
     }
 }
+    Serial.println(" points. LIDAR initialization OK!");
+    return true;
+}
+
+
+
+// void initializeHardware(bool* initializing) {
+//     if (!initializing) return;
+//     *initializing = false;
+//     delay(1000);
+//     pinMode(RPLIDAR_MOTOR, OUTPUT);
+//     LidarSerial.begin(115200, SERIAL_8N1, RPLIDAR_RX, RPLIDAR_TX);
+//     lidar.begin(LidarSerial);
+//     scanPoints = (Point*) malloc(MAX_POINTS * sizeof(Point));
+//     if (!scanPoints) {
+//         Serial.println("Failed to allocate memory for scanPoints!");
+//         return;
+//     }
+
+ 
+//     rplidar_response_device_info_t info;
+//     if (!IS_OK(lidar.getDeviceInfo(info, 1000))) {
+//         Serial.println("RPLIDAR not detected!");
+//         return;
+//     }
+//     Serial.println("RPLIDAR detected.");
+//     startMotor();
+//     delay(2000);
+//     lidar.startScan();
+//     if (!IS_OK(lidar.startScan())) {
+//         Serial.println("Failed to startScan()");
+//         return;
+//     }
+
+   
+//     const int REQUIRED = 5;
+//     Point testBuf[REQUIRED];
+//     int got = 0;
+//     Serial.print("Testing LIDAR—grabbing ");
+//     Serial.print(REQUIRED);
+//     Serial.println(" points…");
+
+//     if (!grabNValidPoints(REQUIRED, 200, testBuf, got)) {
+//         Serial.print("Only got ");
+//         Serial.print(got);
+//         Serial.println(" valid points—init failed.");
+//         return;
+//     }
+
+//     Serial.print("Got ");
+//     Serial.print(got);
+//     Serial.println(" points. LIDAR initialization OK!");
+//     *initializing = true;
+// }
+
+bool stopLidar(){
+    lidar.stop();
+    delay(50);
+    ledcWrite(pwmChannel,0);
+    return true;
+}
+
+
 
 void startMotor() {
     ledcSetup(pwmChannel, pwmFreq, pwmResolution);
     ledcAttachPin(RPLIDAR_MOTOR, pwmChannel);
-    ledcWrite(pwmChannel, 153);  
+  ledcWrite(pwmChannel, 153); 
 }
-
-
-
 void readLidarData() {
-    if (IS_OK(lidar.waitPoint())) {
-        float distance = lidar.getCurrentPoint().distance;
-        float angle = lidar.getCurrentPoint().angle;
-        bool startBit = lidar.getCurrentPoint().startBit;
-        byte quality = lidar.getCurrentPoint().quality;
+    Serial.println("\n=== NEW SCAN STARTED ===");
 
-        if (startBit) {
-            // Start of a new scan
-            Serial.println("Starting new scan...");
-            
-            if (collectingScan && pointCount > 0) {
-                float averagedDistances[NUM_BUCKETS];
-                averageDistances(scanPoints, pointCount, averagedDistances);
-                detectAndUpdateObstacles(averagedDistances);
+    static bool scanStarted = false;
+    static unsigned long lastScanTime = 0;
+    if (!scanStarted) {
+        lidar.stop();
+        delay(10);
+        if (!IS_OK(lidar.startScan())) {
+            Serial.println("Failed to start LIDAR scan");
+            return;
+        }
+        scanStarted = true;
+        Serial.println("LIDAR scan (normal mode) started...");
+    }
 
-                if (++scanCounter % TRUST_DECAY_INTERVAL == 0) {
-                    decayTrust();
-                }
+    // Wait for next point
+    if (!IS_OK(lidar.waitPoint(100))) return;
 
-                // === Danger evaluation ===
-                float frontAvg = (frontDangerCount > 0) ? (frontDangerSum / frontDangerCount) : 9999;
-                float leftAvg = (leftDangerCount > 0) ? (leftDangerSum / leftDangerCount) : 9999;
-                float rightAvg = (rightDangerCount > 0) ? (rightDangerSum / rightDangerCount) : 9999;
-                float backAvg = (backDangerCount > 0) ? (backDangerSum / backDangerCount) : 9999;
+    auto point = lidar.getCurrentPoint();
+    float distance = point.distance;
+    float angle = point.angle;
+    byte quality = point.quality;
+    bool startBit = point.startBit;
 
-                Serial.print("Front Avg: "); Serial.println(frontAvg);
-                Serial.print("Left Avg: "); Serial.println(leftAvg);
-                Serial.print("Right Avg: "); Serial.println(rightAvg);
-                Serial.print("Back Avg: "); Serial.println(backAvg);
+    // Debug output for every point
+    Serial.print("angle: "); Serial.print(angle);
+    Serial.print("  dist: "); Serial.print(distance);
+    Serial.print("  quality: "); Serial.print(quality);
+    Serial.print("  startBit: "); Serial.println(startBit);
 
-                // === Movement Decision or LED Indication ===
-                CheckAvailableSpace(frontAvg,rightAvg,leftAvg,backAvg);
+    if (startBit) {
+        Serial.println("\n=== NEW SCAN STARTED ===");
 
-                frontDangerSum = 0;
-                frontDangerCount = 0;
-                leftDangerSum = 0;
-                leftDangerCount = 0;
-                rightDangerSum = 0;
-                rightDangerCount = 0;
-                backDangerSum = 0;
-                backDangerCount = 0;
+        if (collectingScan && pointCount > 0) {
+            float averagedDistances[NUM_BUCKETS];
+            averageDistances(scanPoints, pointCount, averagedDistances);
+            detectAndUpdateObstacles(averagedDistances);
 
-                collectingScan = false;
+            if (++scanCounter % TRUST_DECAY_INTERVAL == 0) {
+                decayTrust();
             }
-            
-            pointCount = 0;
-            collectingScan = true;
+
+            float frontAvg = (frontDangerCount > 0) ? (frontDangerSum / frontDangerCount) : 9999;
+            float leftAvg = (leftDangerCount > 0) ? (leftDangerSum / leftDangerCount) : 9999;
+            float rightAvg = (rightDangerCount > 0) ? (rightDangerSum / rightDangerCount) : 9999;
+            float backAvg = (backDangerCount > 0) ? (backDangerSum / backDangerCount) : 9999;
+
+            Serial.print("Front Avg: "); Serial.println(frontAvg);
+            Serial.print("Left Avg: "); Serial.println(leftAvg);
+            Serial.print("Right Avg: "); Serial.println(rightAvg);
+            Serial.print("Back Avg: "); Serial.println(backAvg);
+
+            CheckAvailableSpace(frontAvg, rightAvg, leftAvg, backAvg);
+
+            frontDangerSum = leftDangerSum = rightDangerSum = backDangerSum = 0;
+            frontDangerCount = leftDangerCount = rightDangerCount = backDangerCount = 0;
+
+            collectingScan = false;
         }
 
-        if (collectingScan && distance != 0 && quality > 0 && distance <= 2000) {
-            if (pointCount < MAX_POINTS) {
-                scanPoints[pointCount++] = {angle, distance};
+        pointCount = 0;
+        collectingScan = true;
+    }
 
-                // === Classify point into zones ===
-                if ((angle <= 15 || angle >= 345)) { // FRONT
-                    frontDangerSum += distance;
-                    frontDangerCount++;
-                } 
-                else if (angle >= 75 && angle <= 105) { // LEFT
-                    leftDangerSum += distance;
-                    leftDangerCount++;
-                }
-                else if (angle >= 255 && angle <= 285) { // RIGHT
-                    rightDangerSum += distance;
-                    rightDangerCount++;
-                }
-                else if (angle >= 165 && angle <= 195) { // BACK
-                    backDangerSum += distance;
-                    backDangerCount++;
-                }
+    if (collectingScan && distance != 0 && quality > 0 && distance <= 2000) {
+        if (pointCount < MAX_POINTS) {
+            scanPoints[pointCount++] = {angle, distance};
+
+            if ((angle <= 15 || angle >= 345)) {
+                frontDangerSum += distance;
+                frontDangerCount++;
+            } else if (angle >= 75 && angle <= 105) {
+                leftDangerSum += distance;
+                leftDangerCount++;
+            } else if (angle >= 255 && angle <= 285) {
+                rightDangerSum += distance;
+                rightDangerCount++;
+            } else if (angle >= 165 && angle <= 195) {
+                backDangerSum += distance;
+                backDangerCount++;
             }
         }
     }
 }
+
+// void readLidarData() {
+//     Serial.println("Starting new scan...");
+ 
+//     if (IS_OK(lidar.waitPoint())) {
+//         float distance = lidar.getCurrentPoint().distance;
+//         float angle = lidar.getCurrentPoint().angle;
+//         bool startBit = lidar.getCurrentPoint().startBit;
+//         byte quality = lidar.getCurrentPoint().quality;
+
+//         if (startBit) {
+//             // Start of a new scan
+//             Serial.println("Starting new scan...");
+            
+//             if (collectingScan && pointCount > 0) {
+//                 float averagedDistances[NUM_BUCKETS];
+//                 averageDistances(scanPoints, pointCount, averagedDistances);
+//                 detectAndUpdateObstacles(averagedDistances);
+
+//                 if (++scanCounter % TRUST_DECAY_INTERVAL == 0) {
+//                     decayTrust();
+//                 }
+
+//                 // === Danger evaluation ===
+//                 float frontAvg = (frontDangerCount > 0) ? (frontDangerSum / frontDangerCount) : 9999;
+//                 float leftAvg = (leftDangerCount > 0) ? (leftDangerSum / leftDangerCount) : 9999;
+//                 float rightAvg = (rightDangerCount > 0) ? (rightDangerSum / rightDangerCount) : 9999;
+//                 float backAvg = (backDangerCount > 0) ? (backDangerSum / backDangerCount) : 9999;
+
+//                 Serial.print("Front Avg: "); Serial.println(frontAvg);
+//                 Serial.print("Left Avg: "); Serial.println(leftAvg);
+//                 Serial.print("Right Avg: "); Serial.println(rightAvg);
+//                 Serial.print("Back Avg: "); Serial.println(backAvg);
+
+//                 // === Movement Decision or LED Indication ===
+//                 CheckAvailableSpace(frontAvg,rightAvg,leftAvg,backAvg);
+
+//                 frontDangerSum = 0;
+//                 frontDangerCount = 0;
+//                 leftDangerSum = 0;
+//                 leftDangerCount = 0;
+//                 rightDangerSum = 0;
+//                 rightDangerCount = 0;
+//                 backDangerSum = 0;
+//                 backDangerCount = 0;
+
+//                 collectingScan = false;
+//             }
+            
+//             pointCount = 0;
+//             collectingScan = true;
+//         }
+
+//         if (collectingScan && distance != 0 && quality > 0 && distance <= 2000) {
+//             if (pointCount < MAX_POINTS) {
+//                 scanPoints[pointCount++] = {angle, distance};
+
+//                 // === Classify point into zones ===
+//                 if ((angle <= 15 || angle >= 345)) { // FRONT
+//                     frontDangerSum += distance;
+//                     frontDangerCount++;
+//                 } 
+//                 else if (angle >= 75 && angle <= 105) { // LEFT
+//                     leftDangerSum += distance;
+//                     leftDangerCount++;
+//                 }
+//                 else if (angle >= 255 && angle <= 285) { // RIGHT
+//                     rightDangerSum += distance;
+//                     rightDangerCount++;
+//                 }
+//                 else if (angle >= 165 && angle <= 195) { // BACK
+//                     backDangerSum += distance;
+//                     backDangerCount++;
+//                 }
+//             }
+//         }
+//     }
+// }
 
 void CheckAvailableSpace(float frontAvg, float rightAvg, float leftAvg, float backAvg) {
     bool canBackward = checkIfCanMove(backAvg);
@@ -190,8 +333,8 @@ void CheckAvailableSpace(float frontAvg, float rightAvg, float leftAvg, float ba
     }
 
     if (!stopped && canForward) {
-        digitalWrite(red, LOW);
-        digitalWrite(green, HIGH);
+        // digitalWrite(red, LOW);
+        // digitalWrite(green, HIGH);
         Serial.println("Front Clear: Move Forward");
         addMovement(FORWARD); 
         addMovement(LEFT); 
@@ -199,8 +342,8 @@ void CheckAvailableSpace(float frontAvg, float rightAvg, float leftAvg, float ba
         addMovement(RIGHT); 
     }
     else {
-        digitalWrite(red, HIGH);
-        digitalWrite(green, LOW);
+        // digitalWrite(red, HIGH);
+        // digitalWrite(green, LOW);
     }
 }
 

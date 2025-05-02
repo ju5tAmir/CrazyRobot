@@ -1184,6 +1184,9 @@
         "properties": {
           "initializeEngine": {
             "type": "boolean"
+          },
+          "errorMessage": {
+            "type": "string"
           }
         }
       },

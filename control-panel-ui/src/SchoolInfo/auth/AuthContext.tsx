@@ -16,7 +16,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 
     async function login(email: string, password: string) {
-        const client = new AuthClient(import.meta.env.VITE_API_URL);
+        const client = new AuthClient(import.meta.env.VITE_API_BASE_URL);
         const { jwt: token } = await client.login({ email, password });
         localStorage.setItem('jwt', token);
         setJwt(token);

@@ -4,6 +4,8 @@ import ContactsAdmin from './pages/ContactsAdmin';
 import EventsAdmin   from './pages/EventsAdmin';
 import { AuthProvider, useAuth } from '../auth/AuthContext';
 import LoginPage     from '../auth/LoginPage';
+import SurveysAdmin from "../../components/surveys/admin/SurveysAdmin.tsx";
+import SurveyResultsAdmin from "../../components/surveys/admin/SurveyResultsAdmin.tsx";
 
 function RequireAuth() {
     const { jwt } = useAuth();
@@ -21,6 +23,8 @@ export default function Admin() {
                     <Route index element={<Navigate to="contacts" replace />} />
                     <Route path="contacts" element={<ContactsAdmin />} />
                     <Route path="events"   element={<EventsAdmin />} />
+                    <Route path="surveys" element={<SurveysAdmin />} />
+                    <Route path="survey-results"   element={<SurveyResultsAdmin />} />
                 </Route>
             </Routes>
         </AuthProvider>

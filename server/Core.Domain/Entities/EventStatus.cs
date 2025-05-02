@@ -1,9 +1,8 @@
-namespace Core.Domain.Entities
+namespace Core.Domain.Entities;
+
+public class EventStatus
 {
-    public enum EventStatus
-    {
-        Upcoming,
-        Ongoing,
-        Past
-    }
+    public static string Upcoming = "Upcoming";
+    public static string Ongoing = "Ongoing";
+    public static string Past = "Past";
 }

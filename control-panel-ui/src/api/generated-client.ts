@@ -984,13 +984,7 @@ export interface EventDto {
     time?: string;
     location?: string;
     category?: string;
-    status?: EventStatus;
-}
-
-export enum EventStatus {
-    Upcoming = 0,
-    Ongoing = 1,
-    Past = 2,
+    status?: string;
 }
 
 export interface ChangeSubscriptionDto {

@@ -1,7 +1,7 @@
 Crazy Robot Features:
 
-- Directions 
-- Driving 
+- Directions --> Andrei
+- Driving --> Andrei
 
 - Chat (What type of chat?) 
 

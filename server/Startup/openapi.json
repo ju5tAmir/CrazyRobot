@@ -797,23 +797,9 @@
             "type": "string"
           },
           "status": {
-            "$ref": "#/components/schemas/EventStatus"
+            "type": "string"
           }
         }
-      },
-      "EventStatus": {
-        "type": "integer",
-        "description": "",
-        "x-enumNames": [
-          "Upcoming",
-          "Ongoing",
-          "Past"
-        ],
-        "enum": [
-          0,
-          1,
-          2
-        ]
       },
       "ChangeSubscriptionDto": {
         "type": "object",

@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { EventsClient, EventDto } from '../../api/generated-client';
 
-const API_URL = import.meta.env.VITE_API_URL ?? '';
+const API_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 
 export function useEvents() {
     const [events, setEvents]   = useState<EventDto[]>([]);

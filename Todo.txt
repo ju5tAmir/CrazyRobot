@@ -1,26 +1,24 @@
 Todo:
--> Implementation of surveys:
-    - Implement SurveysController.cs;
-    - Implement Surveys service;
-    - Implement Surveys repository;
-    - Check if its working;
-    - MAKE TESTS!
 
 -> Improve validation related to the surveys and answers;
 
--> Reformat the code to handle multiple transitions (on create and update)
+-> Reformat the code to handle multiple transitions (on create and update);
+
+-> Make TESTS!
+
+-> Also, .env files are in github?  --> Check if fixed after I make a pull request to main;
+
+----> implement the registration of guest (only for surveys and only email).
 
 
-!!!! TALK WITH THE GUYS ABOUT THIS ON package.json "@tailwindcss/oxide-win32-x64-msvc": "^4.1.4"" !!!!
-
-
-Need adjust because of merging:
-sql file;
-DbContext;
 
 
 NOTES:
 
-SQL:
+- SQL drop:
 drop schema if exists crazyrobot cascade;
 create schema if not exists crazyrobot;
+
+- package.json "@tailwindcss/oxide-win32-x64-msvc": "^4.1.4"" --> Can't install on macOS, not sure where it's used...
+
+

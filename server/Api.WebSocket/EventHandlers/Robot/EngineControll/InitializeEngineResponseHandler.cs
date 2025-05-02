@@ -17,14 +17,15 @@ public class InitializeEngineResponseHandler(IConnectionManager connectionManage
     // //     return Task.CompletedTask;
     // // }
 
-    public Task SendEngineStatusToClient(bool status)
+    public Task SendEngineStatusToClient(bool status,string errorMessage)
     {
         var clientCommand = new ClientCommand<InitializeEngineResponse>()
         {
             CommandType = ClientCommandType.Initialized,
             Payload = new InitializeEngineResponse()
             {
-                InitializeEngine = status
+                InitializeEngine = status,
+                ErrorMessage = errorMessage
             }
         };
         var response = new InitializeEnginResponseDto
@@ -39,8 +40,7 @@ public class InitializeEngineResponseHandler(IConnectionManager connectionManage
             mqttOptions.CurrentValue.SubscribeEngineTopic,
             response
         );
-        Console.WriteLine(mqttOptions.CurrentValue.SubscribeEngineTopic);
-        Console.WriteLine("Ana are mere");
+     
 
         return Task.CompletedTask;
     }

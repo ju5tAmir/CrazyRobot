@@ -40,6 +40,7 @@ export interface MovementCommand {
 
 export interface InitializeEngineResponse {
     initializeEngine:boolean;
+    ErrorMessage:string;
 }
 
 

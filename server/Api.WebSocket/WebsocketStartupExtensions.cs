@@ -3,6 +3,7 @@ using System.Net.Sockets;
 using System.Text.Json;
 using System.Web;
 using Api.Websocket.EventHandlers.Robot.EngineControll;
+using Api.Websocket.EventHandlers.Robot.MovementControll;
 using Api.Websocket.ServerDto;
 using Application.Interfaces.Infrastructure.Websocket;
 using Application.Interfaces.Robot;
@@ -19,6 +20,7 @@ public static class WebsocketStartupExtensions
         var assembly = typeof(WebsocketStartupExtensions).Assembly;
         services.InjectEventHandlers(assembly);
         services.AddSingleton<IClientNotifier, InitializeEngineResponseHandler>();
+        services.AddSingleton<IClientMovementNotifier,MovementResponseHandler>();
         return services;
     }
 

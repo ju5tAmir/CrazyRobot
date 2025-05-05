@@ -52,6 +52,7 @@ public class MqttClientService
 
                 await SubscribeAsync(_mqttOptions.CurrentValue.SubscribeEngineTopic);
                 await SubscribeAsync(_mqttOptions.CurrentValue.SubscribeCommandsTopic); 
+                await SubscribeAsync(_mqttOptions.CurrentValue.DistanceWarningTopic); 
                 await SubscribeAsync("test"); 
                 await PublishAsync(_mqttOptions.CurrentValue.PublishEngineTopic, "From server engine");
                 await PublishAsync("test", "From server");
@@ -135,7 +136,7 @@ public class MqttClientService
         var mqttMessage = new MqttApplicationMessageBuilder()
             .WithTopic(topic)
             .WithPayload(payload)
-            .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce).WithRetainFlag(true)
+            .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
             .Build();
 
         await _client.PublishAsync(mqttMessage);

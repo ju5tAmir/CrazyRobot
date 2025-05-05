@@ -14,6 +14,7 @@ public static class ServicesExtensions
     public static IServiceCollection RegisterApplicationServices(this IServiceCollection services)
     {
         services.AddTransient<InitializeEngineHandler> ();
+        services.AddTransient<DistanceWarningHandler>();
         services.AddSingleton<IMqttMessageHandler, MqttMessageHandler>();
         services.AddScoped<ISecurityService, SecurityService>();
         services.AddScoped<IAdminSurveyService, AdminSurveyService>();

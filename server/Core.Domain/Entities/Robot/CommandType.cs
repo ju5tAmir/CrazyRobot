@@ -24,5 +24,8 @@ public enum ClientCommandType
     Initialized,
     // [JsonPropertyName("batteryStatus")]
     [EnumMember(Value = "batteryStatus")]
-    BatteryStatus
+    BatteryStatus,
+    [EnumMember(Value ="distanceWarning")]
+    DistanceWarning
 }
+

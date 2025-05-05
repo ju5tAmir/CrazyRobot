@@ -7,11 +7,13 @@ namespace Application.Services;
 public class MqttMessageHandler:IMqttMessageHandler
 {
     private InitializeEngineHandler _initializeHandler;
+    private DistanceWarningHandler _distanceWarningHandler;
 
 
-    public MqttMessageHandler(InitializeEngineHandler initializeHandler)
+    public MqttMessageHandler(InitializeEngineHandler initializeHandler,DistanceWarningHandler distanceWarningHandler)
     {
       _initializeHandler = initializeHandler;
+      _distanceWarningHandler = distanceWarningHandler;
     }
 
     public async Task HandleAsync(string topic, ClientCommandDto payload)
@@ -49,10 +51,40 @@ public class MqttMessageHandler:IMqttMessageHandler
                     }
 
                     break;
+                
+                case ClientCommandType.DistanceWarning:
+                    try
+                    {
+                        var distanceWarning = payload.Payload.Deserialize<DistanceWarning>();
+
+                        if (distanceWarning == null)
+                        {
+                            Console.WriteLine("Deserialization to  DistanceWarning  returned null!");
+                            throw new InvalidOperationException("Payload could not be deserialized into InitializeEngineResponse.");
+                        }
+
+                        var command = new ClientCommand<DistanceWarning>
+                        {
+                            CommandType = payload.CommandType,
+                            Payload = distanceWarning,
+                        };
+
+                        Console.WriteLine("Successfully created command: " + JsonSerializer.Serialize(command));
+                        await _distanceWarningHandler.HandleCommand(topic, command);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Error during deserialization or handling: " + ex.Message);
+                    }
+
+                    break;
+                    
                 default:
                     throw new InvalidOperationException($"Unknown CommandType: {payload.CommandType}");
             }
         }
+        
+     
         
         await Task.CompletedTask;
     }

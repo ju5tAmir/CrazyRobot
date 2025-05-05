@@ -72,16 +72,17 @@ export const ControlMotor = () => {
 
 
     useEffect(() => {
-        console.log(pressedKeys + "press");
+
+        console.log("New press");
         const keysChanged = [...pressedKeys].some(k => !previousPressed.current.has(k)) ||
             [...previousPressed.current].some(k => !pressedKeys.has(k));
-
         if (keysChanged) {
             sendMovementCommand();
         }
         previousPressed.current = new Set(pressedKeys);
-
     }, [pressedKeys]);
+
+
 
 
     const handleInputDown = useCallback((value: string) => {

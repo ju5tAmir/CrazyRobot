@@ -1,13 +1,10 @@
 #include <Arduino.h>
 #include <HardwareSerial.h>
-#include <WiFi.h>
 #include <dotenv.h>
-#include <PubSubClient.h>
 #include "mqtt.h"
 #include <ArduinoJson.h>
 #include <esp32-hal-gpio.h>
-
-#include "mqtt.h"
+#include "models/models.h"
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -17,6 +14,7 @@ const char* engineManagementUserTopic = "engineManagementUser";
 const char* commanduser = "commandsuser";
 const char* driveTopic = "drive";
 const char* engineManagementTopic = "engineManagementEsp";
+const char* distanceWarningTopic = "distanceWarningTopic";
 
 unsigned long buzzerStartTime = 0;
 bool buzzerActive = false;
@@ -50,10 +48,10 @@ void connectWiFi() {
     int retryCount = 0;
     while (WiFi.status() != WL_CONNECTED && retryCount < 30) {
         Serial.print(".");
-        digitalWrite(LED_BUILTIN, HIGH);
-        delay(250);
-        digitalWrite(LED_BUILTIN, LOW);
-        delay(250);
+        // digitalWrite(LED_BUILTIN, HIGH);
+        // delay(250);
+        // digitalWrite(LED_BUILTIN, LOW);
+        // delay(250);
         retryCount++;
     }
 
@@ -76,7 +74,7 @@ void connectWiFi() {
   digitalWrite(LED_BUILTIN,HIGH);
   int attempts = 0;
   while (!client.connected() && attempts < 5) {
-      digitalWrite(LED_BUILTIN,HIGH);
+     // digitalWrite(LED_BUILTIN,HIGH);
      Serial.println("Connecting to MQTT...");
       if (client.connect("ESP32Client", MQTT_TOKEN, "")) {
           Serial.println("Connected to MQTT");
@@ -170,7 +168,6 @@ void receiveData(String value ,RobotData * robotData){
     for (int i = 0; i < 4; i++) {
         robotData->activeMovements[i] = data.activeMovements[i];
     }
-
 }
 
 void startBuzzer() {
@@ -205,5 +202,20 @@ void sendTurnOffMessage(String error){
     publisher.publish(engineManagementTopic,out.c_str());
 }
 
+
+//send  distance warning to client 
+
+
+void sendDistanceWarning(String level,String direction){
+    DynamicJsonDocument doc(256);
+    doc["CommandType"] = "DistanceWarning";
+    JsonObject pl = doc.createNestedObject("Payload");
+    pl["Warning"] = level;
+    pl["Direction"] = direction;
+    String out;
+    serializeJson(doc, out);
+    Serial.println(out);
+    publisher.publish(distanceWarningTopic, out.c_str());
+}
 
 

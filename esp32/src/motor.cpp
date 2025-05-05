@@ -3,30 +3,109 @@
 #include <esp32-hal-gpio.h>
 
 
-void moveRobotTwo(Direction dir, int leftSpeed, int rightSpeed,Motor leftMotor,Motor rightMotor) {
-        switch (dir) {
-          case FORWARD:
-            leftMotor.setSpeed(leftSpeed);
-            rightMotor.setSpeed(rightSpeed);
-            break;
-          case BACKWARD:
-            leftMotor.setSpeed(-leftSpeed);
-            rightMotor.setSpeed(-rightSpeed);
-            break;
-          case LEFT:
-            leftMotor.setSpeed(-leftSpeed);
-            rightMotor.setSpeed(rightSpeed);
-            break;
-          case RIGHT:
-            leftMotor.setSpeed(leftSpeed);
-            rightMotor.setSpeed(-rightSpeed);
-            break;
-          case STOP:
-            leftMotor.stop();
-            rightMotor.stop();
-            break;
-        }
+// void moveRobotTwo(Direction dir, int leftSpeed, int rightSpeed,Motor leftMotor,Motor rightMotor) {
+//         switch (dir) {
+//           case FORWARD:
+//             leftMotor.setSpeed(leftSpeed);
+//             rightMotor.setSpeed(rightSpeed);
+//             break;
+//           case BACKWARD:
+//             leftMotor.setSpeed(-leftSpeed);
+//             rightMotor.setSpeed(-rightSpeed);
+//             break;
+//           case LEFT:
+//             leftMotor.setSpeed(-leftSpeed);
+//             rightMotor.setSpeed(rightSpeed);
+//             break;
+//           case RIGHT:
+//             leftMotor.setSpeed(leftSpeed);
+//             rightMotor.setSpeed(-rightSpeed);
+//             break;
+//           case STOP:
+//             leftMotor.stop();
+//             rightMotor.stop();
+//             break;
+//         }
+// }
+
+
+
+void moveRobotTwo(Direction dir, int leftSpeed, int rightSpeed, Motor leftMotor, Motor rightMotor) {
+  static bool braking = false;
+  static int brakeSpeed = 0;
+  static int brakeStep = 0;
+  static int brakeTicksRemaining = 0;
+  if (dir == BRAKING) {
+    if (!braking) {
+      braking = true;
+      brakeSpeed = leftSpeed;
+      brakeTicksRemaining = 6;  
+      brakeStep = leftSpeed / brakeTicksRemaining;
+    }
+    if (brakeTicksRemaining > 0) {
+      leftMotor.setSpeed(brakeSpeed);
+      rightMotor.setSpeed(brakeSpeed);
+      brakeSpeed -= brakeStep;
+      brakeTicksRemaining--;
+    } else {
+      leftMotor.stop();
+      rightMotor.stop();
+      braking = false;
+    }
+    return;
+  } else {
+    braking = false; 
+  }
+  switch (dir) {
+      case FORWARD:
+          leftMotor.setSpeed(leftSpeed);
+          rightMotor.setSpeed(rightSpeed);
+          break;
+
+      case BACKWARD:
+          leftMotor.setSpeed(-leftSpeed);
+          rightMotor.setSpeed(-rightSpeed);
+          break;
+
+      case LEFT:
+          leftMotor.setSpeed(-leftSpeed);
+          rightMotor.setSpeed(rightSpeed);
+          break;
+
+      case RIGHT:
+          leftMotor.setSpeed(leftSpeed);
+          rightMotor.setSpeed(-rightSpeed);
+          break;
+
+      case FORWARD_LEFT:
+          leftMotor.setSpeed(leftSpeed * 0.5); 
+          rightMotor.setSpeed(rightSpeed);
+          break;
+
+      case FORWARD_RIGHT:
+          leftMotor.setSpeed(leftSpeed);
+          rightMotor.setSpeed(rightSpeed * 0.5);
+          break;
+
+      case BACKWARD_LEFT:
+          leftMotor.setSpeed(-leftSpeed * 0.5);
+          rightMotor.setSpeed(-rightSpeed);
+          break;
+
+      case BACKWARD_RIGHT:
+          leftMotor.setSpeed(-leftSpeed);
+          rightMotor.setSpeed(-rightSpeed * 0.5);
+          break;
+
+      case STOP:
+          leftMotor.stop();
+          rightMotor.stop();
+          break;
+default:
+         break;
+  }
 }
+
       
 
 void moveRobot(Direction dir, int speed) {
@@ -68,18 +147,15 @@ void moveRobot(Direction dir, int speed) {
     ledcWrite(pwmChannel2, speed);
 }
 
-// void setupMotors(){
-//     pinMode(ENA,OUTPUT);
-//     pinMode(ENB,OUTPUT);
-//     pinMode(IN1,OUTPUT);
-//     pinMode(IN2,OUTPUT);
-//     pinMode(IN3,OUTPUT);
-//     pinMode(IN4,OUTPUT);
-//     ledcSetup(pwmChannel1, freq, resolution);  
-//     ledcAttachPin(ENA, pwmChannel1);  
-//     ledcSetup(pwmChannel2, freq, resolution);  
-//     ledcAttachPin(ENB, pwmChannel2); 
-// }
+
+
+
+void setupMotors(){
+    pinMode(IN1,OUTPUT);
+    pinMode(IN2,OUTPUT);
+    pinMode(IN3,OUTPUT);
+    pinMode(IN4,OUTPUT);
+}
 
 
 

@@ -1,5 +1,5 @@
 #include <RPLidar.h>
-// #include "lidar/lidar.h"
+#include "models/models.h"
 #include "fns.h"
 #include "mqtt/mqtt.h"
 #include <ESP32Servo.h>
@@ -7,15 +7,16 @@
 #include "lidar/lidar.h"
 #include <ArduinoJson.h>
 #include "messages/messages.h"
-#define blue 12
-#define orange 4
-#define yellow 26
-#define green 25
-#define servo 14
+#include  "obstacles/obstacles.h"
+// #define blue 12
+// #define orange 4
+// #define yellow 26
+// #define green 25
+// #define servo 14
 
 
 Motor leftMotor(IN1, IN2, ENA, pwmChannel1); 
-Motor rightMotor(IN3, IN4, ENB, pwmChannel2);
+Motor rightMotor(IN4, IN3, ENB, pwmChannel2);
 ServoEasing myServo;
 RobotData robot = RobotData();
 void actOnMovements();
@@ -23,28 +24,40 @@ void checkRobotState(RobotData& robot);
 bool moveForwardFlag = false;
 bool moveBackwardFlag = false;
 bool turnLeftFlag = false;
-bool turnRightFlag = false; 
+bool turnRightFlag = false;
+void testAllDirections();
+void stopEngines();
 int initializeRetries= 3;
 int countRetries=0;
-
+unsigned long lastCheckTime = 0;
+static unsigned long lastWarnTime = 0;
+//Thread management for lidar thread
+TaskHandle_t lidarTaskHandle;
+void lidarTask(void* pvParameters);
 
 void setup() {
-
   Serial.begin(115200); 
-
 connectWiFi();
 connectMQTT(&robot);
-pinMode(blue,OUTPUT);
-pinMode(orange,OUTPUT);
-pinMode(yellow,OUTPUT);
-pinMode(green,OUTPUT);
-myServo.attach(servo);
-myServo.setEasingType(EASE_CUBIC_IN_OUT);  // Smooth curve
-myServo.startEaseTo(90, 2000); 
+setupMotors();
+// myServo.attach(servo);
+// myServo.setEasingType(EASE_CUBIC_IN_OUT);  // Smooth curve
+// myServo.startEaseTo(90, 2000); 
+
+xTaskCreatePinnedToCore(
+  lidarTask,
+  "LidarTask",
+  8192,
+  &robot,
+  1,
+  &lidarTaskHandle,
+  1
+);
 
 }
 
 void loop() {
+
       if(WiFi.status()!=WL_CONNECTED){
         connectWiFi();
     }
@@ -52,19 +65,9 @@ void loop() {
         connectMQTT(&robot);
     }
     client.loop(); 
-
-    checkRobotState(robot);
+   checkRobotState(robot);
+  //  testAllDirections();
     unsigned long currentMillis = millis();
-    Serial.println(robot.lidarReady);
-    Serial.print("Loop: lidarReady = ");
-Serial.println(robot.lidarReady);
-Serial.print("robot.isStopped = ");
-Serial.println(robot.isStopped);
-Serial.print("robot.initializing = ");
-Serial.println(robot.initializing);
-    if (robot.lidarReady) {
-      readLidarData(); }
-
     if (buzzerActive) {
         if (currentMillis - buzzerStartTime >= buzzerDuration) {
             // 100 ms passed -> stop buzzer
@@ -73,83 +76,170 @@ Serial.println(robot.initializing);
             Serial.println("Buzzer OFF");
         }
     }
-
- // readLidarData();
-
-//  if (isDirectionAllowed(FORWARD)) {
-    // moveRobotTwo(FORWARD, 170, 170, leftMotor, rightMotor);
- // } 
-  // else if (isDirectionAllowed(LEFT) && isDirectionAllowed(RIGHT)) {
-  //   moveRobotTwo(LEFT, 255, 255, leftMotor, rightMotor);
-  // } 
-  // else if (isDirectionAllowed(BACKWARD)) {
-  //   moveRobotTwo(BACKWARD, 150, 150, leftMotor, rightMotor);
-  // }
-  // else {
-  //   moveRobotTwo(STOP, 0, 0, leftMotor, rightMotor);
-  //   Serial.println("All directions blocked! Stopping.");
-  // }
 }
+
 void actOnMovements() {
-  bool foundW = false;
-  bool foundS = false;
-  bool foundA = false;
-  bool foundD = false;
-  // Check which directions are active
+  bool foundW = false, foundS = false, foundA = false, foundD = false;
+
   for (int i = 0; i < 4; i++) {
-    if (robot.activeMovements[i] == nullptr) continue;
-    char dir = robot.activeMovements[i][0];
-    switch (dir) {
-      case 'w': foundW = true; break;
-      case 's': foundS = true; break;
-      case 'a': foundA = true; break;
-      case 'd': foundD = true; break;
+    const char* movement = robot.activeMovements[i];
+    if (movement == nullptr) continue;
+
+    for (int j = 0; movement[j] != '\0'; j++) {
+      
+      switch (movement[j]) {
+        case 'w': foundW = true; break;
+        case 's': foundS = true; break;
+        case 'a': foundA = true; break;
+        case 'd': foundD = true; break;
+      }
     }
   }
 
-  // Update global flags (and thus LED state) only when needed
-  if (moveForwardFlag != foundW) {
-    moveForwardFlag = foundW;
-    digitalWrite(blue, moveForwardFlag ? HIGH : LOW);
-  }
 
-  if (moveBackwardFlag != foundS) {
-    moveBackwardFlag = foundS;
-    digitalWrite(orange, moveBackwardFlag ? HIGH : LOW);
-  }
+// if(turnLeftFlag!=foundA){
+//   turnLeftFlag=foundA;
+//   if (turnLeftFlag && !foundW || turnLeftFlag && !foundS) {
+//     Serial.println("W pressed alone → rotate left");
+//     moveRobotTwo(LEFT, 160, 160, leftMotor, rightMotor);
+//   } else if (turnLeftFlag && foundW) {
+//     Serial.println("move diagonal  → diagLeft");
+//     moveRobotTwo(FORWARD_LEFT, 160, 160, leftMotor, rightMotor);
+//   }else if(turnLeftFlag && foundS){
+//     Serial.println("move diagonal  → diagLeft");
+//     moveRobotTwo(BACKWARD_LEFT, 160, 160, leftMotor, rightMotor);
+//   }
+//   return;
+// }
 
-  if (turnLeftFlag != foundA) {
-    turnLeftFlag = foundA;
-    digitalWrite(yellow, turnLeftFlag ? HIGH : LOW);
-  }
+// if(turnRightFlag!=foundD){
+//   turnRightFlag=foundD;
+//   if (turnRightFlag && !foundW || turnRightFlag && !foundS) {
+//     Serial.println("W pressed alone → rotate right");
+//     moveRobotTwo(RIGHT, 160, 160, leftMotor, rightMotor);
+//   } else if (turnRightFlag && foundW) {
+//     Serial.println("move diagonal  → diagright");
+//     moveRobotTwo(FORWARD_RIGHT, 160, 1600, leftMotor, rightMotor);
+//   }else if(turnRightFlag && foundS){
+//     Serial.println("move diagonal  → diagright");
+//     moveRobotTwo(BACKWARD_RIGHT, 160, 160, leftMotor, rightMotor);
+//   }
 
-  if (turnRightFlag != foundD) {
-    turnRightFlag = foundD;
-    digitalWrite(green, turnRightFlag ? HIGH : LOW);
-  }
+// return;
+// }
 
-  // // Handle combined logic
-  // if (moveForwardFlag && turnLeftFlag) {
-  //     moveForwardLeft();  // Custom function to combine both
-  // } else if (moveForwardFlag && turnRightFlag) {
-  //     moveForwardRight();
-  // } else if (moveForwardFlag) {
-  //     moveForward();
-  // } else if (moveBackwardFlag && turnLeftFlag) {
-  //     moveBackwardLeft();
-  // } else if (moveBackwardFlag && turnRightFlag) {
-  //     moveBackwardRight();
-  // } else if (moveBackwardFlag) {
-  //     moveBackward();
-  // } else if (turnLeftFlag) {
-  //     turnLeft();
-  // } else if (turnRightFlag) {
-  //     turnRight();
-  // } else {
-  //     stopMotors(); // Default action
-  // }
+
+if (moveBackwardFlag != foundS) {
+  Serial.println("Backward Flag Changed");
+  moveBackwardFlag = foundS;
+
+  if (moveBackwardFlag && !foundW) {
+    Serial.println("S pressed alone → BACKWARD");
+    moveRobotTwo(BACKWARD, 160, 160, leftMotor, rightMotor);
+  } else if (!moveForwardFlag && !moveBackwardFlag) {
+    Serial.println("No movement → STOP");
+    moveRobotTwo(STOP, 0, 0, leftMotor, rightMotor);
+  }
 }
 
+
+if (moveForwardFlag != foundW) {
+  Serial.println("Forward Flag Changed");
+  moveForwardFlag = foundW;
+
+  if (moveForwardFlag && !foundS) {
+    Serial.println("W pressed alone → FORWARD");
+    moveRobotTwo(FORWARD, 160, 160, leftMotor, rightMotor);
+  } else if (!moveForwardFlag && !moveBackwardFlag) {
+    Serial.println("No movement → STOP");
+    moveRobotTwo(STOP, 0, 0, leftMotor, rightMotor);
+  }
+}
+if (foundW && foundA) {
+  moveRobotTwo(FORWARD_LEFT, 80, 160, leftMotor, rightMotor);
+  return;
+}
+if (foundW && foundD) {
+  moveRobotTwo(FORWARD_RIGHT, 160, 80, leftMotor, rightMotor);
+  return;
+}
+if (foundS && foundA) {
+  moveRobotTwo(BACKWARD_LEFT, 80, 160, leftMotor, rightMotor);
+  return;
+}
+if (foundS && foundD) {
+  moveRobotTwo(BACKWARD_RIGHT, 160, 80, leftMotor, rightMotor);
+  return;
+}
+
+
+if(!foundW&&!foundS&&!foundD&&!foundA){
+  moveRobotTwo(STOP,0,0,leftMotor,rightMotor);
+}
+}
+
+
+
+void stopEngines(){
+  moveRobotTwo(STOP,0,0,leftMotor,rightMotor);  
+ moveForwardFlag = false;
+ moveBackwardFlag = false;
+ turnLeftFlag = false;
+turnRightFlag = false;
+}
+
+
+
+
+
+void testAllDirections() {
+  const int speed = 160;
+  const int duration = 1000;  // ms
+
+  Serial.println("Testing FORWARD");
+  moveRobotTwo(FORWARD, speed, speed, leftMotor, rightMotor);
+  delay(duration);
+
+  Serial.println("Testing BACKWARD");
+  moveRobotTwo(BACKWARD, speed, speed, leftMotor, rightMotor);
+  delay(duration);
+
+  Serial.println("Testing LEFT");
+  moveRobotTwo(LEFT, speed, speed, leftMotor, rightMotor);
+  delay(duration);
+
+  Serial.println("Testing RIGHT");
+  moveRobotTwo(RIGHT, speed, speed, leftMotor, rightMotor);
+  delay(duration);
+
+  Serial.println("Testing FORWARD_LEFT");
+  moveRobotTwo(FORWARD_LEFT, speed, speed, leftMotor, rightMotor);
+  delay(duration);
+
+  Serial.println("Testing FORWARD_RIGHT");
+  moveRobotTwo(FORWARD_RIGHT, speed, speed, leftMotor, rightMotor);
+  delay(duration);
+
+  Serial.println("Testing BACKWARD_LEFT");
+  moveRobotTwo(BACKWARD_LEFT, speed, speed, leftMotor, rightMotor);
+  delay(duration);
+
+  Serial.println("Testing BACKWARD_RIGHT");
+  moveRobotTwo(BACKWARD_RIGHT, speed, speed, leftMotor, rightMotor);
+  delay(duration);
+
+  Serial.println("Testing BRAKING");
+  for (int i = 0; i < 10; i++) {
+    moveRobotTwo(BRAKING, speed, speed, leftMotor, rightMotor);
+    delay(50);  // call repeatedly to simulate loop-based deceleration
+  }
+
+  Serial.println("Testing STOP");
+  moveRobotTwo(STOP, 0, 0, leftMotor, rightMotor);
+  delay(1000);
+
+  Serial.println("Test complete.");
+}
 
 
 
@@ -160,17 +250,24 @@ void checkRobotState(RobotData& robot){
        robot.initializing=false;
        robot.isStopped=false;  
        robot.lidarReady=true; 
+       xTaskNotifyGive(lidarTaskHandle);
        sendInitializeMessage(false,"");
     }else{
       robot.lidarReady=false; 
       robot.initializing=false;
       robot.isStopped=true; 
       stopLidar();
+      xTaskNotifyGive(lidarTaskHandle);
       sendInitializeMessage(true,InitializeError);
       Serial.println("error occured while starting");
     }
     return;
   }
+
+
+  if(robot.isStopped ){
+    return;  
+ }
 
   //Add retry to stop if stop fails
   if(robot.isStopping){
@@ -180,16 +277,53 @@ void checkRobotState(RobotData& robot){
       robot.lidarReady=false;
       robot.isStopped=true;
       sendTurnOffMessage("");
+      stopEngines();
     }else{
+      robot.lidarReady=false;
+      robot.isStopped=true;
       sendTurnOffMessage(StopError);
+      stopEngines();
     }
     return;
   }
 
-  if(robot.isStopped ){
-     return;  
-  }
+
+
+//   unsigned long currentTime = millis();
+// if (currentTime - lastCheckTime >= 200) {
+//     lastCheckTime = currentTime;
+
+//     bool dangerFront = false;
+
+//     portENTER_CRITICAL(&obstacleMux);
+//     dangerFront = detectObstacles(&robot);  
+//     portEXIT_CRITICAL(&obstacleMux);       
+
+  
+//     if (millis() - lastWarnTime >= 1000) {
+//         lastWarnTime = millis();
+//         sendDistanceWarning(BRAKE, "front");
+//     }
+// }
   actOnMovements();
+}
+
+
+void lidarTask(void* pvParameters) {
+  RobotData* robot = (RobotData*)pvParameters;
+
+  while (true) {
+    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+   // Serial.println("[LIDAR Task] Notification received, starting scan,outside");
+    while (robot->lidarReady) {
+      readLidarData(robot);
+     // Serial.println("[LIDAR Task] Notification received, starting scan inside");
+      vTaskDelay(30 / portTICK_PERIOD_MS);
+      yield();
+    }
+
+   // Serial.println("[LIDAR Task] Scan stopped, waiting again...");
+  }
 }
 
 

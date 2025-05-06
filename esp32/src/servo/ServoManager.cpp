@@ -1,39 +1,28 @@
 #include "ServoManager.h"
 
-ServoManager::ServoManager() {
-    for (int i = 0; i < NUM_SERVOS; i++) {
-        servos[i] = new ServoMotor(pins[i]);
-    }
+
+ServoManager::ServoManager() : initialized(false) {
 }
 
-ServoManager::~ServoManager() {
-    for (int i = 0; i < NUM_SERVOS; i++) {
-        delete servos[i];
-    }
+
+void ServoManager::addServo(int pin, int initialPos, int minPos, int maxPos) {
+    servos[servoCount] = new ServoMotor(pin, initialPos, minPos, maxPos);
+    servoCount++;
 }
 
-void ServoManager::setup() {
-    for (int i = 0; i < NUM_SERVOS; i++) {
-        int maxVal = preset[i][0];
-        int minVal = preset[i][1];
 
-        if (minVal > maxVal) {
-            int temp = minVal;
-            minVal = maxVal;
-            maxVal = temp;
+bool ServoManager::setup() {
+    bool allInitialized = true;
+
+    for (int i=0; i < servoCount; i++) {
+        if (servos[i] != nullptr) {
+           if (servos[i]->init()) {
+                Serial.printf("Failed to initialize servo: %s\n", i);
+                allInitialized = false;
+            }
         }
-
-        servos[i]->setMinAngle(minVal);
-        servos[i]->setMaxAngle(maxVal);
-        servos[i]->setInitialAngle((minVal + maxVal) / 2);
-        servos[i]->attach();
     }
-}
 
-ServoMotor* ServoManager::getServo(int index) {
-    if (index >= 0 && index < NUM_SERVOS) {
-        return servos[index];
-    }
-    return nullptr;
+    initialized = allInitialized;
+    return initialized;
 }
-

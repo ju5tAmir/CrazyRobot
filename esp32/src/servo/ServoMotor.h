@@ -6,23 +6,25 @@
 
 class ServoMotor {
 private:
-    Servo esp32servo;
-    int pin = 0;
-    int minAngle = 0;
-    int maxAngle = 0;
-    int currentAngle = 0;
-    int initialAngle = 0;
+    Servo servo;
+    int pin;
+    int minAngle;
+    int maxAngle;
+    int currentAngle;
+    int initialAngle;
+    bool isAttached;
 
 public:
-    ServoMotor(int pin);
+    ServoMotor(int servoPin, int initialPos, int minPos, int maxPos);
 
-    void attach();
-    void write(int angle);
+    bool init();
+    bool moveTo(int angle);
     void setMinAngle(int angle);
     void setMaxAngle(int angle);
     void setInitialAngle(int angle);
-    int getMinAngle() const { return minAngle; }
-    int getMaxAngle() const { return maxAngle; }
-    int getCurrentAngle() const { return currentAngle; }
+    int getMinAngle() const;
+    int getMaxAngle() const;
+    int getCurrentAngle() const;
+    bool isValidAngle(int angle) const;
 };
 #endif

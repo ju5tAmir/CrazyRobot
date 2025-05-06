@@ -1,10 +1,7 @@
 #pragma once
 
 #include "ServoMotor.h"
-#include <vector>
-#include <memory>
-
-#define MAX_SERVOS 10
+#include "ServoDefinitions.h"
 
 
 class ServoManager {
@@ -12,6 +9,7 @@ private:
     ServoMotor* servos[MAX_SERVOS];
     int servoCount;
     bool initialized;
+
 
 public:
     // Constructor

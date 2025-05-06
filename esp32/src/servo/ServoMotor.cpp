@@ -1,13 +1,14 @@
 #include "ServoMotor.h"
 
-ServoMotor::ServoMotor(int servoPin, int initialPos, int minPos, int maxPos) :
+ServoMotor::ServoMotor(ServoID servoId, int servoPin, int initialPos, int minPos, int maxPos) :
+    id(servoId),
     pin(servoPin),
+    initialAngle(initialPos),
     minAngle(minPos),
     maxAngle(maxPos),
-    initialAngle(initialPos),
     currentAngle(initialPos),
-    isAttached(false)
-{}
+    isAttached(false) {
+}
 
 
 bool ServoMotor::init() {

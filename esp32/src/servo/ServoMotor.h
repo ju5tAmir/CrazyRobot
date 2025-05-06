@@ -1,12 +1,13 @@
-#ifndef ServoMotor_h
-#define ServoMotor_h
+#pragma once
 
 #include <Arduino.h>
 #include <ESP32Servo.h>
+#include "ServoDefinitions.h"
 
 class ServoMotor {
 private:
     Servo servo;
+    ServoID id;
     int pin;
     int minAngle;
     int maxAngle;
@@ -15,7 +16,7 @@ private:
     bool isAttached;
 
 public:
-    ServoMotor(int servoPin, int initialPos, int minPos, int maxPos);
+    ServoMotor(ServoID id, int servoPin, int initialPos, int minPos, int maxPos);
 
     bool init();
     bool moveTo(int angle);
@@ -27,4 +28,4 @@ public:
     int getCurrentAngle() const;
     bool isValidAngle(int angle) const;
 };
-#endif
+

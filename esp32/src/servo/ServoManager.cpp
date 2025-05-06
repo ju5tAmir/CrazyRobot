@@ -2,12 +2,28 @@
 
 
 ServoManager::ServoManager() : initialized(false) {
+    for (int i = 0; i < SERVO_COUNT; i++) {
+        ServoID id = static_cast<ServoID>(i);
+        const ServoConfig& config = SERVO_CONFIGS[i];
+
+        servos[i] = new ServoMotor(
+            id,
+            config.pin,
+            config.initialAngle,
+            config.minAngle,
+            config.maxAngle
+        );
+    }
 }
 
 
-void ServoManager::addServo(int pin, int initialPos, int minPos, int maxPos) {
-    servos[servoCount] = new ServoMotor(pin, initialPos, minPos, maxPos);
-    servoCount++;
+ServoManager::~ServoManager() {
+    for (int i = 0; i < SERVO_COUNT; i++) {
+        if (servos[i] != nullptr) {
+            delete servos[i];
+            servos[i] = nullptr;
+        }
+    }
 }
 
 

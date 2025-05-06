@@ -17,6 +17,7 @@ extern const char* distanceWarningTopic;
 extern unsigned long buzzerStartTime;
 extern bool buzzerActive;
 extern const unsigned long buzzerDuration;
+extern const char* negativeDistanceWarningTopic;
 
 
 void receiveData(String,RobotData* data);

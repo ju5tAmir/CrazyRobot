@@ -15,6 +15,7 @@ const char* commanduser = "commandsuser";
 const char* driveTopic = "drive";
 const char* engineManagementTopic = "engineManagementEsp";
 const char* distanceWarningTopic = "distanceWarningTopic";
+const char* negativeDistanceWarningTopic = "negativeDistanceWarningTopic";
 
 unsigned long buzzerStartTime = 0;
 bool buzzerActive = false;
@@ -204,8 +205,6 @@ void sendTurnOffMessage(String error){
 
 
 //send  distance warning to client 
-
-
 void sendDistanceWarning(String level,String direction){
     DynamicJsonDocument doc(256);
     doc["CommandType"] = "DistanceWarning";
@@ -218,4 +217,17 @@ void sendDistanceWarning(String level,String direction){
     publisher.publish(distanceWarningTopic, out.c_str());
 }
 
+
+// send negative space information
+
+void sendNegativeWarning(String level){
+    DynamicJsonDocument doc(256);
+    doc["CommandType"] = "NegativeWarning";
+    JsonObject pl = doc.createNestedObject("Payload");
+    pl["Warning"] = level;
+    String out;
+    serializeJson(doc, out);
+    Serial.println(out);
+    publisher.publish(negativeDistanceWarningTopic, out.c_str());
+}
 

@@ -53,6 +53,8 @@ class Motor {
 
 extern Motor leftMotor; 
 extern Motor rightMotor;
+//default speed
+extern const int MOVE_SPEED ;
 void moveRobot(Direction dir, int speed) ;
 void moveRobotTwo(Direction dir, int leftSpeed, int rightSpeed,Motor leftMotor,Motor rightMotor);
 void moveRobot(Direction dir, int speed) ;

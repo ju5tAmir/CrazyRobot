@@ -3,59 +3,9 @@
 #include <esp32-hal-gpio.h>
 
 
-// void moveRobotTwo(Direction dir, int leftSpeed, int rightSpeed,Motor leftMotor,Motor rightMotor) {
-//         switch (dir) {
-//           case FORWARD:
-//             leftMotor.setSpeed(leftSpeed);
-//             rightMotor.setSpeed(rightSpeed);
-//             break;
-//           case BACKWARD:
-//             leftMotor.setSpeed(-leftSpeed);
-//             rightMotor.setSpeed(-rightSpeed);
-//             break;
-//           case LEFT:
-//             leftMotor.setSpeed(-leftSpeed);
-//             rightMotor.setSpeed(rightSpeed);
-//             break;
-//           case RIGHT:
-//             leftMotor.setSpeed(leftSpeed);
-//             rightMotor.setSpeed(-rightSpeed);
-//             break;
-//           case STOP:
-//             leftMotor.stop();
-//             rightMotor.stop();
-//             break;
-//         }
-// }
-
-
-
+//default speed
+const int MOVE_SPEED = 160;
 void moveRobotTwo(Direction dir, int leftSpeed, int rightSpeed, Motor leftMotor, Motor rightMotor) {
-  static bool braking = false;
-  static int brakeSpeed = 0;
-  static int brakeStep = 0;
-  static int brakeTicksRemaining = 0;
-  if (dir == BRAKING) {
-    if (!braking) {
-      braking = true;
-      brakeSpeed = leftSpeed;
-      brakeTicksRemaining = 6;  
-      brakeStep = leftSpeed / brakeTicksRemaining;
-    }
-    if (brakeTicksRemaining > 0) {
-      leftMotor.setSpeed(brakeSpeed);
-      rightMotor.setSpeed(brakeSpeed);
-      brakeSpeed -= brakeStep;
-      brakeTicksRemaining--;
-    } else {
-      leftMotor.stop();
-      rightMotor.stop();
-      braking = false;
-    }
-    return;
-  } else {
-    braking = false; 
-  }
   switch (dir) {
       case FORWARD:
           leftMotor.setSpeed(leftSpeed);
@@ -78,23 +28,23 @@ void moveRobotTwo(Direction dir, int leftSpeed, int rightSpeed, Motor leftMotor,
           break;
 
       case FORWARD_LEFT:
-          leftMotor.setSpeed(leftSpeed * 0.5); 
+          leftMotor.setSpeed(leftSpeed * 0.94); 
           rightMotor.setSpeed(rightSpeed);
           break;
 
       case FORWARD_RIGHT:
           leftMotor.setSpeed(leftSpeed);
-          rightMotor.setSpeed(rightSpeed * 0.5);
+          rightMotor.setSpeed(rightSpeed * 0.94);
           break;
 
       case BACKWARD_LEFT:
-          leftMotor.setSpeed(-leftSpeed * 0.5);
+          leftMotor.setSpeed(-leftSpeed * 0.94);
           rightMotor.setSpeed(-rightSpeed);
           break;
 
       case BACKWARD_RIGHT:
           leftMotor.setSpeed(-leftSpeed);
-          rightMotor.setSpeed(-rightSpeed * 0.5);
+          rightMotor.setSpeed(-rightSpeed * 0.94);
           break;
 
       case STOP:

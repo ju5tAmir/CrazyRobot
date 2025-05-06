@@ -1194,11 +1194,13 @@
         "description": "",
         "x-enumNames": [
           "Initialized",
-          "BatteryStatus"
+          "BatteryStatus",
+          "DistanceWarning"
         ],
         "enum": [
           "initialized",
-          "batteryStatus"
+          "batteryStatus",
+          "distanceWarning"
         ]
       },
       "InitializeEngineResponse": {

@@ -37,7 +37,7 @@ public class MqttMessageHandler:IMqttMessageHandler
                         var command = new ClientCommand<InitializeEngineResponse>
                         {
                             CommandType = payload.CommandType,
-                            Payload = initializePayload
+                            Payload = initializePayload,
                         };
 
                         Console.WriteLine("Successfully created command: " + JsonSerializer.Serialize(command));

@@ -36,28 +36,40 @@ export const ControlMotor = () => {
     const movementKeys = new Set(['w', 'a', 's', 'd',"e"]);
 
     useEffect(() => {
-        if(!readyState)return
+        if (!readyState) return;
+
         console.log("✅ WebSocket is ready! Subscribing to messages...");
+
         const unsubscribe = onMessage<InitializeEnginResponseDto>(
             StringConstants.InitializeEnginResponseDto,
             (message) => {
-                const status = message.command.payload?.initializeEngine;
-                console.log(pressedKeys.has("e")+ "pressed keys");
-                console.log("----------------=================");
-                console.log(status);
-                toast.success(`New Question ID: ${message.command}`);
+                const payload = message.command.payload;
+                const error = payload?.ErrorMessage ?? "";
+                const status = payload?.initializeEngine;
+
+                console.log("Message Payload:", payload);
+                console.log("Pressed E:", pressedKeys.has("e"));
+                console.log("Engine Status Flag:", status);
+
                 setStartProcedure(false);
-                const newEngineState = !status
-                setEngine(newEngineState);
                 setEngineLocked(false);
-                toast.success(`New Question ID: ${message.command.payload+""}`);
+
+                if (error.length > 0) {
+                    toast.error(`Engine error: ${error}`);
+                    setEngine(false);
+                    return;
+                }
+
+                const engineOn = !status;  // Invert only if logic requires it
+                setEngine(engineOn);
+
+                toast.success(`Engine: ${engineOn ? "ON" : "OFF"}`);
             }
         );
 
-        return () => {
-            unsubscribe();
-        };
+        return () => unsubscribe();
     }, [onMessage, readyState]);
+
 
     useEffect(() => {
         console.log(pressedKeys + "press");

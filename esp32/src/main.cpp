@@ -10,6 +10,8 @@
 #include  "obstacles/obstacles.h"
 #include "ir/ir.h"
 
+// Create servo manager instance - automatically loads all servo configurations
+// ServoManager servoManager;
 
 Motor rightMotor(IN1, IN2, ENA, pwmChannel1); 
 Motor leftMotor(IN4, IN3, ENB, pwmChannel2);
@@ -67,6 +69,22 @@ void loop() {
             Serial.println("Buzzer OFF");
         }
     }
+
+ // readLidarData();
+
+//  if (isDirectionAllowed(FORWARD)) {
+    // moveRobotTwo(FORWARD, 170, 170, leftMotor, rightMotor);
+ // }
+  // else if (isDirectionAllowed(LEFT) && isDirectionAllowed(RIGHT)) {
+  //   moveRobotTwo(LEFT, 255, 255, leftMotor, rightMotor);
+  // }
+  // else if (isDirectionAllowed(BACKWARD)) {
+  //   moveRobotTwo(BACKWARD, 150, 150, leftMotor, rightMotor);
+  // }
+  // else {
+  //   moveRobotTwo(STOP, 0, 0, leftMotor, rightMotor);
+  //   Serial.println("All directions blocked! Stopping.");
+  // }
 }
 
 void actOnMovements() {
@@ -134,9 +152,9 @@ void checkRobotState(RobotData& robot){
        xTaskNotifyGive(lidarTaskHandle);
        sendInitializeMessage(false,"");
     }else{
-      robot.lidarReady=false; 
+      robot.lidarReady=false;
       robot.initializing=false;
-      robot.isStopped=true; 
+      robot.isStopped=true;
       stopLidar();
       xTaskNotifyGive(lidarTaskHandle);
       sendInitializeMessage(true,InitializeError);

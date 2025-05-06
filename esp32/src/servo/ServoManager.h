@@ -6,7 +6,7 @@
 
 class ServoManager {
 private:
-    ServoMotor* servos[MAX_SERVOS];
+    ServoMotor* servos[SERVO_COUNT];
     int servoCount;
     bool initialized;
 
@@ -19,5 +19,6 @@ public:
     ~ServoManager();
 
     bool setup();
-    void addServo(int pin, int initialPos, int minPos, int maxPos);
+    bool move(ServoID id, int angle);
+    ServoMotor* getServo(ServoID id);
 };

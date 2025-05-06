@@ -7,14 +7,18 @@
 #include "lidar/lidar.h"
 #include <ArduinoJson.h>
 #include "messages/messages.h"
+#include "servo/ServoManager.h"
+
 #define blue 12
 #define orange 4
 #define yellow 26
 #define green 25
 #define servo 14
 
+// Create servo manager instance - automatically loads all servo configurations
+// ServoManager servoManager;
 
-Motor leftMotor(IN1, IN2, ENA, pwmChannel1); 
+Motor leftMotor(IN1, IN2, ENA, pwmChannel1);
 Motor rightMotor(IN3, IN4, ENB, pwmChannel2);
 ServoEasing myServo;
 RobotData robot = RobotData();
@@ -23,14 +27,14 @@ void checkRobotState(RobotData& robot);
 bool moveForwardFlag = false;
 bool moveBackwardFlag = false;
 bool turnLeftFlag = false;
-bool turnRightFlag = false; 
+bool turnRightFlag = false;
 int initializeRetries= 3;
 int countRetries=0;
 
 
 void setup() {
 
-  Serial.begin(115200); 
+  Serial.begin(115200);
 
 connectWiFi();
 connectMQTT(&robot);
@@ -40,8 +44,10 @@ pinMode(yellow,OUTPUT);
 pinMode(green,OUTPUT);
 myServo.attach(servo);
 myServo.setEasingType(EASE_CUBIC_IN_OUT);  // Smooth curve
-myServo.startEaseTo(90, 2000); 
-
+myServo.startEaseTo(90, 2000);
+// servoManager.setup();
+// Move a specific servo
+// servoManager.moveServo(GRIPPER, 80)
 }
 
 void loop() {
@@ -51,7 +57,7 @@ void loop() {
     if(!client.connected()){
         connectMQTT(&robot);
     }
-    client.loop(); 
+    client.loop();
 
     checkRobotState(robot);
     unsigned long currentMillis = millis();
@@ -78,10 +84,10 @@ Serial.println(robot.initializing);
 
 //  if (isDirectionAllowed(FORWARD)) {
     // moveRobotTwo(FORWARD, 170, 170, leftMotor, rightMotor);
- // } 
+ // }
   // else if (isDirectionAllowed(LEFT) && isDirectionAllowed(RIGHT)) {
   //   moveRobotTwo(LEFT, 255, 255, leftMotor, rightMotor);
-  // } 
+  // }
   // else if (isDirectionAllowed(BACKWARD)) {
   //   moveRobotTwo(BACKWARD, 150, 150, leftMotor, rightMotor);
   // }
@@ -158,13 +164,13 @@ void checkRobotState(RobotData& robot){
    bool  lidarReadyTemp = initializeHardware();
     if(lidarReadyTemp){
        robot.initializing=false;
-       robot.isStopped=false;  
-       robot.lidarReady=true; 
+       robot.isStopped=false;
+       robot.lidarReady=true;
        sendInitializeMessage(false,"");
     }else{
-      robot.lidarReady=false; 
+      robot.lidarReady=false;
       robot.initializing=false;
-      robot.isStopped=true; 
+      robot.isStopped=true;
       stopLidar();
       sendInitializeMessage(true,InitializeError);
       Serial.println("error occured while starting");
@@ -187,7 +193,7 @@ void checkRobotState(RobotData& robot){
   }
 
   if(robot.isStopped ){
-     return;  
+     return;
   }
   actOnMovements();
 }
@@ -216,7 +222,7 @@ void checkRobotState(RobotData& robot){
 
 // HardwareSerial LidarSerial(2);
 // unsigned long lastDataTime = 0;
-// unsigned long scanRestartInterval = 3000; 
+// unsigned long scanRestartInterval = 3000;
 // bool isValidHeader(uint8_t b);
 // void parsePacket(uint8_t* data);
 // float normalizeAngle(float angle);
@@ -224,7 +230,7 @@ void checkRobotState(RobotData& robot){
 // void startMotor() {
 //   ledcSetup(pwmChannel, pwmFreq, pwmResolution);
 //   ledcAttachPin(MotPin, pwmChannel);
-//   ledcWrite(pwmChannel, 153);  
+//   ledcWrite(pwmChannel, 153);
 // }
 
 // void sendStandardScanCommand() {
@@ -346,7 +352,7 @@ void checkRobotState(RobotData& robot){
 //     float angleDeg = normalizeAngle(angle / 64.0f);
 //     float distMM = distance/4;
 //     if (distMM < 50 || distMM > 6000) return;
- 
+
 //     Serial.print("A: ");
 //     Serial.print(angleDeg, 1);
 //     Serial.print("° D: ");
@@ -499,7 +505,7 @@ void checkRobotState(RobotData& robot){
 // PubSubClient client(espClient);
 // const String topic= "drive";
 
-// Motor leftMotor(IN1, IN2, ENA, pwmChannel1); 
+// Motor leftMotor(IN1, IN2, ENA, pwmChannel1);
 // Motor rightMotor(IN3, IN4, ENB, pwmChannel2);
 
 // // put function declarations here:
@@ -557,9 +563,9 @@ void checkRobotState(RobotData& robot){
 // //    setupMotors();
 // //     connectWiFi();
 // //    connectMQTT();
-  
 
-  
+
+
 // }
 
 
@@ -570,7 +576,7 @@ void checkRobotState(RobotData& robot){
 //     if(!client.connected()){
 //         connectMQTT();
 //     }
-//     client.loop();   
+//     client.loop();
 //     delay(2000);
 //     float scale = 66 / 377;
 //     moveRobotTwo(FORWARD,255,255, leftMotor,rightMotor);
@@ -595,7 +601,7 @@ void checkRobotState(RobotData& robot){
 //     // delay(3000);
 //     // moveRobotTwo(LEFT, 150, 150,leftMotor,rightMotor);
 //     // delay(3000);
-    
+
 //   // moveRobot(RIGHT, 150, 150);
 //     moveRobotTwo(RIGHT, 150, 150,leftMotor,rightMotor);
 //     delay(1000);
@@ -621,7 +627,7 @@ void checkRobotState(RobotData& robot){
 // void connectWiFi() {
 //     digitalWrite(LED_BUILTIN, HIGH);
 //     delay(50);
-//     WiFi.mode(WIFI_STA);    
+//     WiFi.mode(WIFI_STA);
 //     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
 //     Serial.println("Connecting to SSID:");
@@ -671,7 +677,7 @@ void checkRobotState(RobotData& robot){
 
 //   if (!client.connected()) {
 //       Serial.println("Failed to connect to MQTT after multiple attempts, rebooting...");
-//       ESP.restart(); 
+//       ESP.restart();
 //   }
 // }
 

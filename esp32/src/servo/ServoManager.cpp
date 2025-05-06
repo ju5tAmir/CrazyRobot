@@ -42,3 +42,23 @@ bool ServoManager::setup() {
     initialized = allInitialized;
     return initialized;
 }
+
+
+bool ServoManager::move(ServoID id, int angle) {
+    ServoMotor* servo = getServo(id);
+
+    if (servo) {
+        return servo->moveTo(angle);
+    }
+
+    return false;
+}
+
+
+ServoMotor* ServoManager::getServo(ServoID id) {
+    if (id >= 0 && id < SERVO_COUNT) {
+        return servos[id];
+    }
+
+    return nullptr;
+}

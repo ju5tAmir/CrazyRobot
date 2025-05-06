@@ -10,5 +10,7 @@ public sealed class MqttOptions
     public string PublishCommandsTopic { get; set; } = "";
     public string SubscribeCommandsTopic { get; set; } = "";
     public string DistanceWarningTopic { get; set; } = "";
-    
+
+    public string NegativeDistanceWarningTopic { get; set; } = "";
+
 }

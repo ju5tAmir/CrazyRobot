@@ -96,8 +96,8 @@ export default function SurveysAdmin() {
         <>
             <div className="flex justify-between items-center mb-4">
                 <h1 className="text-2xl font-bold">Surveys</h1>
-                <button className="btn btn-primary" onClick={() => setEditing({} as SurveyResponseDto)}>
-                    + New Survey
+                <button className="btn btn-primary" onClick={() => setEditing({isActive:true} as SurveyResponseDto)}>
+                    New Survey
                 </button>
             </div>
 
@@ -128,25 +128,14 @@ export default function SurveysAdmin() {
                 <Loading />
             ) : (
                 filteredSurveys.length > 0 ? (
-                    <div className="grid gap-4 md:grid-cols-2">
+                    <div className="grid gap-4 md:grid-cols-3">
                         {filteredSurveys.map(survey => (
-                            <div key={survey.id} className="relative">
-                                <SurveyCard survey={survey} />
-                                <div className="absolute top-2 right-2 flex gap-1">
-                                    <button
-                                        className="btn btn-circle btn-sm btn-ghost"
-                                        onClick={() => setEditing(survey)}
-                                    >
-                                        <i className="icon-[lucide--pencil] w-4 h-4" />
-                                    </button>
-                                    <button
-                                        className="btn btn-circle btn-sm btn-ghost text-error"
-                                        onClick={() => handleDelete(survey.id)}
-                                    >
-                                        <i className="icon-[lucide--trash] w-4 h-4" />
-                                    </button>
-                                </div>
-                            </div>
+                            <SurveyCard
+                                key={survey.id}
+                                survey={survey}
+                                onEdit={setEditing}
+                                onDelete={handleDelete}
+                            />
                         ))}
                     </div>
                 ) : (
@@ -164,13 +153,13 @@ export default function SurveysAdmin() {
 
             {editing && (
                 <div className="modal modal-open">
-                    <div className="modal-box max-w-3xl">
+                    <div className="modal-box max-w-xl">
                         <h3 className="font-bold text-lg mb-4">
                             {editing.id ? 'Edit Survey' : 'Create New Survey'}
                         </h3>
                         <SurveyForm initial={editing} onSubmit={handleSave} />
                         <div className="modal-action">
-                            <button className="btn" onClick={() => setEditing(null)}>
+                            <button className="btn btn-outline btn-error" onClick={() => setEditing(null)}>
                                 Cancel
                             </button>
                         </div>

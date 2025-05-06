@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { QuestionDto, CreateSurveyRequestDto } from '../../../api/generated-client';
 import {SurveyFormProps} from "../../../models/surveys-models/SurveyFormProps.ts"
+import {Trash2} from "lucide-react";
 
 export default function SurveyForm({ initial, onSubmit }: SurveyFormProps) {
     const [survey, setSurvey] = useState<CreateSurveyRequestDto>(initial || {
@@ -12,7 +13,7 @@ export default function SurveyForm({ initial, onSubmit }: SurveyFormProps) {
     });
     const [newQuestion, setNewQuestion] = useState<QuestionDto>({
         questionText: '',
-        questionType: 'MultipleChoice',
+        questionType: 'Text',
         orderNumber: survey.questions?.length || 0,
         options: []
     });
@@ -33,7 +34,7 @@ export default function SurveyForm({ initial, onSubmit }: SurveyFormProps) {
 
         setNewQuestion({
             questionText: '',
-            questionType: 'MultipleChoice',
+            questionType: 'Text',
             orderNumber: (survey.questions?.length || 0) + 1,
             options: []
         });
@@ -66,66 +67,80 @@ export default function SurveyForm({ initial, onSubmit }: SurveyFormProps) {
     }
 
     return (
-        <div className="flex flex-col gap-3">
-            <input
-                value={survey.title}
-                onChange={e => updateSurvey('title', e.target.value)}
-                placeholder="Survey Title"
-                className="input input-bordered"
-            />
+        <div className="flex flex-col gap-2">
+            {/* Basic info section */}
+            <div className="grid gap-2">
+                <div className="w-full">
+                    <input
+                        value={survey.title}
+                        onChange={e => updateSurvey('title', e.target.value)}
+                        placeholder="Survey Title"
+                        className="input input-bordered w-full"
+                    />
+                </div>
 
+                <div className="w-full">
             <textarea
                 value={survey.description || ''}
                 onChange={e => updateSurvey('description', e.target.value)}
                 placeholder="Survey Description"
-                className="textarea textarea-bordered"
+                className="textarea textarea-bordered w-full"
+                rows={3}
             />
+                </div>
 
-            <div className="flex gap-2">
-                <input
-                    value={survey.surveyType}
-                    onChange={e => updateSurvey('surveyType', e.target.value)}
-                    placeholder="Survey Type"
-                    className="input input-bordered flex-1"
-                />
-
-                <label className="cursor-pointer label flex gap-2">
-                    <span>Active</span>
+                <div className="w-full">
                     <input
-                        type="checkbox"
-                        checked={survey.isActive}
-                        onChange={e => updateSurvey('isActive', e.target.checked)}
-                        className="checkbox checkbox-primary"
+                        value={survey.surveyType}
+                        onChange={e => updateSurvey('surveyType', e.target.value)}
+                        placeholder="Survey Type"
+                        className="input input-bordered w-full"
                     />
-                </label>
+                </div>
+
+                <div className="w-full">
+                    <label className="cursor-pointer label justify-start gap-2">
+                        <span>Active</span>
+                        <input
+                            type="checkbox"
+                            checked={survey.isActive}
+                            onChange={e => updateSurvey('isActive', e.target.checked)}
+                            className="checkbox checkbox-primary"
+                        />
+                    </label>
+                </div>
             </div>
 
             <div className="divider">Questions</div>
 
-            {survey.questions?.map((question, i) => (
-                <div key={i} className="card bg-base-200 p-4">
-                    <div className="flex justify-between">
-                        <h3 className="font-medium">{question.questionText}</h3>
-                        <button
-                            className="btn btn-sm btn-error"
-                            onClick={() => removeQuestion(i)}
-                        >
-                            Remove
-                        </button>
-                    </div>
-                    <p className="text-sm opacity-70">Type: {question.questionType}</p>
-                    {question.options?.length > 0 && (
-                        <div className="mt-2">
-                            <p className="text-sm font-medium">Options:</p>
-                            <ul className="ml-4 list-disc">
-                                {question.options.map((opt, j) => (
-                                    <li key={j} className="text-sm">{opt.optionText}</li>
-                                ))}
-                            </ul>
+            {/* Questions section with fixed height and scroll */}
+            <div className="max-h-[250px] overflow-y-auto pr-2">
+                {survey.questions?.map((question, i) => (
+                    <div key={i} className="card bg-base-200 p-4 mb-3">
+                        <div className="flex justify-between">
+                            <h3 className="font-medium">{question.orderNumber + " - " + question.questionText}</h3>
+                            <button
+                                className="btn btn-ghost btn-xs p-1"
+                                onClick={() => removeQuestion(i)}
+                                title="Delete"
+                            >
+                                <Trash2 className="w-4 h-4 text-error transition-transform hover:scale-130" />
+                            </button>
                         </div>
-                    )}
-                </div>
-            ))}
+                        <p className="text-sm opacity-70">Type: {question.questionType}</p>
+                        {question.options?.length > 0 && (
+                            <div className="mt-2">
+                                <p className="text-sm font-medium">Options:</p>
+                                <ul className="ml-4 list-disc">
+                                    {question.options.map((opt, j) => (
+                                        <li key={j} className="text-sm">{opt.optionText}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                    </div>
+                ))}
+            </div>
 
             <div className="card bg-base-100 p-4 border border-dashed border-base-300">
                 <h3 className="font-medium mb-2">New Question</h3>
@@ -141,8 +156,8 @@ export default function SurveyForm({ initial, onSubmit }: SurveyFormProps) {
                     onChange={e => setNewQuestion({...newQuestion, questionType: e.target.value})}
                     className="select select-bordered w-full mb-2"
                 >
-                    <option value="MultipleChoice">Multiple Choice</option>
                     <option value="Text">Text</option>
+                    <option value="MultipleChoice">Multiple Choice</option>
                     <option value="Rating">Rating</option>
                 </select>
 

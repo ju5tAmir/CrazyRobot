@@ -8,7 +8,9 @@ Todo:
 
 -> Also, .env files are in github?  --> Check if fixed after I make a pull request to main;
 
-----> implement the registration of guest (only for surveys and only email).
+----> implement the registration of guest (only for surveys and only email);
+
+-> Implement the http client on the frontend (use http.api.NameOfApiCall);
 
 
 

@@ -1,240 +1,307 @@
 #include "lidar.h"
 #include "fns.h"
+#include "../models/models.h"
 
 RPLidar lidar;
 HardwareSerial LidarSerial(2);
-Obstacle obstacles[20];
 Gap gaps[10];
 int gapCount = 0;
-Direction  allowedMovement[]= {FORWARD, BACKWARD,RIGHT,LEFT,STOP};
+
 Point* scanPoints = nullptr;     
+
 int pointCount = 0;              
 bool collectingScan = false;
-int obstacleCount = 0;
+
 const int TRUST_THRESHOLD = 3; // Minimum trust to consider real obstacle
 const int TRUST_DECAY_INTERVAL = 5; // Every 5 scans, decay trust
 int scanCounter = 0; // Counts how many scans happened
-float frontDangerSum = 0;
-int frontDangerCount = 0;
-
-float leftDangerSum = 0;
-int leftDangerCount = 0;
-
-float rightDangerSum = 0;
-int rightDangerCount = 0;
-
-float backDangerSum = 0;
-int backDangerCount = 0;
 
 
-void initializeHardware() {
-   
-    delay(1000);           
-    pinMode(red, OUTPUT);
-    pinMode(green, OUTPUT);
+bool initializeHardware() {
+    delay(1000);
     pinMode(RPLIDAR_MOTOR, OUTPUT);
-  
-    // Start Lidar serial
     LidarSerial.begin(115200, SERIAL_8N1, RPLIDAR_RX, RPLIDAR_TX);
     lidar.begin(LidarSerial);
 
-    // Allocate memory for scan points ONCE
     scanPoints = (Point*) malloc(MAX_POINTS * sizeof(Point));
-    if (scanPoints == nullptr) {
+    delay(1000);
+    if (!scanPoints) {
         Serial.println("Failed to allocate memory for scanPoints!");
-        while (true); // Stop program if critical error
+        return false;
     }
-  
-    // Detect the device and print info
     rplidar_response_device_info_t info;
-    if (IS_OK(lidar.getDeviceInfo(info, 1000))) {
-        Serial.println("RPLIDAR detected.");
-        Serial.print("Model: "); Serial.println(info.model);
-        Serial.print("Firmware: "); Serial.print(info.firmware_version >> 8);
-        Serial.print("."); Serial.println(info.firmware_version & 0xFF);
-        Serial.print("Hardware: "); Serial.println(info.hardware_version);
-        Serial.print("Serial: ");
-        for (int i = 0; i < 16; i++) Serial.printf("%02X", info.serialnum[i]);
-        startMotor();
-        delay(1000); 
-        lidar.startScan();
-       
-    } else {
+    if (!IS_OK(lidar.getDeviceInfo(info, 1000))) {
         Serial.println("RPLIDAR not detected!");
+        return false;
     }
+    Serial.println("RPLIDAR detected.");
+    startMotor();
+    delay(3000);
+    u_result result = lidar.startScan(false);  
+if (!IS_OK(result)) {
+    Serial.print("Failed to start scan! Error code: ");
+    Serial.println(result, HEX);
+    return false;
 }
+
+collectingScan=false;
+pointCount = 0;  
+    
+    Serial.println("LIDAR scan started successfully.");
+    return true;
+}
+
+
+//put millis instead off delay
+bool stopLidar(){
+    lidar.stop();
+    ledcWrite(pwmChannel,0);
+    collectingScan=false;
+    pointCount = 0; 
+    return true;
+}
+
+
 
 void startMotor() {
     ledcSetup(pwmChannel, pwmFreq, pwmResolution);
     ledcAttachPin(RPLIDAR_MOTOR, pwmChannel);
-    ledcWrite(pwmChannel, 153);  
+  ledcWrite(pwmChannel, 153); 
 }
 
+void readLidarData(RobotData* data) {
+    // Serial.println(data->lidarHealth);
+    // Serial.println(data->lidarReady + "Ready lidar");
+    // Serial.println("\n=== NEW SCAN STARTED ===");
+    if (IS_OK(lidar.waitPoint())) { 
+        RPLidarMeasurement point  = lidar.getCurrentPoint();
+        float distance = point.distance;
+        float angle = point.angle;
+        byte quality = point.quality;
+        bool startBit = point.startBit;
+    
+      
+    
+        if (point.distance > 0 && point.quality > 0) {
+          
+            // You can process/store the point here
+        } else {
+           // Serial.println("[WARN] Received zeroed point after waitPoint.");
+        }
 
 
-void readLidarData() {
-    if (IS_OK(lidar.waitPoint())) {
-        float distance = lidar.getCurrentPoint().distance;
-        float angle = lidar.getCurrentPoint().angle;
-        bool startBit = lidar.getCurrentPoint().startBit;
-        byte quality = lidar.getCurrentPoint().quality;
-
-        if (startBit) {
-            // Start of a new scan
-            Serial.println("Starting new scan...");
-            
+        if(startBit){
+  
             if (collectingScan && pointCount > 0) {
                 float averagedDistances[NUM_BUCKETS];
-                averageDistances(scanPoints, pointCount, averagedDistances);
-                detectAndUpdateObstacles(averagedDistances);
-
-                if (++scanCounter % TRUST_DECAY_INTERVAL == 0) {
-                    decayTrust();
-                }
-
-                // === Danger evaluation ===
-                float frontAvg = (frontDangerCount > 0) ? (frontDangerSum / frontDangerCount) : 9999;
-                float leftAvg = (leftDangerCount > 0) ? (leftDangerSum / leftDangerCount) : 9999;
-                float rightAvg = (rightDangerCount > 0) ? (rightDangerSum / rightDangerCount) : 9999;
-                float backAvg = (backDangerCount > 0) ? (backDangerSum / backDangerCount) : 9999;
-
-                Serial.print("Front Avg: "); Serial.println(frontAvg);
-                Serial.print("Left Avg: "); Serial.println(leftAvg);
-                Serial.print("Right Avg: "); Serial.println(rightAvg);
-                Serial.print("Back Avg: "); Serial.println(backAvg);
-
-                // === Movement Decision or LED Indication ===
-                CheckAvailableSpace(frontAvg,rightAvg,leftAvg,backAvg);
-
-                frontDangerSum = 0;
-                frontDangerCount = 0;
-                leftDangerSum = 0;
-                leftDangerCount = 0;
-                rightDangerSum = 0;
-                rightDangerCount = 0;
-                backDangerSum = 0;
-                backDangerCount = 0;
-
-                collectingScan = false;
+                 averageDistances(scanPoints, pointCount, averagedDistances);
+                detectAndUpdateObstacles(averagedDistances,data);
             }
-            
+        
+    
             pointCount = 0;
             collectingScan = true;
         }
-
-        if (collectingScan && distance != 0 && quality > 0 && distance <= 2000) {
-            if (pointCount < MAX_POINTS) {
-                scanPoints[pointCount++] = {angle, distance};
-
-                // === Classify point into zones ===
-                if ((angle <= 15 || angle >= 345)) { // FRONT
-                    frontDangerSum += distance;
-                    frontDangerCount++;
-                } 
-                else if (angle >= 75 && angle <= 105) { // LEFT
-                    leftDangerSum += distance;
-                    leftDangerCount++;
-                }
-                else if (angle >= 255 && angle <= 285) { // RIGHT
-                    rightDangerSum += distance;
-                    rightDangerCount++;
-                }
-                else if (angle >= 165 && angle <= 195) { // BACK
-                    backDangerSum += distance;
-                    backDangerCount++;
+        
+            if (collectingScan && distance != 0 && quality > 0 && distance <= 2000) {
+                if (pointCount < MAX_POINTS) {
+                    scanPoints[pointCount++] = {angle, distance};
+    
                 }
             }
-        }
+    
+    } else {
+     //   Serial.println("[WARN] waitPoint() timed out — no data.");
     }
+
+
 }
 
-void CheckAvailableSpace(float frontAvg, float rightAvg, float leftAvg, float backAvg) {
-    bool canBackward = checkIfCanMove(backAvg);
-    bool canLeft = checkIfCanMove(leftAvg);
-    bool canRight = checkIfCanMove(rightAvg);
-    bool canForward = checkIfCanMove(frontAvg);
-    bool stopped = false;
+// void readLidarData() {
+//     Serial.println("Starting new scan...");
+ 
+//     if (IS_OK(lidar.waitPoint())) {
+//         float distance = lidar.getCurrentPoint().distance;
+//         float angle = lidar.getCurrentPoint().angle;
+//         bool startBit = lidar.getCurrentPoint().startBit;
+//         byte quality = lidar.getCurrentPoint().quality;
 
-    if (!canForward) {
-      //  moveRobotTwo(STOP, 0, 0, leftMotor, rightMotor);
-        removeMovement(FORWARD);
-        stopped = true;
-        Serial.println("Obstacle detected in FRONT! Stopping...");
+//         if (startBit) {
+//             // Start of a new scan
+//             Serial.println("Starting new scan...");
+            
+//             if (collectingScan && pointCount > 0) {
+//                 float averagedDistances[NUM_BUCKETS];
+//                 averageDistances(scanPoints, pointCount, averagedDistances);
+//                 detectAndUpdateObstacles(averagedDistances);
 
-        if (canLeft) addMovement(LEFT);
-        if (canRight) addMovement(RIGHT);
-        if (canBackward) addMovement(BACKWARD);
-    }
+//                 if (++scanCounter % TRUST_DECAY_INTERVAL == 0) {
+//                     decayTrust();
+//                 }
 
-    if (!canBackward) {
-        if(!stopped){
-        //    moveRobotTwo(STOP, 0, 0, leftMotor, rightMotor);
-            stopped = true;
+//                 // === Danger evaluation ===
+//                 float frontAvg = (frontDangerCount > 0) ? (frontDangerSum / frontDangerCount) : 9999;
+//                 float leftAvg = (leftDangerCount > 0) ? (leftDangerSum / leftDangerCount) : 9999;
+//                 float rightAvg = (rightDangerCount > 0) ? (rightDangerSum / rightDangerCount) : 9999;
+//                 float backAvg = (backDangerCount > 0) ? (backDangerSum / backDangerCount) : 9999;
+
+//                 Serial.print("Front Avg: "); Serial.println(frontAvg);
+//                 Serial.print("Left Avg: "); Serial.println(leftAvg);
+//                 Serial.print("Right Avg: "); Serial.println(rightAvg);
+//                 Serial.print("Back Avg: "); Serial.println(backAvg);
+
+//                 // === Movement Decision or LED Indication ===
+//                 CheckAvailableSpace(frontAvg,rightAvg,leftAvg,backAvg);
+
+//                 frontDangerSum = 0;
+//                 frontDangerCount = 0;
+//                 leftDangerSum = 0;
+//                 leftDangerCount = 0;
+//                 rightDangerSum = 0;
+//                 rightDangerCount = 0;
+//                 backDangerSum = 0;
+//                 backDangerCount = 0;
+
+//                 collectingScan = false;
+//             }
+            
+//             pointCount = 0;
+//             collectingScan = true;
+//         }
+
+//         if (collectingScan && distance != 0 && quality > 0 && distance <= 2000) {
+//             if (pointCount < MAX_POINTS) {
+//                 scanPoints[pointCount++] = {angle, distance};
+
+//                 // === Classify point into zones ===
+//                 if ((angle <= 15 || angle >= 345)) { // FRONT
+//                     frontDangerSum += distance;
+//                     frontDangerCount++;
+//                 } 
+//                 else if (angle >= 75 && angle <= 105) { // LEFT
+//                     leftDangerSum += distance;
+//                     leftDangerCount++;
+//                 }
+//                 else if (angle >= 255 && angle <= 285) { // RIGHT
+//                     rightDangerSum += distance;
+//                     rightDangerCount++;
+//                 }
+//                 else if (angle >= 165 && angle <= 195) { // BACK
+//                     backDangerSum += distance;
+//                     backDangerCount++;
+//                 }
+//             }
+//         }
+//     }
+// }
+
+
+
+
+
+
+// void detectAndUpdateObstacles(float* averageDistances, RobotData* robot) {
+//     Obstacle obstaclesTemp[72] = {}; 
+//     for (int i = 0; i < NUM_BUCKETS; i++) {
+//         if (averageDistances[i] < 0) continue;
+//         int next = (i + 1) % NUM_BUCKETS;
+//         //IF NO MEASUREMENTS SKIP OVER,
+//         if (averageDistances[next] < 0) continue;
+//         if (fabs(averageDistances[i] - averageDistances[next]) < SIMILARITY_TOLERANCE) {
+//             //Define a new potential obstacle
+//             float newStart = i * ANGLE_BUCKET_SIZE;
+//             float newEnd = next * ANGLE_BUCKET_SIZE;
+//             float newDistance = (averageDistances[i] + averageDistances[next]) / 2;
+//             obstaclesTemp[obstacleCount++] = {newStart, newEnd, newDistance};  
+//                           //CHECK FOR SIMILARITY WITHIN THE REGISTERED ONES 
+//                           bool matched = false;
+//                           for (int j = 0; j < obstacleCount; j++) {
+//                             if (abs(robot->obstacles[j].startAngle - newStart) < 10 && abs(robot->obstacles[j].endAngle - newEnd) < 10) {
+//                                 robot->obstacles[j].startAngle = ( robot->obstacles[j].startAngle + newStart) / 2;
+//                                 robot->  obstacles[j].endAngle = ( robot->obstacles[j].endAngle + newEnd) / 2;
+//                                 robot-> obstacles[j].distance = ( robot->obstacles[j].distance + newDistance) / 2;
+//                                 matched = true;
+//                                 break;
+//                             }
+//                         }
+            
+//                         if (!matched && obstacleCount < 20) {
+//                             robot-> obstacles[obstacleCount++] = {newStart, newEnd, newDistance};
+//                         }          
+            
+//         }
+//     }
+// }
+
+void detectAndUpdateObstacles(float* averageDistances, RobotData* robot) {
+   
+    Obstacle obstaclesTemp[NUM_BUCKETS];
+    int tempCount = 0;
+
+    int i = 0;
+
+  //check for similar distances between the buckets
+    while (i < NUM_BUCKETS) {
+        if (averageDistances[i] < 0) {
+            i++;
+            continue;
         }
-        removeMovement(BACKWARD);
-        Serial.println("Obstacle detected in BACK!");
-       
-        if (canForward) addMovement(FORWARD);
-        if (canLeft) addMovement(LEFT);
-        if (canRight) addMovement(RIGHT);
-    }
-    if (!canLeft) {
-        removeMovement(LEFT);
-        Serial.println("Obstacle detected on LEFT!");
+
+        float startAngle = i * ANGLE_BUCKET_SIZE;
+        float sumDist = averageDistances[i];
+        int count = 1;
+        int j = i + 1;
+       // chain similar buckets into a bigger object
+        while (j < NUM_BUCKETS &&
+               averageDistances[j] >= 0 &&
+               fabs(averageDistances[j] - averageDistances[j - 1]) < SIMILARITY_TOLERANCE) {
+            sumDist += averageDistances[j];
+            count++;
+            j++;
+        }
+
+        float endAngle = (j - 1) * ANGLE_BUCKET_SIZE;
+        float avgDist = sumDist / count;
+
+        obstaclesTemp[tempCount++] = { startAngle, endAngle, avgDist };
+
+        i = j; 
     }
 
+    Obstacle merged[NUM_BUCKETS];
+    int mergedCount = 0;
 
-    if (!canRight) {
-        removeMovement(RIGHT);
-        Serial.println("Obstacle detected on RIGHT!");
+    for (int i = 0; i < tempCount; i++) {
+        Obstacle& newObs = obstaclesTemp[i];
+        bool mergedExisting = false;
+
+        for (int j = 0; j < mergedCount; j++) {
+            Obstacle& existing = merged[j];
+            if (!(newObs.endAngle < existing.startAngle || newObs.startAngle > existing.endAngle)) {
+                existing.startAngle = min(existing.startAngle, newObs.startAngle);
+                existing.endAngle = max(existing.endAngle, newObs.endAngle);
+                existing.distance = (existing.distance + newObs.distance) / 2;
+                mergedExisting = true;
+                break;
+            }
+        }
+        if (!mergedExisting && mergedCount < NUM_BUCKETS) {
+            merged[mergedCount++] = newObs;
+        }
     }
-
-    if (!stopped && canForward) {
-        digitalWrite(red, LOW);
-        digitalWrite(green, HIGH);
-        Serial.println("Front Clear: Move Forward");
-        addMovement(FORWARD); 
-        addMovement(LEFT); 
-        addMovement(BACKWARD);  
-        addMovement(RIGHT); 
-    }
-    else {
-        digitalWrite(red, HIGH);
-        digitalWrite(green, LOW);
-    }
-}
-
-
-void detectAndUpdateObstacles(float* averageDistances) {
+ 
+     //keep old reading
     for (int i = 0; i < NUM_BUCKETS; i++) {
-        if (averageDistances[i] < 0) continue;
-
-        int next = (i + 1) % NUM_BUCKETS;
-        if (averageDistances[next] < 0) continue;
-
-        if (fabs(averageDistances[i] - averageDistances[next]) < SIMILARITY_TOLERANCE) {
-            float newStart = i * ANGLE_BUCKET_SIZE;
-            float newEnd = next * ANGLE_BUCKET_SIZE;
-            float newDistance = (averageDistances[i] + averageDistances[next]) / 2;
-
-            bool matched = false;
-            for (int j = 0; j < obstacleCount; j++) {
-                if (abs(obstacles[j].startAngle - newStart) < 10 && abs(obstacles[j].endAngle - newEnd) < 10) {
-                    obstacles[j].startAngle = (obstacles[j].startAngle + newStart) / 2;
-                    obstacles[j].endAngle = (obstacles[j].endAngle + newEnd) / 2;
-                    obstacles[j].distance = (obstacles[j].distance + newDistance) / 2;
-                    obstacles[j].trust++;
-                    matched = true;
-                    break;
-                }
-            }
-
-            if (!matched && obstacleCount < 20) {
-                obstacles[obstacleCount++] = {newStart, newEnd, newDistance, 1};
-            }
-        }
+        robot->previousObstacles[i] = robot->obstacles[i];
     }
+    //add new reading 
+    for (int i = 0; i < mergedCount; i++) {
+        robot->obstacles[i] = merged[i];
+    }
+   
+
 }
+
 
 void averageDistances(const Point* measurements, int size, float* output) {
     float sumDistances[NUM_BUCKETS] = {0};
@@ -250,64 +317,10 @@ void averageDistances(const Point* measurements, int size, float* output) {
         if (countDistances[i] > 0)
             output[i] = sumDistances[i] / countDistances[i];
         else
-            output[i] = -1; // No data
+            output[i] = -1; 
     }
 }
 
-
-
-// void detectObstacles(float* averageDistances) {
-//     obstacleCount = 0;
-//     int consecutive = 0;
-//     int startIdx = -1;
-//     float sumDistances = 0;
-//     int numDistances = 0;
-
-//     for (int i = 0; i < NUM_BUCKETS; i++) {
-//         int next = (i + 1) % NUM_BUCKETS;
-
-//         if (averageDistances[i] > 0 && averageDistances[next] > 0) {
-//             float diff = fabs(averageDistances[i] - averageDistances[next]);
-
-//             if (diff < SIMILARITY_TOLERANCE) {
-//                 if (consecutive == 0) {
-//                     startIdx = i;
-//                     sumDistances = 0;
-//                     numDistances = 0;
-//                 }
-
-//                 consecutive++;
-//                 sumDistances += averageDistances[i];
-//                 numDistances++;
-//             } else {
-//                 if (consecutive >= MIN_CONSECUTIVE_BUCKETS && obstacleCount < 20) {
-//                     Obstacle obs;
-//                     obs.startAngle = startIdx * ANGLE_BUCKET_SIZE;
-//                     obs.endAngle = i * ANGLE_BUCKET_SIZE;
-//                     obs.distance = sumDistances / numDistances;
-//                     obstacles[obstacleCount++] = obs;
-//                 }
-//                 consecutive = 0;
-//             }
-//         } else {
-//             consecutive = 0;
-//         }
-//     }
-
-//     if (consecutive >= MIN_CONSECUTIVE_BUCKETS && obstacleCount < 20) {
-//         Obstacle obs;
-//         obs.startAngle = startIdx * ANGLE_BUCKET_SIZE;
-//         obs.endAngle = (NUM_BUCKETS - 1) * ANGLE_BUCKET_SIZE;
-//         obs.distance = sumDistances / numDistances;
-//         obstacles[obstacleCount++] = obs;
-//     }
-// }
-
-void decayTrust() {
-    for (int i = 0; i < obstacleCount; i++) {
-        if (obstacles[i].trust > 0) obstacles[i].trust--;
-    }
-}
 
 float chordLength(float radius_mm, float angle_deg) {
     float angle_rad = radians(angle_deg);
@@ -330,65 +343,65 @@ float chordLength(float radius_mm, float angle_deg) {
 // }
 
 
-void mergeOverlappingObstacles() {
-    if (obstacleCount <= 1) return;
+// void mergeOverlappingObstacles(RobotData * robot) {
+//     if (obstacleCount <= 1) return;
 
-    for (int i = 0; i < obstacleCount - 1; i++) {
-        for (int j = i + 1; j < obstacleCount; j++) {
+//     for (int i = 0; i < obstacleCount - 1; i++) {
+//         for (int j = i + 1; j < obstacleCount; j++) {
           
-            if (!(obstacles[i].endAngle < obstacles[j].startAngle || obstacles[j].endAngle < obstacles[i].startAngle)) {
+//             if (!(robot->obstacles[i].endAngle < robot->obstacles[j].startAngle || robot->obstacles[j].endAngle < robot->obstacles[i].startAngle)) {
              
-                obstacles[i].startAngle = min(obstacles[i].startAngle, obstacles[j].startAngle);
-                obstacles[i].endAngle = max(obstacles[i].endAngle, obstacles[j].endAngle);
-                obstacles[i].distance = min(obstacles[i].distance, obstacles[j].distance); 
+//                 robot-> obstacles[i].startAngle = min(robot->obstacles[i].startAngle, robot->obstacles[j].startAngle);
+//                 robot->obstacles[i].endAngle = max(robot->obstacles[i].endAngle,robot-> obstacles[j].endAngle);
+//                 robot->obstacles[i].distance = min(robot->obstacles[i].distance, robot->obstacles[j].distance); 
 
-                for (int k = j; k < obstacleCount - 1; k++) {
-                    obstacles[k] = obstacles[k + 1];
-                }
-                obstacleCount--; 
-                j--; 
-            }
-        }
-    }
-}
+//                 for (int k = j; k < obstacleCount - 1; k++) {
+//                     robot-> obstacles[k] = robot->obstacles[k + 1];
+//                 }
+//                 obstacleCount--; 
+//                 j--; 
+//             }
+//         }
+//     }
+// }
 
 
-void findGaps(int degrees) {
-    gapCount = 0;
+// void findGaps(int degrees ,RobotData*  robot) {
+//     gapCount = 0;
 
-    // 1. Sort obstacles by startAngle
-    for (int i = 0; i < obstacleCount - 1; i++) {
-        for (int j = i + 1; j < obstacleCount; j++) {
-            if (obstacles[i].startAngle > obstacles[j].startAngle) {
-                Obstacle temp = obstacles[i];
-                obstacles[i] = obstacles[j];
-                obstacles[j] = temp;
-            }
-        }
-    }
+//     // 1. Sort obstacles by startAngle
+//     for (int i = 0; i < obstacleCount - 1; i++) {
+//         for (int j = i + 1; j < obstacleCount; j++) {
+//             if (robot->obstacles[i].startAngle > robot->obstacles[j].startAngle) {
+//                 Obstacle temp = robot->obstacles[i];
+//                 robot->obstacles[i] =robot->obstacles[j];
+//                 robot-> obstacles[j] = temp;
+//             }
+//         }
+//     }
 
-    // 2. Check gaps between obstacles
-    for (int i = 0; i < obstacleCount - 1; i++) {
-        int gapStart = obstacles[i].endAngle;
-        int gapEnd = obstacles[i + 1].startAngle;
+//     // 2. Check gaps between obstacles
+//     for (int i = 0; i < obstacleCount - 1; i++) {
+//         int gapStart = robot-> obstacles[i].endAngle;
+//         int gapEnd =robot-> obstacles[i + 1].startAngle;
 
-        if (gapEnd > gapStart) {
-            int gapWidth = gapEnd - gapStart;
-            if (gapWidth >= degrees) { // Only consider big enough gaps
-                gaps[gapCount++] = {gapStart, gapEnd, gapWidth};
-            }
-        }
-    }
+//         if (gapEnd > gapStart) {
+//             int gapWidth = gapEnd - gapStart;
+//             if (gapWidth >= degrees) { // Only consider big enough gaps
+//                 gaps[gapCount++] = {gapStart, gapEnd, gapWidth};
+//             }
+//         }
+//     }
 
-    // 3. Optional: check gap between last obstacle and start of first (wraparound)
-    int wrapGapStart = obstacles[obstacleCount - 1].endAngle;
-    int wrapGapEnd = obstacles[0].startAngle + 360;
-    int wrapGapWidth = wrapGapEnd - wrapGapStart;
+//     // 3. Optional: check gap between last obstacle and start of first (wraparound)
+//     int wrapGapStart = robot->obstacles[obstacleCount - 1].endAngle;
+//     int wrapGapEnd =robot-> obstacles[0].startAngle + 360;
+//     int wrapGapWidth = wrapGapEnd - wrapGapStart;
 
-    if (wrapGapWidth >= 5) {
-        gaps[gapCount++] = {wrapGapStart % 360, wrapGapEnd % 360, wrapGapWidth};
-    }
-}
+//     if (wrapGapWidth >= 5) {
+//         gaps[gapCount++] = {wrapGapStart % 360, wrapGapEnd % 360, wrapGapWidth};
+//     }
+// }
 
 void printGaps() {
     Serial.println("Detected Gaps:");
@@ -439,60 +452,11 @@ void printGaps() {
 // }
 
 
-float getClosestFrontObstacleDistance() {
-    float closest = 9999;
-    for (int i = 0; i < obstacleCount; i++) {
-        int start = obstacles[i].startAngle;
-        int end = obstacles[i].endAngle;
-        
-        if ((start <= 15 || start >= 345) || (end <= 15 || end >= 345)) {
-            if (obstacles[i].distance < closest) {
-                closest = obstacles[i].distance;
-            }
-        }
-    }
-    return closest;
-}
 
 
 
-bool checkIfCanMove(float averageDistance){
-  return averageDistance>=400;
-}
 
 
-void removeMovement(Direction moveToRemove) {
-    for (int i = 0; i < 5; i++) {
-      if (allowedMovement[i] == moveToRemove) {
-        allowedMovement[i] = NONE;
-        break;
-      }
-    }
-  }
-
-  
-  void addMovement(Direction moveToAdd) {
-    for (int i = 0; i < 5; i++) {
-      if (allowedMovement[i] == moveToAdd) {
-        return; // already there
-      }
-    }
-    
-
-    for (int i = 0; i < 5; i++) {
-      if (allowedMovement[i] == NONE) {
-        allowedMovement[i] = moveToAdd;
-        break;
-      }
-    }
-  }
-
-  bool isDirectionAllowed(Direction dir) {
-    for (int i = 0; i < 5; i++) {
-      if (allowedMovement[i] == dir) return true;
-    }
-    return false;
-  }
   
   
 

@@ -1,17 +1,20 @@
 #include <esp32-hal-ledc.h>
 #include <esp32-hal-gpio.h>
 #include <Arduino.h>
+#include "models/models.h"
 #ifndef FNS_h
 #define FNS_h
 
-#define IN1 26
-#define IN2 0
-#define IN3 2
-#define IN4 13
-#define ENA 25
-#define ENB 14
-const int pwmChannel1 = 2;
-const int pwmChannel2 = 1;
+#define IN1 4
+#define IN2 12
+#define IN3 13
+#define IN4 2
+#define ENA 25 
+#define ENB 26
+
+
+const int pwmChannel1 = 1;
+const int pwmChannel2 = 2;
 const int resolution = 8;
 class Motor {
   private:
@@ -50,10 +53,12 @@ class Motor {
 
 extern Motor leftMotor; 
 extern Motor rightMotor;
-enum Direction {FORWARD, BACKWARD,RIGHT,LEFT, STOP,NONE};
-extern Direction allowedMovement[5];
-
+//default speed
+extern const int MOVE_SPEED ;
 void moveRobot(Direction dir, int speed) ;
 void moveRobotTwo(Direction dir, int leftSpeed, int rightSpeed,Motor leftMotor,Motor rightMotor);
+void moveRobot(Direction dir, int speed) ;
+void setupMotors();
+
 
 #endif

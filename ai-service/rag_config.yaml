@@ -1,0 +1,8 @@
+# rag_config.yaml
+model: llama3:latest
+ollama_url: http://ollama:11434
+prompt_template: |
+  You are an analytics assistant. Given the following survey summary data:
+  {data}
+
+  Please write a concise report listing key insights and recommendations.

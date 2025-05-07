@@ -2,17 +2,22 @@ import { SurveyCardProps } from '../../../models/surveys-models/SurveyCardProps.
 import { Pencil, Trash2 } from 'lucide-react';
 
 export default function SurveyCard({
-                                       survey,
-                                       onEdit,
-                                       onDelete,
-                                   }: SurveyCardProps) {
+               survey,
+               onEdit,
+               onDelete,
+            }: SurveyCardProps)
+{
     return (
-        <div className="card bg-base-100 shadow-sm relative transition-transform hover:scale-110">
+        <div className="card bg-base-100 shadow-sm relative transition-transform hover:scale-105">
             <div className="card-body p-4 gap-2">
                 <div className="flex justify-between items-start gap-2">
                     <h2 className="card-title text-base">{survey.title}</h2>
                     <div className="flex items-center gap-4">
-                        <div className={`badge badge-sm font-bold ${survey.isActive ? 'badge-success' : 'badge-error'}`}>
+                        <div className={`badge badge-sm font-bold ${
+                            survey.isActive
+                                ? 'badge-primary text-primary-content'
+                                : 'bg-transparent text-error border-none'
+                        }`}>
                             {survey.isActive ? 'Active' : 'Inactive'}
                         </div>
                         <div className="flex gap-1">

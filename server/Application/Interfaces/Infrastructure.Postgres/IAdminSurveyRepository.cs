@@ -9,6 +9,7 @@ public interface IAdminSurveyRepository
     Task<QuestionOption> CreateQuestionOption(QuestionOption option);
     Task<Survey> UpdateSurvey(Survey survey);
     Task DeleteSurvey(string surveyId);
+    Task DeleteQuestionsForSurvey(string surveyId);
     
     Task<Survey> GetSurveyById(string surveyId);
     Task<List<Survey>> GetAllSurveys();

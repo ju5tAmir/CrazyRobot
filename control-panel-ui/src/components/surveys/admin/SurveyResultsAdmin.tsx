@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../../SchoolInfo/auth/AuthContext.tsx';
 import { AdminSurveysClient, SurveyResultsDto } from '../../../api/generated-client.ts';
 import Loading from '../../../shared/Loading.tsx';
+import Pagination from '../../../shared/Pagination.tsx';
+
 
 export default function SurveyResultsAdmin() {
     const { jwt } = useAuth();
@@ -18,6 +20,10 @@ export default function SurveyResultsAdmin() {
     const [surveyResults, setSurveyResults] = useState<SurveyResultsDto[]>([]);
     const [selectedSurvey, setSelectedSurvey] = useState<SurveyResultsDto | null>(null);
     const [loading, setLoading] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
+    const answersPerPage = 5;
+
+
 
     useEffect(() => {
         loadSurveyResults();
@@ -72,6 +78,8 @@ export default function SurveyResultsAdmin() {
             ) : (
                 surveyResults.length > 0 ? (
                     <div className="flex flex-col md:flex-row gap-4">
+
+                        {/* Surveys List */}
                         <div className="md:w-1/3">
                             <div className="bg-base-100 rounded-lg p-4 shadow-sm">
                                 <h2 className="text-lg font-medium mb-4">Surveys</h2>
@@ -80,7 +88,7 @@ export default function SurveyResultsAdmin() {
                                         <div
                                             key={survey.surveyId}
                                             onClick={() => setSelectedSurvey(survey)}
-                                            className={`p-3 rounded-lg cursor-pointer hover:bg-base-200 ${selectedSurvey?.surveyId === survey.surveyId ? 'bg-base-200' : ''}`}
+                                            className={`p-3 rounded-lg cursor-pointer transition-transform hover:scale-105 hover:bg-base-200 ${selectedSurvey?.surveyId === survey.surveyId ? 'bg-base-200' : ''}`}
                                         >
                                             <h3 className="font-medium">{survey.title}</h3>
                                             <div className="text-sm opacity-70">
@@ -92,6 +100,7 @@ export default function SurveyResultsAdmin() {
                             </div>
                         </div>
 
+                        {/* Survey Results */}
                         <div className="flex-1">
                             {selectedSurvey ? (
                                 <div className="bg-base-100 rounded-lg p-4 shadow-sm">
@@ -113,9 +122,23 @@ export default function SurveyResultsAdmin() {
                                                     </h3>
                                                     <p className="text-sm opacity-70">Type: {question.questionType}</p>
 
-                                                    {question.questionType === 'Text' ? (
+                                                    {question.questionType === 'text' ? (
                                                         <div className="mt-2 text-sm italic">
-                                                            Text responses are shown individually per submission
+                                                            {question.statistics
+                                                                .slice((currentPage - 1) * answersPerPage, currentPage * answersPerPage)
+                                                                .map((answer, i) => (
+                                                                    <div key={i} className="card bg-base-200 p-4 mb-2">
+                                                                        <h1 className="font-medium">
+                                                                            {((currentPage - 1) * answersPerPage) + i + 1}. {answer.optionText}
+                                                                        </h1>
+                                                                    </div>
+                                                                ))}
+                                                            <Pagination
+                                                                total={question.statistics.length}
+                                                                current={currentPage}
+                                                                onPageChange={setCurrentPage}
+                                                                answersPerPage={answersPerPage}
+                                                            />
                                                         </div>
                                                     ) : (
                                                         renderBarChart(question)

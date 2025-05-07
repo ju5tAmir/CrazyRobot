@@ -97,7 +97,7 @@ export default function SurveysAdmin() {
             <div className="flex justify-between items-center mb-4">
                 <h1 className="text-2xl font-bold">Surveys</h1>
                 <button className="btn btn-primary" onClick={() => setEditing({isActive:true} as SurveyResponseDto)}>
-                    New Survey
+                    Create Survey
                 </button>
             </div>
 

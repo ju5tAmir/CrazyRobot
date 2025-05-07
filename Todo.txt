@@ -23,4 +23,3 @@ create schema if not exists crazyrobot;
 
 - package.json "@tailwindcss/oxide-win32-x64-msvc": "^4.1.4"" --> Can't install on macOS, not sure where it's used...
 
-

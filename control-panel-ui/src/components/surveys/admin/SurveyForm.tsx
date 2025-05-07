@@ -14,7 +14,7 @@ export default function SurveyForm({ initial, onSubmit }: SurveyFormProps) {
     const [newQuestion, setNewQuestion] = useState<QuestionDto>({
         questionText: '',
         questionType: 'Text',
-        orderNumber: survey.questions?.length || 0,
+        orderNumber: (survey.questions?.length || 0) + 1,
         options: []
     });
     const [newOption, setNewOption] = useState('');
@@ -27,17 +27,20 @@ export default function SurveyForm({ initial, onSubmit }: SurveyFormProps) {
         if (!newQuestion.questionText) return;
         if (newQuestion.questionType === 'MultipleChoice' && !newQuestion.options?.length) return;
 
+        const nextOrderNumber = (survey.questions?.length || 0) + 1;
+
         setSurvey({
             ...survey,
-            questions: [...(survey.questions || []), { ...newQuestion }]
+            questions: [...(survey.questions || []), { ...newQuestion, orderNumber: nextOrderNumber }]
         });
 
         setNewQuestion({
             questionText: '',
             questionType: 'Text',
-            orderNumber: (survey.questions?.length || 0) + 1,
+            orderNumber: (nextOrderNumber + 1),
             options: []
         });
+
     }
 
     function addOption() {
@@ -46,7 +49,7 @@ export default function SurveyForm({ initial, onSubmit }: SurveyFormProps) {
             ...newQuestion,
             options: [...(newQuestion.options || []), {
                 optionText: newOption,
-                orderNumber: newQuestion.options?.length || 0
+                orderNumber: (newQuestion.options?.length || 0) + 1
             }]
         });
         setNewOption('');
@@ -55,14 +58,14 @@ export default function SurveyForm({ initial, onSubmit }: SurveyFormProps) {
     function removeQuestion(index: number) {
         const updatedQuestions = [...(survey.questions || [])];
         updatedQuestions.splice(index, 1);
-        updatedQuestions.forEach((q, i) => q.orderNumber = i);
+        updatedQuestions.forEach((q, i) => q.orderNumber = i + 1);
         setSurvey({ ...survey, questions: updatedQuestions });
     }
 
     function removeOption(index: number) {
         const updatedOptions = [...(newQuestion.options || [])];
         updatedOptions.splice(index, 1);
-        updatedOptions.forEach((o, i) => o.orderNumber = i);
+        updatedOptions.forEach((o, i) => o.orderNumber = i + 1);
         setNewQuestion({ ...newQuestion, options: updatedOptions });
     }
 

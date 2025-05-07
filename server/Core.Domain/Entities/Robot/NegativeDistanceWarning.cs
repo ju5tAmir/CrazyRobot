@@ -2,5 +2,5 @@
 
 public class NegativeDistanceWarning
 {
-    
+    public string Warning { get; set; } = "";
 }

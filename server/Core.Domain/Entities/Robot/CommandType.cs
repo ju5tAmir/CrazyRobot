@@ -26,6 +26,8 @@ public enum ClientCommandType
     [EnumMember(Value = "batteryStatus")]
     BatteryStatus,
     [EnumMember(Value ="distanceWarning")]
-    DistanceWarning
+    DistanceWarning,
+    [EnumMember(Value ="negativeWarning")]
+    NegativeWarning
 }
 

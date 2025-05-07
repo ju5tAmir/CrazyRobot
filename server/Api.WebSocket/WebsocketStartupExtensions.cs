@@ -21,6 +21,7 @@ public static class WebsocketStartupExtensions
         services.InjectEventHandlers(assembly);
         services.AddSingleton<IClientNotifier, InitializeEngineResponseHandler>();
         services.AddSingleton<IClientMovementNotifier,MovementResponseHandler>();
+        services.AddSingleton<IClientNegativeDistanceNotifier,NegativeSpaceNotifierHandler>();
         return services;
     }
 

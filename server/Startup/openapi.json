@@ -1172,12 +1172,14 @@
         "x-enumNames": [
           "Initialized",
           "BatteryStatus",
-          "DistanceWarning"
+          "DistanceWarning",
+          "NegativeWarning"
         ],
         "enum": [
           "initialized",
           "batteryStatus",
-          "distanceWarning"
+          "distanceWarning",
+          "negativeWarning"
         ]
       },
       "InitializeEngineResponse": {
@@ -1188,6 +1190,48 @@
             "type": "boolean"
           },
           "errorMessage": {
+            "type": "string"
+          }
+        }
+      },
+      "NegativeDistanceNotifierDto": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseDto"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "command": {
+                "$ref": "#/components/schemas/ClientCommandOfNegativeDistanceWarning"
+              }
+            }
+          }
+        ]
+      },
+      "ClientCommandOfNegativeDistanceWarning": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "commandType": {
+            "$ref": "#/components/schemas/ClientCommandType"
+          },
+          "payload": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/NegativeDistanceWarning"
+              }
+            ]
+          }
+        }
+      },
+      "NegativeDistanceWarning": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "warning": {
             "type": "string"
           }
         }
@@ -1397,6 +1441,7 @@
         "enum": [
           "MemberLeftNotification",
           "InitializeEnginResponseDto",
+          "NegativeDistanceNotifierDto",
           "RobotMovementDto",
           "ExampleServerResponse",
           "ServerSendsErrorMessage",

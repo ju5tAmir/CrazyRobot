@@ -230,4 +230,3 @@ void sendNegativeWarning(String level){
     Serial.println(out);
     publisher.publish(negativeDistanceWarningTopic, out.c_str());
 }
-

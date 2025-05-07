@@ -17,9 +17,18 @@ Motor rightMotor(IN1, IN2, ENA, pwmChannel1);
 Motor leftMotor(IN4, IN3, ENB, pwmChannel2);
 ServoEasing myServo;
 RobotData robot = RobotData();
+
 void actOnMovements();
 void checkRobotState(RobotData& robot);
 void stopEngines();
+
+//Todo move them in another 
+bool isMovementAllowed(char(&activeMovements)[4],char currentMovement,int size);
+void removeAllowedMovement(char (&allowedMovements)[4], char target);
+void addAllowedMovement(char (&allowedMovements)[4], char target);
+unsigned long lastDangerTime = 0;
+const unsigned long holdDelay = 500;
+
 int initializeRetries= 3;
 int countRetries=0;
 unsigned long lastCheckTime = 0;
@@ -124,7 +133,7 @@ void actOnMovements() {
     return;
   }
 
-  if (foundW) {
+  if (foundW && isMovementAllowed(robot.allowedMovements,'w',4) ) {
     moveRobotTwo(FORWARD, MOVE_SPEED, MOVE_SPEED, leftMotor, rightMotor);
     return;
   }
@@ -162,7 +171,6 @@ void checkRobotState(RobotData& robot){
     }
     return;
   }
-
 
   if(robot.isStopped ){
     return;  
@@ -204,9 +212,35 @@ void checkRobotState(RobotData& robot){
 //         sendDistanceWarning(BRAKE, "front");
 //     }
 // }
-if(checkForNegativeSpace()){
-   moveRobotTwo(STOP,0,0,leftMotor,rightMotor);
-   return;
+
+// if(checkForNegativeSpace(robot)){
+//   if(!robot.negativeDanger){
+//     Serial.println(robot.negativeDanger);
+//     removeAllowedMovement(robot.allowedMovements,'w');
+//     sendNegativeWarning(SEVERE); 
+//     robot.negativeDanger=true;
+ 
+//   }  
+// }else{
+//   Serial.println(robot.negativeDanger);
+//   addAllowedMovement(robot.allowedMovements,'w');
+//   robot.negativeDanger=false;
+// }
+
+
+// check if the sensor reads an negative space and waits for hals second for the sensor to read positive space until will reset back
+if (checkForNegativeSpace(robot)) {
+  lastDangerTime = millis(); 
+  if (!robot.negativeDanger) {
+    removeAllowedMovement(robot.allowedMovements, 'w');
+    sendNegativeWarning(SEVERE);
+    robot.negativeDanger = true;
+  }
+} else {
+  if (robot.negativeDanger && millis() - lastDangerTime >= holdDelay) {
+    addAllowedMovement(robot.allowedMovements, 'w');
+    robot.negativeDanger = false;
+  }
 }
   actOnMovements();
 }
@@ -229,6 +263,39 @@ void lidarTask(void* pvParameters) {
   }
 }
 
+
+void removeAllowedMovement(char (&allowedMovements)[4], char target) {
+  for (int i = 0; i < 4; i++) {
+    if (allowedMovements[i] == target) {
+      allowedMovements[i] = '_';
+      break;
+    }
+  }
+}
+
+void addAllowedMovement(char (&allowedMovements)[4], char target) {
+  for (int i = 0; i < 4; i++) {
+    if (allowedMovements[i] == target) return;
+  }
+
+
+  for (int i = 0; i < 4; i++) {
+    if (allowedMovements[i] == '_') {
+      allowedMovements[i] = target;
+      break;
+    }
+  }
+}
+
+bool isMovementAllowed(char(&activeMovements)[4],char currentMovement,int size){
+
+  for (int i = 0; i < size; ++i) {
+    if (activeMovements[i] == currentMovement) {
+      return true;
+    }
+  }
+  return false;
+}
 
 
 

@@ -21,6 +21,10 @@ struct RobotData {
     bool isStopped = true;
     bool lidarReady = false;
     bool lidarHealth=true;
+    bool negativeDanger=false;
+    /// @brief is used to block movements that are not allowed by the sensors, a negative space, obstacles
+    ///@brief not allowed movements will be replaced with '_' character
+    char allowedMovements[4]={'w','a','s','d'};
     Obstacle previousObstacles[72] = {};
     Obstacle obstacles[72] = {}; 
     

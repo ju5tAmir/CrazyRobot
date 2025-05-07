@@ -4,15 +4,20 @@ import {InfoDisplay} from "./index.ts";
 import {FaPlay, FaStop} from "react-icons/fa";
 import {useWsClient} from "ws-request-hook";
 import {
-    EngineStateDto, InitializeEnginResponseDto, RobotMovementDto,
+    EngineStateDto,
+    InitializeEnginResponseDto,
+    RobotMovementDto,
     ServerConfirmsDto,
     ServerSendsErrorMessageDto,
     StringConstants
 } from "../../../../api/webSocketApi.ts";
 import toast from "react-hot-toast";
 import {CommandType, MovementCommand} from "../../../../models/mqttModels/MqttModels.ts";
+import {DangerDisplay} from "../../InfoDisplay/DangerDisplay/DangerDisplay.tsx";
+import {DangerDisplayOrientation} from "../../../../models";
+import {POSITION} from "../../../../models/dangerDisplay/DangerDisplayProps.ts";
 
-  //Todo implement to skip short bursts to avoid esp32 overload
+//Todo implement to skip short bursts to avoid esp32 overload
 
 // const currentCommand = JSON.stringify(directions); // serialize for comparison
 //
@@ -60,7 +65,7 @@ export const ControlMotor = () => {
                     return;
                 }
 
-                const engineOn = !status;  // Invert only if logic requires it
+                const engineOn = !status;
                 setEngine(engineOn);
 
                 toast.success(`Engine: ${engineOn ? "ON" : "OFF"}`);
@@ -238,46 +243,112 @@ export const ControlMotor = () => {
     return (
         <>
             <div className={"flex flex-col gap-2 justify-center"}>
-            <InfoDisplay engineState={engine} batteryStatus={0} initializeStatus={engineLocked}></InfoDisplay>
-                <div>
-                    <div className={"flex flex-row justify-center items-center mb-2 gap-2"}>
-                        <button  disabled={true} className={"btn btn-neutral w-1/6 invisible"}>
-                        </button>
-                        <Button value={"w"} color={""}
-                                handlePressed={() => handleInputDown("w")}
-                                handleReleased={() => handleInputUp("w")}
-                                handleEngineState={engine}
-                                isPressed={pressedKeys.has("w")}/>
-                        <button className={`btn btn-neutral w-1/6 ${engineStartedColor()}` }
-                                onClick={() => handleInputDown('e')} >
-                            {engine ? <FaStop/> : <FaPlay/>}
-                        </button>
+                <InfoDisplay engineState={engine} batteryStatus={0} initializeStatus={engineLocked}></InfoDisplay>
+
+                <div className="grid grid-cols-[1fr_2fr_2fr_2fr_1fr] grid-rows-4  place-items-center border-2 border-green-600 w-screen">
+                    <div className="col-span-1  col-start-3 row-start-1 row-end-2 border border-gray-700">
+                        <DangerDisplay position={POSITION.FRONT} orientation={DangerDisplayOrientation.HORIZONTAL}></DangerDisplay>
+                    </div>
+                    <div className="col-span-3 col-start-2 row-start-2 row-span-1 border border-gray-700 w-full ">
+                        <div className={"flex flex-row justify-center items-center mb-2 gap-2 flex-grow"}>
+                            <button disabled={true} className={"btn btn-neutral w-1/6 invisible"}>
+                            </button>
+                            <Button value={"w"} color={""}
+                                    handlePressed={() => handleInputDown("w")}
+                                    handleReleased={() => handleInputUp("w")}
+                                    handleEngineState={engine}
+                                    isPressed={pressedKeys.has("w")}/>
+                            <button className={`btn btn-neutral w-1/6 ${engineStartedColor()}`}
+                                    onClick={() => handleInputDown('e')}>
+                                {engine ? <FaStop/> : <FaPlay/>}
+                            </button>
+                        </div>
                     </div>
 
-                    <div className={"flex flex-row justify-center gap-2 items-center"}>
-                        <Button value={"a"}
-                                handlePressed={() => handleInputDown("a")}
-                                handleReleased={() => handleInputUp("a")}
-                                color={""}
-                                handleEngineState={engine}
-                                isPressed={pressedKeys.has("a")}
-                                  />
-                        <Button value={"s"}
-                                handlePressed={() => handleInputDown("s")}
-                                handleReleased={() => handleInputUp("s")}
-                                color={""}
-                                handleEngineState={engine}
-                                isPressed={pressedKeys.has("s")}
-                               />
-                        <Button value={"d"}
-                                handlePressed={() => handleInputDown("d")}
-                                handleReleased={() => handleInputUp("d")}
-                                color={""}
-                                handleEngineState={engine}
-                                isPressed={pressedKeys.has("d")}
-                               />
+
+                    <div className="col-span-1 col-start-1 row-start-3 row-span-1 border border-gray-700 ">
+
+                    </div>
+
+                    <div className="col-span-3 col-start-2 row-start-3 row-span-1 border border-gray-700 w-full ">
+                        <div className={"flex flex-row justify-center gap-2 items-center "}>
+                            <DangerDisplay position={POSITION.LEFT} orientation={DangerDisplayOrientation.VERTICAL}></DangerDisplay>
+                            <Button value={"a"}
+                                    handlePressed={() => handleInputDown("a")}
+                                    handleReleased={() => handleInputUp("a")}
+                                    color={""}
+                                    handleEngineState={engine}
+                                    isPressed={pressedKeys.has("a")}
+                            />
+                            <Button value={"s"}
+                                    handlePressed={() => handleInputDown("s")}
+                                    handleReleased={() => handleInputUp("s")}
+                                    color={""}
+                                    handleEngineState={engine}
+                                    isPressed={pressedKeys.has("s")}
+                            />
+                            <Button value={"d"}
+                                    handlePressed={() => handleInputDown("d")}
+                                    handleReleased={() => handleInputUp("d")}
+                                    color={""}
+                                    handleEngineState={engine}
+                                    isPressed={pressedKeys.has("d")}
+                            />
+                            <DangerDisplay position={POSITION.RIGHT} orientation={DangerDisplayOrientation.VERTICAL}></DangerDisplay>
+                        </div>
+                    </div>
+
+                    <div className="col-span-1 col-start-5 row-start-3 row-span-1 border border-gray-700 self-start ">
+
+                    </div>
+
+                    <div className="col-span-1 col-start-3 row-start-4 row-span-1 border border-gray-700 justify-self-start w-full ">
+                        <DangerDisplay position={POSITION.BACK}  orientation={DangerDisplayOrientation.HORIZONTAL}></DangerDisplay>
                     </div>
                 </div>
+
+                {/*<div>*/}
+                {/*    <DangerDisplay orientation={DangerDisplayOrientation.VERTICAL}></DangerDisplay>*/}
+                {/*    <div className={"flex flex-row justify-center items-center mb-2 gap-2"}>*/}
+                {/*    <button disabled={true} className={"btn btn-neutral w-1/6 invisible"}>*/}
+                {/*        </button>*/}
+                {/*        <Button value={"w"} color={""}*/}
+                {/*                handlePressed={() => handleInputDown("w")}*/}
+                {/*                handleReleased={() => handleInputUp("w")}*/}
+                {/*                handleEngineState={engine}*/}
+                {/*                isPressed={pressedKeys.has("w")}/>*/}
+                {/*        <button className={`btn btn-neutral w-1/6 ${engineStartedColor()}`}*/}
+                {/*                onClick={() => handleInputDown('e')}>*/}
+                {/*            {engine ? <FaStop/> : <FaPlay/>}*/}
+                {/*        </button>*/}
+                {/*    </div>*/}
+
+                {/*    <div className={"flex flex-row justify-center gap-2 items-center"}>*/}
+                {/*        <Button value={"a"}*/}
+                {/*                handlePressed={() => handleInputDown("a")}*/}
+                {/*                handleReleased={() => handleInputUp("a")}*/}
+                {/*                color={""}*/}
+                {/*                handleEngineState={engine}*/}
+                {/*                isPressed={pressedKeys.has("a")}*/}
+                {/*        />*/}
+                {/*        <Button value={"s"}*/}
+                {/*                handlePressed={() => handleInputDown("s")}*/}
+                {/*                handleReleased={() => handleInputUp("s")}*/}
+                {/*                color={""}*/}
+                {/*                handleEngineState={engine}*/}
+                {/*                isPressed={pressedKeys.has("s")}*/}
+                {/*        />*/}
+                {/*        <Button value={"d"}*/}
+                {/*                handlePressed={() => handleInputDown("d")}*/}
+                {/*                handleReleased={() => handleInputUp("d")}*/}
+                {/*                color={""}*/}
+                {/*                handleEngineState={engine}*/}
+                {/*                isPressed={pressedKeys.has("d")}*/}
+                {/*        />*/}
+                {/*    </div>*/}
+                {/*    <DangerDisplay orientation={DangerDisplayOrientation.VERTICAL}></DangerDisplay>*/}
+                {/*</div>*/}
+
             </div>
         </>
     );

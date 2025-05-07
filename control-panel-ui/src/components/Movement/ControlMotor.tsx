@@ -131,7 +131,6 @@ export const ControlMotor = () => {
         <>
             <div className={"grid grid-cols-2 gap-2 justify-center"}>
             <InfoDisplay engineState={engine} batteryStatus={0} initializeStatus={initSequence}></InfoDisplay>
-
                 <div>
                     <div className={"flex flex-row justify-center items-center mb-2 gap-2"}>
                         <button  disabled={true} className={"btn btn-neutral w-1/6 invisible"}>

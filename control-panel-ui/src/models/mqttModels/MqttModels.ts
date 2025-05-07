@@ -43,5 +43,9 @@ export interface InitializeEngineResponse {
     ErrorMessage:string;
 }
 
+export interface NegativeDistanceWarning{
+    warning:string
+}
+
 
 

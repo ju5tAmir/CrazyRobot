@@ -689,6 +689,29 @@
         }
       }
     },
+    "/api/survey-submission/GetActiveSurveys": {
+      "get": {
+        "tags": [
+          "UserSurveys"
+        ],
+        "operationId": "UserSurveys_GetActiveSurveys",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SurveyResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/auth/Login": {
       "post": {
         "tags": [
@@ -905,6 +928,9 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
+          "id": {
+            "type": "string"
+          },
           "questionText": {
             "type": "string"
           },

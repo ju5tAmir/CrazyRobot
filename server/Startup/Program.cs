@@ -49,7 +49,7 @@ public class Program
         services.AddDataSourceAndRepositories();
        
         services.AddWebsocketInfrastructure();
-        services.AddSingleton(StorageClient.Create());
+        //services.AddSingleton(StorageClient.Create());
         services.RegisterWebsocketApiServices();
         services.RegisterRestApiServices();
         services.AddOpenApiDocument(conf =>

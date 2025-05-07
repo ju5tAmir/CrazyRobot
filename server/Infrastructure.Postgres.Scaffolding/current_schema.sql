@@ -66,6 +66,15 @@ CREATE TABLE crazyrobot.question (
     CONSTRAINT fk_question_survey FOREIGN KEY (survey_id) REFERENCES crazyrobot.survey (id) ON DELETE CASCADE
 );
 
+CREATE TABLE crazyrobot.question_option (
+                                            id text NOT NULL,
+                                            question_id text NOT NULL,
+                                            option_text text NOT NULL,
+                                            order_number integer NOT NULL,
+                                            CONSTRAINT question_option_pkey PRIMARY KEY (id),
+                                            CONSTRAINT fk_option_question FOREIGN KEY (question_id) REFERENCES crazyrobot.question (id) ON DELETE CASCADE
+);
+
 
 CREATE TABLE crazyrobot.survey_response (
     id text NOT NULL,
@@ -78,14 +87,7 @@ CREATE TABLE crazyrobot.survey_response (
 );
 
 
-CREATE TABLE crazyrobot.question_option (
-    id text NOT NULL,
-    question_id text NOT NULL,
-    option_text text NOT NULL,
-    order_number integer NOT NULL,
-    CONSTRAINT question_option_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_option_question FOREIGN KEY (question_id) REFERENCES crazyrobot.question (id) ON DELETE CASCADE
-);
+
 
 
 CREATE TABLE crazyrobot.answer (

@@ -5,6 +5,7 @@ import Admin from "./admin";
 
 const ContactsPage = lazy(() => import('./pages/ContactsPage'));
 const EventsPage   = lazy(() => import('./pages/EventsPage'));
+const SurveysPage   = lazy(() => import('../components/surveys/user/SurveysPage.tsx'));
 
 
 export default function SchoolInfo() {
@@ -15,6 +16,7 @@ export default function SchoolInfo() {
                     <Route path="/"            element={<Navigate to="contacts" replace />} />
                     <Route path="contacts"     element={<ContactsPage />} />
                     <Route path="events"       element={<EventsPage />} />
+                    <Route path="surveys-user"       element={<SurveysPage />} />
                     <Route path="admin/*"      element={<Admin />} />
                 </Routes>
             </Suspense>

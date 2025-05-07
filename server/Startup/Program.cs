@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using Api.Rest;
+using Google.Cloud.Storage.V1;
 using Api.Websocket;
 using Application;
 using Infrastructure.Mqtt;
@@ -14,7 +15,7 @@ using NSwag.Generation;
 using Startup.Documentation;
 using Startup.Proxy;
 using Scalar.AspNetCore;
-
+ 
 
 namespace Startup;
 
@@ -42,13 +43,13 @@ public class Program
     public static void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
         var appOptions = services.AddAppOptions(configuration);
-      
+
         services.RegisterApplicationServices();
-          
+
         services.AddDataSourceAndRepositories();
        
         services.AddWebsocketInfrastructure();
-        services.AddMqttClient();
+        services.AddSingleton(StorageClient.Create());
         services.RegisterWebsocketApiServices();
         services.RegisterRestApiServices();
         services.AddOpenApiDocument(conf =>
@@ -79,13 +80,12 @@ public class Program
         await app.ConfigureWebsocketApi(appOptions.WS_PORT);
         
         app.MapGet("Acceptance", () => "Accepted");
-               app.UseOpenApi(conf => { conf.Path = "openapi/v1.json"; });
-                app.UseSwaggerUi(ui =>
-                {
-                    ui.Path         = "/swagger";         
-                    ui.DocumentPath = "/openapi/v1.json";  
-                });
- 
+        app.UseOpenApi(conf => { conf.Path = "openapi/v1.json"; });
+        app.UseSwaggerUi(ui =>
+        {
+            ui.Path         = "/swagger";          
+            ui.DocumentPath = "/openapi/v1.json";   
+        });
         var document = await app.Services.GetRequiredService<IOpenApiDocumentGenerator>().GenerateAsync("v1");
         var json = document.ToJson();
         await File.WriteAllTextAsync("openapi.json", json);

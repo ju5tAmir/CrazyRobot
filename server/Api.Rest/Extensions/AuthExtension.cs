@@ -1,6 +1,6 @@
 using System.Security.Authentication;
 
-namespace Api.Rest.Extensions;
+namespace Api.Rest.Extensions.AuthExtension;          
 
 public static class AuthExtension
 {

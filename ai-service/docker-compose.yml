@@ -1,0 +1,49 @@
+
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    restart: always
+    environment:
+      # Listen on all interfaces
+      OLLAMA_HOST: "0.0.0.0:11434"
+      # Де шукати раннер
+      OLLAMA_RUNNER_HOST: "0.0.0.0"
+      OLLAMA_RUNNER_PORT: "40503"
+      # (optional) disable mmap if there are memory problems
+      OLLAMA_RUNNER_ARGS: "--no-mmap"
+    ports:
+      - "11434:11434"   # API
+      - "40503:40503"   # Runner
+    volumes:
+      - ollama-cache:/root/.ollama
+
+  ai-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: .env
+    depends_on:
+      - ollama
+    ports:
+      - "8000:8000"
+    volumes:
+      - chromadb:/app/chromadb
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: .env
+    depends_on:
+      - ollama
+      - ai-service
+    volumes:
+      - chromadb:/app/chromadb
+    # First we build the RAG index, then we run the tasks
+    command: >
+      sh -c "python rag_index.py && python tasks.py"
+
+volumes:
+  ollama-cache:
+  chromadb:

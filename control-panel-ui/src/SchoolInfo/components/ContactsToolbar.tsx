@@ -25,14 +25,17 @@ export default function ContactsToolbar(p: Props) {
             <select
                 className="select select-bordered select-sm w-52"
                 value={p.department}
-                onChange={e=>p.onDepartmentChange(e.target.value)}
+                onChange={e => p.onDepartmentChange(e.target.value)}
             >
                 <option value="">All Departments</option>
-                <option>Administration</option>
-                <option>Mathematics</option>
-                <option>Science</option>
-                <option>Technology</option>
-                <option>Student Services</option>
+                <option>Construction & Technology</option>
+                <option>Design</option>
+                <option>Management</option>
+                <option>Finance & Service</option>
+                <option>IT & Media</option>
+                <option>Communication & marketing</option>
+                <option>Stab</option>
+                <option>Knowledge & Business</option>
             </select>
         </div>
     );

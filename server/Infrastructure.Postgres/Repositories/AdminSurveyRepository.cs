@@ -47,6 +47,22 @@ public class AdminSurveyRepository(AppDbContext dbContext) :  IAdminSurveyReposi
         await dbContext.SaveChangesAsync();
     }
 
+    public async Task DeleteQuestionsForSurvey(string surveyId)
+    {
+        var questions = await dbContext.Questions
+            .Where(q => q.SurveyId == surveyId)
+            .Include(q => q.QuestionOptions)
+            .ToListAsync();
+
+        foreach (var question in questions)
+        {
+            dbContext.QuestionOptions.RemoveRange(question.QuestionOptions);
+            dbContext.Questions.Remove(question);
+        }
+
+        await dbContext.SaveChangesAsync();
+    }
+
     public async Task<List<Survey>> GetAllSurveys()
     {
         return await dbContext.Surveys

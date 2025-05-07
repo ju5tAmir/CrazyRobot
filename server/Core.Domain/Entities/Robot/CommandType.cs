@@ -1,24 +1,31 @@
-﻿namespace Core.Domain.Entities.Robot;
+﻿using System.Runtime.Serialization;
+
+namespace Core.Domain.Entities.Robot;
 
 using System.Text.Json.Serialization;
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum CommandType
 {
-    [JsonPropertyName("initialize")]
+    [EnumMember(Value = "initialize")]
     Initialize,
-    
-    [JsonPropertyName("move")]
+
+    [EnumMember(Value = "move")]
     Move,
-    
-    [JsonPropertyName("stop")]
+
+    [EnumMember(Value = "stop")]
     Stop
 }
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum ClientCommandType
 {
-    [JsonPropertyName("initialized")]
+    // [JsonPropertyName("initialized")]
+    [EnumMember(Value = "initialized")]
     Initialized,
-    [JsonPropertyName("batteryStatus")]
-    BatteryStatus
+    // [JsonPropertyName("batteryStatus")]
+    [EnumMember(Value = "batteryStatus")]
+    BatteryStatus,
+    [EnumMember(Value ="distanceWarning")]
+    DistanceWarning
 }
+

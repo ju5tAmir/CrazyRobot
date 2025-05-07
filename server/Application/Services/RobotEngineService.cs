@@ -11,4 +11,15 @@ public class RobotEngineService(IMqttPublisher mqttPublisher,IOptionsMonitor<Mqt
     {
       await   mqttPublisher.Publish(mqttOptionsMonitor.CurrentValue.PublishEngineTopic,command);
     }
+
+    public async Task ManageMovement(Command<MovementCommand> command)
+    {
+        await mqttPublisher.Publish(mqttOptionsMonitor.CurrentValue.PublishCommandsTopic,command);
+     Console.WriteLine(command.CommandType);
+     foreach (var VA in command.Payload.Directions.ActiveMovements)
+     {
+         Console.Write(VA+", ");         
+     }
+     Console.WriteLine(command.Payload.Directions);
+    } 
 }

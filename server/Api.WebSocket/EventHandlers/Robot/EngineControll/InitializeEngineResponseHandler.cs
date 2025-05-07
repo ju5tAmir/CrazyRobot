@@ -17,14 +17,15 @@ public class InitializeEngineResponseHandler(IConnectionManager connectionManage
     // //     return Task.CompletedTask;
     // // }
 
-    public Task SendEngineStatusToClient(bool status)
+    public Task SendEngineStatusToClient(bool status,string errorMessage)
     {
         var clientCommand = new ClientCommand<InitializeEngineResponse>()
         {
             CommandType = ClientCommandType.Initialized,
             Payload = new InitializeEngineResponse()
             {
-                InitializeEngine = status
+                InitializeEngine = status,
+                ErrorMessage = errorMessage
             }
         };
         var response = new InitializeEnginResponseDto
@@ -34,10 +35,12 @@ public class InitializeEngineResponseHandler(IConnectionManager connectionManage
             requestId = Guid.NewGuid().ToString()
         };
 
+         
         connectionManager.BroadcastToTopic(
             mqttOptions.CurrentValue.SubscribeEngineTopic,
             response
         );
+     
 
         return Task.CompletedTask;
     }

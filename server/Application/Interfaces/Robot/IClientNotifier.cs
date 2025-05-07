@@ -2,5 +2,5 @@
 
 public interface IClientNotifier
 {
-    Task SendEngineStatusToClient(bool status);
+    Task SendEngineStatusToClient(bool status,string errorMessage);
 }

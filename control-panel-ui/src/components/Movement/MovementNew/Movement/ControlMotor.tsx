@@ -1,111 +1,129 @@
 import {Button} from "./Button.tsx";
-import {useCallback, useEffect, useState} from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
 import {InfoDisplay} from "./index.ts";
 import {FaPlay, FaStop} from "react-icons/fa";
-import MoveDetails from "../../../../mqtt/mqttComponents/MoveDetails.ts";
 import {useWsClient} from "ws-request-hook";
 import {
-    EngineStateDto, InitializeEnginResponseDto,
+    EngineStateDto, InitializeEnginResponseDto, RobotMovementDto,
     ServerConfirmsDto,
     ServerSendsErrorMessageDto,
     StringConstants
 } from "../../../../api/webSocketApi.ts";
 import toast from "react-hot-toast";
-import {CommandType} from "../../../../models/mqttModels/MqttModels.ts";
+import {CommandType, MovementCommand} from "../../../../models/mqttModels/MqttModels.ts";
 
+  //Todo implement to skip short bursts to avoid esp32 overload
 
+// const currentCommand = JSON.stringify(directions); // serialize for comparison
+//
+// if (lastSentCommandRef.current === currentCommand) {
+//     console.log("🚫 Duplicate command skipped");
+//     return;
+// }
+//
+// lastSentCommandRef.current = currentCommand;
 export const ControlMotor = () => {
-    // const { messages, publ`ishMovement,publishStartStopEvent } = useMqtt();
-
     const {onMessage, sendRequest, send, readyState} = useWsClient();
+    const previousPressed = useRef<Set<string>>(new Set());
     const [engine, setEngine] = useState<boolean>(false);
-    const [initSequence,setInitSequence] = useState<boolean>(false);
+    const [startProcedure,setStartProcedure] = useState(false);
+    // prevent user to stop the start procedure prematurely
+    const [engineLocked,setEngineLocked] = useState(false);
+    //holds the pressed keys, to prevent sending continuos commands to esp32
     const [pressedKeys,setPressedKeys] = useState<Set<string>>(new Set());
+    //last movement command that has been pressed
+    const [lastPressed,setLastPressed] = useState<string>("");
     const movementKeys = new Set(['w', 'a', 's', 'd',"e"]);
 
-    // useEffect(() => {
-    //     console.log("Engine Status:", initSequence);
-    //     console.log(pressedKeys);
-    //      if(startStop.has("e")||startStop.has("q")){
-    //          publishStartStopEvent("start",initSequence);
-    //      }
-    //     publishMovement("drive",getStatus());
-    // }, [pressedKeys,initSequence]);
-    //
-    // useEffect(() => {
-    //     console.log("I can receive now");
-    //     console.log(messages);
-    //     if(messages.length>0){
-    //         if(messages[0].value==="true"){
-    //             setEngine(true);
-    //             pressedKeys.delete("e");
-    //         }
-    //     }
-    //
-    // }, [messages]);
     useEffect(() => {
-        if(!readyState)return
+        if (!readyState) return;
+
         console.log("✅ WebSocket is ready! Subscribing to messages...");
 
         const unsubscribe = onMessage<InitializeEnginResponseDto>(
             StringConstants.InitializeEnginResponseDto,
             (message) => {
-                console.log("----------------=================");
-                console.log(message.command.payload);
-                const payloade = message.command.payload;
+                const payload = message.command.payload;
+                const error = payload?.ErrorMessage ?? "";
+                const status = payload?.initializeEngine;
 
-                console.log(payloade?.initializeEngine);
+                console.log("Message Payload:", payload);
+                console.log("Pressed E:", pressedKeys.has("e"));
+                console.log("Engine Status Flag:", status);
 
-                toast.success(`New Question ID: ${message.command}`);
-                // setCurrentQuestion({
-                //     gameId: message.gameId || "",
-                //     questionId: message.questionId || "",
-                //     options: message.questionOptions || []
-                // });
-                setInitSequence(message.command.payload!.initializeEngine);
-                toast.success(`New Question ID: ${message.command.payload+""}`);
+                setStartProcedure(false);
+                setEngineLocked(false);
+
+                if (error.length > 0) {
+                    toast.error(`Engine error: ${error}`);
+                    setEngine(false);
+                    return;
+                }
+
+                const engineOn = !status;  // Invert only if logic requires it
+                setEngine(engineOn);
+
+                toast.success(`Engine: ${engineOn ? "ON" : "OFF"}`);
             }
         );
 
-        return () => {
-            unsubscribe();
-        };
+        return () => unsubscribe();
     }, [onMessage, readyState]);
+
+
+    useEffect(() => {
+
+        console.log("New press");
+        const keysChanged = [...pressedKeys].some(k => !previousPressed.current.has(k)) ||
+            [...previousPressed.current].some(k => !pressedKeys.has(k));
+        if (keysChanged) {
+            sendMovementCommand();
+        }
+        previousPressed.current = new Set(pressedKeys);
+    }, [pressedKeys]);
+
+
 
 
     const handleInputDown = useCallback((value: string) => {
         console.log(value + " pressed");
-
         if (value === "e") {
-            const newEngineState = !engine;
-            setEngine(newEngineState);
-            sendEngineCommand(newEngineState);
-            setInitSequence(prev => !prev);
+            if (engineLocked || startProcedure) {
+                console.log("Engine is locked or initializing... blocking 'e' press.");
+                return;
+            }
+            console.log(engine + " engineState")
+            if (!engine) {
+                console.log("Starting engine...");
+                setStartProcedure(true);
+                sendEngineCommand(true);
+            } else {
+                console.log("Stopping engine...");
+                setStartProcedure(true);
+                sendEngineCommand(false);
+            }
             setPressedKeys(prev => {
                 const newSet = new Set(prev);
                 if (newSet.has('e')) {
-                    console.log("deleted");
                     newSet.delete('e');
                 } else {
-                    console.log("added");
                     newSet.add('e');
                 }
                 return newSet;
             });
 
-
             return;
         }
-
-        if (!initSequence) return;
+        if (!engine) return;
         setPressedKeys(prev => {
             const newSet = new Set(prev);
             console.log("added " + value);
             newSet.add(value);
+            setLastPressed(value);
             return newSet;
         });
 
-    }, [initSequence]);
+    }, [startProcedure]);
 
 
 
@@ -122,37 +140,22 @@ export const ControlMotor = () => {
     }, [engine]);
 
 
-    // const handleKeyDown = (e: KeyboardEvent) => {
-    //     const current = e.key.toLowerCase();
-    //
-    //     if(!movementKeys.has(current)){
-    //         return;
-    //     }
-    //     handleInputDown(current);
-    // };
-    //
-    // const handleKeyUp = (e: KeyboardEvent) => {
-    //     const current = e.key.toLowerCase();
-    //
-    //     if(!movementKeys.has(current)){
-    //         return;
-    //     }
-    //     handleInputUp(current);
-    // };
+
 
 
     /**
-     * Adds two numbers together.
-     * @param a The first number.
-     * @param b The second number.
-     * @returns The sum of `a` and `b`.
+     * send start stop commands
+     * @returns false meaning that initialization is completed and true meaning that initialization can start again
+     * @param value
      */
     const sendEngineCommand = async (value:boolean)=>{
-         const request:EngineStateDto = {
+          console.log("value"+ value +"");
+            setEngineLocked(true);
+        const request:EngineStateDto = {
              eventType:StringConstants.EngineStateDto,
              requestId:crypto.randomUUID(),
              command:{
-                 command:CommandType.Initialize,
+                 commandType:CommandType.Initialize,
                  payload:{
                      engine:value
                  }
@@ -173,11 +176,32 @@ export const ControlMotor = () => {
         }
     }
 
+    const sendMovementCommand=async ()=>{
+        const directions:MovementCommand = {activeMovements:Array.from(pressedKeys).filter((i)=>i!=="e"),lastCommand:lastPressed};
+        const request:RobotMovementDto = {
+            eventType:StringConstants.RobotMovementDto,
+            requestId:crypto.randomUUID(),
+            command:{
+            commandType:CommandType.Move,
+            payload:{
+                directions
+            }}
+        }
+        console.log(request);
+        try{
+            const sentCommandResult: ServerConfirmsDto = await sendRequest<RobotMovementDto,
+                ServerConfirmsDto>(request,StringConstants.ServerConfirmsDto).finally(()=>console.log("er"));
 
-
-
-
-
+            if (sentCommandResult?.Success) {
+                toast.success("Engine send")
+            } else {
+                toast.error("Retry")
+            }
+        }catch (error){
+            const errorDto = error as unknown as ServerSendsErrorMessageDto;
+            toast.error(errorDto.error!.toString);
+        }
+    }
 
     const handleKeyDown = useCallback((e: KeyboardEvent) => {
         const current = e.key.toLowerCase();
@@ -201,24 +225,20 @@ export const ControlMotor = () => {
         };
     }, [handleKeyDown, handleKeyUp]);
 
-    const getStatus = (): MoveDetails => ({
-        engine:initSequence,
-        move: {
-            isMoving:  false,
-            value: "None"
-        },
-        direction: {
-            isTurning:  false,
-            value:  "None"
-        },
-        speed:3
-    });
+    const engineStartedColor = ()=>{
+        if(engineLocked){
+            return "bg-orange-600";
+        }else if(engine){
+            return "bg-green-600";
+        }else{
+            return "bg-red-600"
+        }
+    }
 
     return (
         <>
-            <div className={"grid grid-cols-2 gap-2 justify-center"}>
-            <InfoDisplay engineState={engine} batteryStatus={0} initializeStatus={initSequence}></InfoDisplay>
-
+            <div className={"flex flex-col gap-2 justify-center"}>
+            <InfoDisplay engineState={engine} batteryStatus={0} initializeStatus={engineLocked}></InfoDisplay>
                 <div>
                     <div className={"flex flex-row justify-center items-center mb-2 gap-2"}>
                         <button  disabled={true} className={"btn btn-neutral w-1/6 invisible"}>
@@ -228,9 +248,9 @@ export const ControlMotor = () => {
                                 handleReleased={() => handleInputUp("w")}
                                 handleEngineState={engine}
                                 isPressed={pressedKeys.has("w")}/>
-                        <button className={"btn btn-neutral w-1/6"}
+                        <button className={`btn btn-neutral w-1/6 ${engineStartedColor()}` }
                                 onClick={() => handleInputDown('e')} >
-                            {initSequence ? <FaStop/> : <FaPlay/>}
+                            {engine ? <FaStop/> : <FaPlay/>}
                         </button>
                     </div>
 

@@ -17,6 +17,7 @@ public class MqttClientService
     private readonly IMqttMessageHandler _messageHandler;
 
 
+    
     public MqttClientService(IOptionsMonitor<MqttOptions> mqttOptions, ILogger<MqttClientService> logger,
         IMqttMessageHandler messageHandler)
     {
@@ -51,6 +52,8 @@ public class MqttClientService
 
                 await SubscribeAsync(_mqttOptions.CurrentValue.SubscribeEngineTopic);
                 await SubscribeAsync(_mqttOptions.CurrentValue.SubscribeCommandsTopic); 
+                await SubscribeAsync(_mqttOptions.CurrentValue.DistanceWarningTopic); 
+                await SubscribeAsync("test"); 
                 await PublishAsync(_mqttOptions.CurrentValue.PublishEngineTopic, "From server engine");
                 await PublishAsync("test", "From server");
 
@@ -97,7 +100,28 @@ public class MqttClientService
         var topic = e.ApplicationMessage.Topic;
         var payloadString = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
         Console.WriteLine(payloadString);
-        var command = JsonSerializer.Deserialize<ClientCommandDto>(payloadString);
+        Console.WriteLine(topic);
+        Console.WriteLine("I am executed");
+        ClientCommandDto? command = null;
+
+        try
+        {
+            command = JsonSerializer.Deserialize<ClientCommandDto>(payloadString);
+            if (command == null)
+            {
+                Console.WriteLine("Deserialization returned null.");
+            }
+            else
+            {
+                Console.WriteLine("Deserialized successfully. CommandType: " + command.CommandType);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Deserialization error: " + ex.Message);
+        }
+        
+        Console.WriteLine(command + "command is wrong");
         if (command == null)
         {
             throw new InvalidOperationException("Failed to deserialize ClientCommand.");
@@ -112,7 +136,7 @@ public class MqttClientService
         var mqttMessage = new MqttApplicationMessageBuilder()
             .WithTopic(topic)
             .WithPayload(payload)
-            .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce).WithRetainFlag(true)
+            .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
             .Build();
 
         await _client.PublishAsync(mqttMessage);

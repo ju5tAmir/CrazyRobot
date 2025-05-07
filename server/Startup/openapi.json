@@ -163,6 +163,43 @@
         }
       }
     },
+    "/api/Contacts/upload": {
+      "post": {
+        "tags": [
+          "Contacts"
+        ],
+        "operationId": "Contacts_UploadPhoto",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Events": {
       "get": {
         "tags": [
@@ -1157,11 +1194,13 @@
         "description": "",
         "x-enumNames": [
           "Initialized",
-          "BatteryStatus"
+          "BatteryStatus",
+          "DistanceWarning"
         ],
         "enum": [
-          "Initialized",
-          "BatteryStatus"
+          "initialized",
+          "batteryStatus",
+          "distanceWarning"
         ]
       },
       "InitializeEngineResponse": {
@@ -1170,6 +1209,80 @@
         "properties": {
           "initializeEngine": {
             "type": "boolean"
+          },
+          "errorMessage": {
+            "type": "string"
+          }
+        }
+      },
+      "RobotMovementDto": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseDto"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "command": {
+                "$ref": "#/components/schemas/CommandOfMovementCommand"
+              }
+            }
+          }
+        ]
+      },
+      "CommandOfMovementCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "commandType": {
+            "$ref": "#/components/schemas/CommandType"
+          },
+          "payload": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/MovementCommand"
+              }
+            ]
+          }
+        }
+      },
+      "CommandType": {
+        "type": "string",
+        "description": "",
+        "x-enumNames": [
+          "Initialize",
+          "Move",
+          "Stop"
+        ],
+        "enum": [
+          "initialize",
+          "move",
+          "stop"
+        ]
+      },
+      "MovementCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "directions": {
+            "$ref": "#/components/schemas/Directions"
+          }
+        }
+      },
+      "Directions": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "activeMovements": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "lastCommand": {
+            "type": "string"
           }
         }
       },
@@ -1276,20 +1389,6 @@
           }
         }
       },
-      "CommandType": {
-        "type": "string",
-        "description": "",
-        "x-enumNames": [
-          "Initialize",
-          "Move",
-          "Stop"
-        ],
-        "enum": [
-          "Initialize",
-          "Move",
-          "Stop"
-        ]
-      },
       "EngineManagement": {
         "type": "object",
         "additionalProperties": false,
@@ -1321,6 +1420,7 @@
         "enum": [
           "MemberLeftNotification",
           "InitializeEnginResponseDto",
+          "RobotMovementDto",
           "ExampleServerResponse",
           "ServerSendsErrorMessage",
           "Ping",

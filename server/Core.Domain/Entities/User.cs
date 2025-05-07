@@ -15,7 +15,7 @@ public partial class User
 
     public string Role { get; set; } = null!;
 
-    public DateTime CreatedDate { get; set; }
+     public DateTime CreatedDate { get; set; }
 
     public virtual ICollection<SurveyResponse> SurveyResponses { get; set; } = new List<SurveyResponse>();
 

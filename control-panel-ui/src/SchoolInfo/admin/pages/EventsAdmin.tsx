@@ -6,7 +6,7 @@ import { useAuth } from '../../auth/AuthContext';
 
 export default function EventsAdmin() {
     const { jwt } = useAuth();
-    const client = new EventsClient(import.meta.env.VITE_API_URL, {
+    const client = new EventsClient(import.meta.env.VITE_API_BASE_URL, {
         fetch: (url, init) => fetch(url, {
             ...init,
             headers: {

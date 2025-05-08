@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../../SchoolInfo/auth/AuthContext.tsx';
 import { CreateSurveyRequestDto, AdminSurveysClient, SurveyResponseDto, UpdateSurveyRequestDto } from '../../../api/generated-client.ts';
-import SurveyCard from '../../surveys/admin/SurveyCard.tsx';
+import SurveyCardAdmin from './SurveyCardAdmin.tsx';
 import SurveyForm from '../../surveys/admin/SurveyForm';
 import Loading from '../../../shared/Loading.tsx';
 
-export default function SurveysAdmin() {
+export default function SurveysPageAdmin() {
     const { jwt } = useAuth();
     const client = new AdminSurveysClient(import.meta.env.VITE_API_BASE_URL, {
         fetch: (url, init) => fetch(url, {
@@ -130,7 +130,7 @@ export default function SurveysAdmin() {
                 filteredSurveys.length > 0 ? (
                     <div className="grid gap-4 md:grid-cols-3">
                         {filteredSurveys.map(survey => (
-                            <SurveyCard
+                            <SurveyCardAdmin
                                 key={survey.id}
                                 survey={survey}
                                 onEdit={setEditing}
@@ -157,12 +157,7 @@ export default function SurveysAdmin() {
                         <h3 className="font-bold text-lg mb-4">
                             {editing.id ? 'Edit Survey' : 'Create New Survey'}
                         </h3>
-                        <SurveyForm initial={editing} onSubmit={handleSave} />
-                        <div className="modal-action">
-                            <button className="btn btn-outline btn-error" onClick={() => setEditing(null)}>
-                                Cancel
-                            </button>
-                        </div>
+                        <SurveyForm initial={editing} onSubmit={handleSave} onCancel={() => setEditing(null)}/>
                     </div>
                 </div>
             )}

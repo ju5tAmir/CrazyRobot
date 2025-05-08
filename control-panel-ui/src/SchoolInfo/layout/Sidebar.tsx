@@ -116,7 +116,7 @@ export default function Sidebar({ isOpen, closeSidebar }: SidebarProps) {
                     {item(`${base}/events`, <Calendar size={18} />, 'Events')}
 
                     {/* Surveys - User */}
-                    {item(`${base}/surveys-user`, <ClipboardPen size={18} />, 'SurveysPage')}
+                    {item(`${base}/surveys-user`, <ClipboardPen size={18} />, 'SurveysPageUser')}
 
 
                     {/* Surveys / Surveys Results - Admin */}

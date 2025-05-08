@@ -1,12 +1,7 @@
-import {SurveyResponseDto} from '../../../api/generated-client';
+import { UserSurveyCardProps } from '../../../models/surveys-models/UserSurveyCardProps.ts';
 
 
-interface SurveyCardProps {
-    survey: SurveyResponseDto;
-    onTakeSurvey: (survey: SurveyResponseDto) => void;
-}
-
-export default function SurveyCard({ survey, onTakeSurvey }: SurveyCardProps) {
+export default function SurveyCardUser({ survey, onTakeSurvey }: UserSurveyCardProps) {
     return (
         <div className="card bg-base-100 shadow-xl h-full flex flex-col transition-transform hover:scale-105">
             <div className="card-body flex flex-col justify-between">

@@ -5,7 +5,7 @@ import Admin from "./admin";
 
 const ContactsPage = lazy(() => import('./pages/ContactsPage'));
 const EventsPage   = lazy(() => import('./pages/EventsPage'));
-const SurveysPage   = lazy(() => import('../components/surveys/user/SurveysPage.tsx'));
+const SurveysPage   = lazy(() => import('../components/surveys/user/SurveysPageUser.tsx'));
 
 
 export default function SchoolInfo() {

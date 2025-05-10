@@ -24,6 +24,7 @@ public static class ServicesExtensions
         services.AddScoped<IWebsocketSubscriptionService, WebsocketSubscriptionService>();
         services.AddScoped<IContactService, ContactService>();
         services.AddScoped<IEventService,   EventService>();
+        services.AddScoped<IReportService,ReportService>();
         services.AddScoped<IRobotEngineService, RobotEngineService>();
         return services;
     }

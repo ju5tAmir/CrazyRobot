@@ -1,18 +1,19 @@
-import {KEYS} from "../KEYS";
+import { v4 as uuidv4 } from 'uuid';
+import { KEYS } from "../KEYS";
 
-interface ClientIdHook{
-   getClientId:()=>string|null,
-   generateClientId:()=>string,
-   checkIdExist:(string:KEYS)=>boolean
+interface ClientIdHook {
+    getClientId: () => string | null;
+    generateClientId: () => string;
+    checkIdExist: (key: KEYS) => boolean;
 }
 
-
-export const useClientIdState=(key:string):ClientIdHook=>{
+export const useClientIdState = (key: string): ClientIdHook => {
     const generateClientId = (): string => {
-        return crypto.randomUUID();
+        // якщо браузер підтримує — крипто-UUID, якщо ні — uuidv4()
+        return (crypto as any).randomUUID?.() ?? uuidv4();
     };
 
-    const getClientId =  (): string => {
+    const getClientId = (): string => {
         let clientId = sessionStorage.getItem(key);
         if (!clientId) {
             clientId = generateClientId();
@@ -25,5 +26,5 @@ export const useClientIdState=(key:string):ClientIdHook=>{
         return sessionStorage.getItem(key) !== null;
     };
 
-    return{getClientId,generateClientId,checkIdExist}
-}
+    return { getClientId, generateClientId, checkIdExist };
+};

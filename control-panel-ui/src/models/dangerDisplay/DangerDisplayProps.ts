@@ -1,6 +1,8 @@
+import {DIRECTION_WARNING} from "../index.ts";
+
 export interface DangerDisplayProps {
    orientation:DangerDisplayOrientation;
-   position:POSITION
+   position:DIRECTION_WARNING;
 }
 
 export interface DotColumnProps{
@@ -13,7 +15,3 @@ export enum DangerDisplayOrientation{
     VERTICAL
 }
 
-export enum POSITION{
-    FRONT,
-    BACK,LEFT,RIGHT
-}

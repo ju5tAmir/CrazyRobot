@@ -43,15 +43,14 @@ public class Program
     public static void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
         var appOptions = services.AddAppOptions(configuration);
-
+        services.AddMqttClient();
         services.RegisterApplicationServices();
-
         services.AddDataSourceAndRepositories();
-       
         services.AddWebsocketInfrastructure();
         services.AddSingleton(StorageClient.Create());
         services.RegisterWebsocketApiServices();
         services.RegisterRestApiServices();
+        
         services.AddOpenApiDocument(conf =>
         {
             conf.DocumentProcessors.Add(new AddAllDerivedTypesProcessor());

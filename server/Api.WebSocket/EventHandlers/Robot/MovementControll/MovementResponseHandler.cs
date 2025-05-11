@@ -1,4 +1,5 @@
-﻿using Application.Interfaces.Infrastructure.Websocket;
+﻿using Api.WebSocket.ClientDto.robot;
+using Application.Interfaces.Infrastructure.Websocket;
 using Application.Interfaces.Robot;
 using Application.Services;
 using Core.Domain.Entities.Robot;
@@ -10,7 +11,24 @@ public class MovementResponseHandler(IConnectionManager connectionManager,IOptio
 {
     public  Task SenddistancewarningToClient(DistanceWarning distancewarning)
     {
-        connectionManager.BroadcastToTopic(mqttOptions.CurrentValue.DistanceWarningTopic, distancewarning);
+        var response = new ClientCommand<DistanceWarning>()
+        {
+            CommandType = ClientCommandType.DistanceWarning,
+            Payload = new DistanceWarning  
+            {
+                Warning = distancewarning.Warning,
+                Direction = distancewarning.Direction
+            }
+        };
+
+        var responseDto = new DangerMovementDto()
+        {
+            command = response,
+            eventType = nameof(DangerMovementDto),
+            requestId = Guid.NewGuid().ToString()
+
+        };
+        connectionManager.BroadcastToTopic(mqttOptions.CurrentValue.DistanceWarningTopic, responseDto);
         return Task.CompletedTask;
     }
 }

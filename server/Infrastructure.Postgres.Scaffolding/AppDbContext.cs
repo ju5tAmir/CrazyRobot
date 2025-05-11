@@ -13,7 +13,8 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<Answer> Answers { get; set; }
 
     public virtual DbSet<SchoolContact> Contacts { get; set; }
-
+    
+    public virtual DbSet<GeneratedReport> GeneratedReports { get; set; } = null!;
     public virtual DbSet<SchoolEvent> Events { get; set; }
 
     public virtual DbSet<Question> Questions { get; set; }
@@ -149,6 +150,19 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.CreatedByUser).WithMany(p => p.Surveys)
                 .HasForeignKey(d => d.CreatedByUserId)
                 .HasConstraintName("fk_survey_user");
+        });
+        
+        modelBuilder.Entity<GeneratedReport>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("generated_report_pkey");
+
+            
+            entity.ToTable("generated_report", "crazyrobot");
+
+            entity.Property(x => x.Id).HasColumnName("id");
+            entity.Property(x => x.SurveyId).HasColumnName("survey_id");
+            entity.Property(x => x.GeneratedAt).HasColumnName("generated_at");
+            entity.Property(x => x.ReportText).HasColumnName("report_text");
         });
 
         modelBuilder.Entity<SurveyResponse>(entity =>

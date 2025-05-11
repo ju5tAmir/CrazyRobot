@@ -52,7 +52,8 @@ public class MqttClientService
 
                 await SubscribeAsync(_mqttOptions.CurrentValue.SubscribeEngineTopic);
                 await SubscribeAsync(_mqttOptions.CurrentValue.SubscribeCommandsTopic); 
-                await SubscribeAsync(_mqttOptions.CurrentValue.DistanceWarningTopic); 
+                await SubscribeAsync(_mqttOptions.CurrentValue.DistanceWarningTopic);
+                await SubscribeAsync(_mqttOptions.CurrentValue.NegativeDistanceWarningTopic);
                 await SubscribeAsync("test"); 
                 await PublishAsync(_mqttOptions.CurrentValue.PublishEngineTopic, "From server engine");
                 await PublishAsync("test", "From server");

@@ -6,7 +6,7 @@ import { useAuth }               from '../../auth/AuthContext';
 export default function ContactsAdmin() {
     const { jwt } = useAuth();
 
-    /** REST-клієнт із JWT-хедером */
+
     const client = new ContactsClient(import.meta.env.VITE_API_URL, {
         fetch: (url, init) =>
             fetch(url, {
@@ -59,7 +59,7 @@ export default function ContactsAdmin() {
                 </tbody>
             </table>
 
-            {/* ────────────── Модалка ────────────── */}
+
             {editing && (
                 <dialog className="modal modal-open">
                     <div className="modal-box w-96">

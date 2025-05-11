@@ -357,6 +357,92 @@
         }
       }
     },
+    "/api/GeneratedReports": {
+      "get": {
+        "tags": [
+          "GeneratedReports"
+        ],
+        "operationId": "GeneratedReports_GetAll",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GeneratedReportDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/GeneratedReports/{id}": {
+      "get": {
+        "tags": [
+          "GeneratedReports"
+        ],
+        "operationId": "GeneratedReports_Get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneratedReportDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "GeneratedReports"
+        ],
+        "operationId": "GeneratedReports_Delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/Subscribe": {
       "post": {
         "tags": [
@@ -838,6 +924,26 @@
           }
         }
       },
+      "GeneratedReportDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "surveyId": {
+            "type": "string"
+          },
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reportText": {
+            "type": "string"
+          }
+        }
+      },
       "ChangeSubscriptionDto": {
         "type": "object",
         "additionalProperties": false,
@@ -1195,12 +1301,14 @@
         "x-enumNames": [
           "Initialized",
           "BatteryStatus",
-          "DistanceWarning"
+          "DistanceWarning",
+          "NegativeWarning"
         ],
         "enum": [
           "initialized",
           "batteryStatus",
-          "distanceWarning"
+          "distanceWarning",
+          "negativeWarning"
         ]
       },
       "InitializeEngineResponse": {
@@ -1211,6 +1319,48 @@
             "type": "boolean"
           },
           "errorMessage": {
+            "type": "string"
+          }
+        }
+      },
+      "NegativeDistanceNotifierDto": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseDto"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "command": {
+                "$ref": "#/components/schemas/ClientCommandOfNegativeDistanceWarning"
+              }
+            }
+          }
+        ]
+      },
+      "ClientCommandOfNegativeDistanceWarning": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "commandType": {
+            "$ref": "#/components/schemas/ClientCommandType"
+          },
+          "payload": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/NegativeDistanceWarning"
+              }
+            ]
+          }
+        }
+      },
+      "NegativeDistanceWarning": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "warning": {
             "type": "string"
           }
         }
@@ -1420,6 +1570,7 @@
         "enum": [
           "MemberLeftNotification",
           "InitializeEnginResponseDto",
+          "NegativeDistanceNotifierDto",
           "RobotMovementDto",
           "ExampleServerResponse",
           "ServerSendsErrorMessage",

@@ -6,7 +6,7 @@ import Sidebar from '../../layout/Sidebar';
 import Header  from '../../layout/Header';
 
 export default function AdminLayout() {
-    /** керуємо відкриттям/закриттям бургер-меню */
+
     const [isSidebarOpen, setSidebarOpen] = useState(false);
 
     return (

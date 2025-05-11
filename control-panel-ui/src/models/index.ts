@@ -4,3 +4,7 @@ export type { SmallBoardProps as SmallBoardProps } from './CellProps.ts';
 export type { WonProps as WonProps } from './CellProps.ts';
 export type { UTTTWonBoard as UTTTWonBoard } from './State.ts';
 export type { InfoDisplayProps as InfoDisplayProps } from './InfodisplayProps.ts';
+export type {DangerDisplayProps as DangerDisplayProps} from "./dangerDisplay/DangerDisplayProps.ts";
+ export {DangerDisplayOrientation as DangerDisplayOrientation}  from "./dangerDisplay/DangerDisplayProps.ts";
+ export type {DotColumnProps as DotColumnProps} from "./dangerDisplay/DangerDisplayProps.ts";
+ export type {NegativeDistanceWarning as NegativeDistanceWarning} from "./mqttModels/MqttModels.ts";

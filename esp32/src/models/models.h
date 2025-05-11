@@ -17,7 +17,7 @@ struct RobotData {
     bool isMoving=false;
     bool initializing = false;
     bool isStopping = false;
-    const char* activeMovements[4]={ nullptr, nullptr, nullptr, nullptr };  
+    char activeMovements[4]={ '_', '_', '_', '_' };  
     bool isStopped = true;
     bool lidarReady = false;
     bool lidarHealth=true;
@@ -27,6 +27,7 @@ struct RobotData {
     char allowedMovements[4]={'w','a','s','d'};
     Obstacle previousObstacles[72] = {};
     Obstacle obstacles[72] = {}; 
+    int currentObstaclesCount = 0;
     
     // const char* moveValue;
     // bool isTurning;

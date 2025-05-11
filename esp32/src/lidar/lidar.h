@@ -13,6 +13,7 @@
 #define RPLIDAR_TX 17   
 
 extern RPLidar lidar;
+extern SemaphoreHandle_t robotMutex;
 bool stopLidar();
 extern HardwareSerial LidarSerial;
 const int ANGLE_BUCKET_SIZE = 5; 
@@ -32,6 +33,11 @@ void findGaps(int degrees,RobotData* robot);
 const int pwmChannel = 0;
 const int pwmFreq = 25000;
 const int pwmResolution = 8;
+extern String warnings[];
+extern String lastWarnings[4];
+
+extern const String directions[4];
+int directionIndex(const String direction);
 
 // void printObstacles(const Obstacle* obstacles, int obstacleCount);
 

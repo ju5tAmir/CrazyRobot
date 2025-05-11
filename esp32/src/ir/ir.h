@@ -4,7 +4,9 @@
 #include "../models/models.h"
 
 extern const int threshold;
-bool checkForNegativeSpace(RobotData& robot);
+extern float smoothedIr;
+extern const float alpha ;
+void checkForNegativeSpace();
 
 
 #endif

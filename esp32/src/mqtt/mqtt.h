@@ -28,7 +28,4 @@ void callback(const char* topic, byte* payload, unsigned int length, RobotData* 
 void sendInitializeMessage(bool initialized, String error);
 void sendTurnOffMessage(String error);
 void sendNegativeWarning(String level);
-void startBuzzer();
-//void callback(const char* topic, byte* payload, unsigned int length);
-//void connectMQTT();
 #endif

@@ -26,13 +26,25 @@ void stopEngines();
 bool isMovementAllowed(char(&activeMovements)[4],char currentMovement,int size);
 void removeAllowedMovement(char (&allowedMovements)[4], char target);
 void addAllowedMovement(char (&allowedMovements)[4], char target);
+
+
+//Timing for the ir sensor
 unsigned long lastDangerTime = 0;
-const unsigned long holdDelay = 500;
+unsigned long startedMesurement = 0;
+unsigned long lastLidarMesurement =0; 
+const unsigned long negativeHoldDelay = 500;
+const unsigned long holdDelay = 1000;
+//lidar readings and processing
+const unsigned long  measureLidar = 200;
+String getDirectionForAngle(float angle);
+
 
 int initializeRetries= 3;
 int countRetries=0;
 unsigned long lastCheckTime = 0;
 static unsigned long lastWarnTime = 0;
+
+
 //Thread management for lidar thread
 TaskHandle_t lidarTaskHandle;
 void lidarTask(void* pvParameters);
@@ -43,9 +55,7 @@ void setup() {
 connectWiFi();
 connectMQTT(&robot);
 setupMotors();
-// myServo.attach(servo);
-// myServo.setEasingType(EASE_CUBIC_IN_OUT);  // Smooth curve
-// myServo.startEaseTo(90, 2000); 
+
 
 xTaskCreatePinnedToCore(
   lidarTask,
@@ -61,80 +71,109 @@ xTaskCreatePinnedToCore(
 
 void loop() {
 
-      if(WiFi.status()!=WL_CONNECTED){
+    if(WiFi.status()!=WL_CONNECTED){
         connectWiFi();
     }
     if(!client.connected()){
         connectMQTT(&robot);
     }
     client.loop(); 
-    checkRobotState(robot);
     unsigned long currentMillis = millis();
-    if (buzzerActive) {
-        if (currentMillis - buzzerStartTime >= buzzerDuration) {
-            // 100 ms passed -> stop buzzer
-            digitalWrite(buzzer, LOW);
-            buzzerActive = false;
-            Serial.println("Buzzer OFF");
+    checkRobotState(robot);
+  
+    if (!robot.isStopped) {
+      unsigned long currentMillis = millis();
+  
+      if (currentMillis - lastCheckTime >= measureLidar) {
+          lastCheckTime = currentMillis;
+          Obstacle localObstacles[NUM_BUCKETS];
+          int localCounter=0;
+          if (xSemaphoreTake(robotMutex, pdMS_TO_TICKS(50))) {
+            localCounter=robot.currentObstaclesCount;
+              for (int i = 0; i < NUM_BUCKETS; i++) {
+                  localObstacles[i] = robot.obstacles[i];
+              }
+              xSemaphoreGive(robotMutex);
+          } else {
+              Serial.println("Failed to get robotMutex in loop");
+              return;
+          }
+          for (int i = 0; i < 4; i++) {
+            warnings[i] = FREE;
         }
-    }
+          for (int i = 0; i <localCounter; i++) {
+              Obstacle obs = localObstacles[i];
+              float angle = obs.startAngle;
+              float dist = obs.distance;
+              Serial.println(dist);
+              Serial.println("distance");
 
- // readLidarData();
+              Serial.println(angle);
+              Serial.println("angle");
 
-//  if (isDirectionAllowed(FORWARD)) {
-    // moveRobotTwo(FORWARD, 170, 170, leftMotor, rightMotor);
- // }
-  // else if (isDirectionAllowed(LEFT) && isDirectionAllowed(RIGHT)) {
-  //   moveRobotTwo(LEFT, 255, 255, leftMotor, rightMotor);
-  // }
-  // else if (isDirectionAllowed(BACKWARD)) {
-  //   moveRobotTwo(BACKWARD, 150, 150, leftMotor, rightMotor);
-  // }
-  // else {
-  //   moveRobotTwo(STOP, 0, 0, leftMotor, rightMotor);
-  //   Serial.println("All directions blocked! Stopping.");
-  // }
+              if (dist > 600) continue;
+              const String dir = getDirectionForAngle(angle);
+              int index = directionIndex(dir);
+
+               if (index == -1) continue;
+
+              if (dist >= 250 && dist<=300) {
+                  warnings[index] = SEVERE; 
+               } else if ((dist > 300 && dist <=500) && warnings[index] != SEVERE) {
+                 warnings[index] = MILD;
+              } 
+          }
+         
+
+        for (int i = 0; i < 4; i++) {
+          if(warnings[i]!=lastWarnings[i]){
+            sendDistanceWarning(warnings[i], directions[i]); 
+            lastWarnings[i]=warnings[i];
+          }
+             
+         }
+
+
+      }
+  }
 }
 
 void actOnMovements() {
   bool foundW = false, foundS = false, foundA = false, foundD = false;
 
   for (int i = 0; i < 4; i++) {
-    const char* movement = robot.activeMovements[i];
-    if (movement == nullptr) continue;
-
-    for (int j = 0; movement[j] != '\0'; j++) {
-      switch (movement[j]) {
-        case 'w': foundW = true; break;
-        case 's': foundS = true; break;
-        case 'a': foundA = true; break;
-        case 'd': foundD = true; break;
-      }
+    char movement = robot.activeMovements[i];
+    if (movement == '-') continue;
+    switch (movement) {
+      case 'w': foundW = true; break;
+      case 's': foundS = true; break;
+      case 'a': foundA = true; break;
+      case 'd': foundD = true; break;
     }
   }
 
-  if (foundW && foundS) {
-    moveRobotTwo(STOP, 0, 0, leftMotor, rightMotor);
+  if ((foundW && foundS) || (foundA && foundD)) {
+      moveRobotTwo(STOP, 0, 0, leftMotor, rightMotor);
     return;
   }
 
-  if (foundD && foundA) {
-    moveRobotTwo(STOP, 0, 0, leftMotor, rightMotor);
-    return;
-  }
-
-  if (foundA || (foundW && foundA) || (foundS && foundA)) {
+  if (foundA ) {
     moveRobotTwo(LEFT, MOVE_SPEED, MOVE_SPEED, leftMotor, rightMotor);
     return;
   }
 
-  if (foundD || (foundW && foundD) || (foundS && foundD)) {
+
+  if (foundD) {
     moveRobotTwo(RIGHT, MOVE_SPEED, MOVE_SPEED, leftMotor, rightMotor);
     return;
   }
 
-  if (foundW && isMovementAllowed(robot.allowedMovements,'w',4) ) {
-    moveRobotTwo(FORWARD, MOVE_SPEED, MOVE_SPEED, leftMotor, rightMotor);
+  if (foundW) {
+    if (isMovementAllowed(robot.allowedMovements, 'w', 4)) {
+      moveRobotTwo(FORWARD, MOVE_SPEED, MOVE_SPEED, leftMotor, rightMotor);
+    } else {
+      moveRobotTwo(STOP, 0, 0, leftMotor, rightMotor);
+    }
     return;
   }
 
@@ -143,10 +182,13 @@ void actOnMovements() {
     return;
   }
 
+
   if (!foundW && !foundS && !foundD && !foundA) {
     moveRobotTwo(STOP, 0, 0, leftMotor, rightMotor);
   }
 }
+
+
 void stopEngines(){
   moveRobotTwo(STOP,0,0,leftMotor,rightMotor);  
 }
@@ -194,54 +236,32 @@ void checkRobotState(RobotData& robot){
     return;
   }
 
-
-
-//   unsigned long currentTime = millis();
-// if (currentTime - lastCheckTime >= 200) {
-//     lastCheckTime = currentTime;
-
-//     bool dangerFront = false;
-
-//     portENTER_CRITICAL(&obstacleMux);
-//     dangerFront = detectObstacles(&robot);  
-//     portEXIT_CRITICAL(&obstacleMux);       
-
-  
-//     if (millis() - lastWarnTime >= 1000) {
-//         lastWarnTime = millis();
-//         sendDistanceWarning(BRAKE, "front");
-//     }
-// }
-
-// if(checkForNegativeSpace(robot)){
-//   if(!robot.negativeDanger){
-//     Serial.println(robot.negativeDanger);
-//     removeAllowedMovement(robot.allowedMovements,'w');
-//     sendNegativeWarning(SEVERE); 
-//     robot.negativeDanger=true;
+// check if the sensor reads an negative space and waits for half second for the sensor to read positive space until will reset back
+  checkForNegativeSpace();
  
-//   }  
-// }else{
-//   Serial.println(robot.negativeDanger);
-//   addAllowedMovement(robot.allowedMovements,'w');
-//   robot.negativeDanger=false;
-// }
+  if(smoothedIr>=threshold){
 
-
-// check if the sensor reads an negative space and waits for hals second for the sensor to read positive space until will reset back
-if (checkForNegativeSpace(robot)) {
-  lastDangerTime = millis(); 
-  if (!robot.negativeDanger) {
-    removeAllowedMovement(robot.allowedMovements, 'w');
-    sendNegativeWarning(SEVERE);
-    robot.negativeDanger = true;
+  if(!isMovementAllowed(robot.activeMovements,'w',4)){
+   return;
+  } 
+     if (startedMesurement == 0) {
+    startedMesurement = millis();
+  }
+  if (!robot.negativeDanger && millis()-startedMesurement>=negativeHoldDelay) {
+      lastDangerTime = millis(); 
+      removeAllowedMovement(robot.allowedMovements, 'w');
+      sendNegativeWarning(SEVERE);
+      robot.negativeDanger = true;  
   }
 } else {
   if (robot.negativeDanger && millis() - lastDangerTime >= holdDelay) {
+    startedMesurement=0;
     addAllowedMovement(robot.allowedMovements, 'w');
+    sendNegativeWarning(FREE);
     robot.negativeDanger = false;
   }
-}
+  }
+
   actOnMovements();
 }
 
@@ -278,7 +298,6 @@ void addAllowedMovement(char (&allowedMovements)[4], char target) {
     if (allowedMovements[i] == target) return;
   }
 
-
   for (int i = 0; i < 4; i++) {
     if (allowedMovements[i] == '_') {
       allowedMovements[i] = target;
@@ -295,6 +314,18 @@ bool isMovementAllowed(char(&activeMovements)[4],char currentMovement,int size){
     }
   }
   return false;
+}
+
+String getDirectionForAngle(float angle) {
+  if (angle >= 315 || angle <= 45) {
+      return FT; 
+  } else if (angle > 45 && angle <= 135) {
+      return RT; 
+  } else if (angle > 135 && angle <= 225) {
+      return BK; 
+  } else {
+      return LT;
+  }
 }
 
 

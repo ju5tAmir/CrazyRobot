@@ -10,31 +10,23 @@ import {
     ServerConfirmsDto,
     ServerSendsErrorMessageDto,
     StringConstants
-} from "../../../../api/webSocketApi.ts";
+} from "../../../../api";
 import toast from "react-hot-toast";
-import {CommandType, MovementCommand} from "../../../../models/mqttModels/MqttModels.ts";
+import {CommandType, DIRECTION_WARNING, MovementCommand} from "../../../../models/mqttModels/MqttModels.ts";
 import {DangerDisplay} from "../../InfoDisplay/DangerDisplay/DangerDisplay.tsx";
 import {DangerDisplayOrientation} from "../../../../models";
-import {POSITION} from "../../../../models/dangerDisplay/DangerDisplayProps.ts";
+import {useAtom} from "jotai";
+import {EngineStateAtom} from "../../../../atoms";
 
-//Todo implement to skip short bursts to avoid esp32 overload
-
-// const currentCommand = JSON.stringify(directions); // serialize for comparison
-//
-// if (lastSentCommandRef.current === currentCommand) {
-//     console.log("🚫 Duplicate command skipped");
-//     return;
-// }
-//
-// lastSentCommandRef.current = currentCommand;
 export const ControlMotor = () => {
     const {onMessage, sendRequest, send, readyState} = useWsClient();
+    const [_,setEngineAtom] = useAtom(EngineStateAtom);
     const previousPressed = useRef<Set<string>>(new Set());
     const [engine, setEngine] = useState<boolean>(false);
     const [startProcedure,setStartProcedure] = useState(false);
     // prevent user to stop the start procedure prematurely
     const [engineLocked,setEngineLocked] = useState(false);
-    //holds the pressed keys, to prevent sending continuos commands to esp32
+    //holds the pressed keys, to prevent sending continuous commands to esp32
     const [pressedKeys,setPressedKeys] = useState<Set<string>>(new Set());
     //last movement command that has been pressed
     const [lastPressed,setLastPressed] = useState<string>("");
@@ -62,11 +54,13 @@ export const ControlMotor = () => {
                 if (error.length > 0) {
                     toast.error(`Engine error: ${error}`);
                     setEngine(false);
+                    setEngineAtom(false);
                     return;
                 }
 
                 const engineOn = !status;
                 setEngine(engineOn);
+                setEngineAtom(engineOn);
 
                 toast.success(`Engine: ${engineOn ? "ON" : "OFF"}`);
             }
@@ -77,8 +71,6 @@ export const ControlMotor = () => {
 
 
     useEffect(() => {
-
-        console.log("New press");
         const keysChanged = [...pressedKeys].some(k => !previousPressed.current.has(k)) ||
             [...previousPressed.current].some(k => !pressedKeys.has(k));
         if (keysChanged) {
@@ -143,10 +135,6 @@ export const ControlMotor = () => {
             return newSet;
         });
     }, [engine]);
-
-
-
-
 
     /**
      * send start stop commands
@@ -245,11 +233,11 @@ export const ControlMotor = () => {
             <div className={"flex flex-col gap-2 justify-center"}>
                 <InfoDisplay engineState={engine} batteryStatus={0} initializeStatus={engineLocked}></InfoDisplay>
 
-                <div className="grid grid-cols-[1fr_2fr_2fr_2fr_1fr] grid-rows-4  place-items-center border-2 border-green-600 w-screen">
-                    <div className="col-span-1  col-start-3 row-start-1 row-end-2 border border-gray-700">
-                        <DangerDisplay position={POSITION.FRONT} orientation={DangerDisplayOrientation.HORIZONTAL}></DangerDisplay>
+                <div className="grid grid-cols-[1fr_2fr_2fr_2fr_1fr] grid-rows-4  place-items-center  w-screen">
+                    <div className="col-span-1  col-start-3 row-start-1 row-end-2 ">
+                        <DangerDisplay position={DIRECTION_WARNING.FRONT} orientation={DangerDisplayOrientation.HORIZONTAL}></DangerDisplay>
                     </div>
-                    <div className="col-span-3 col-start-2 row-start-2 row-span-1 border border-gray-700 w-full ">
+                    <div className="col-span-3 col-start-2 row-start-2 row-span-1  w-full ">
                         <div className={"flex flex-row justify-center items-center mb-2 gap-2 flex-grow"}>
                             <button disabled={true} className={"btn btn-neutral w-1/6 invisible"}>
                             </button>
@@ -266,13 +254,11 @@ export const ControlMotor = () => {
                     </div>
 
 
-                    <div className="col-span-1 col-start-1 row-start-3 row-span-1 border border-gray-700 ">
 
-                    </div>
 
-                    <div className="col-span-3 col-start-2 row-start-3 row-span-1 border border-gray-700 w-full ">
+                    <div className="col-span-3 col-start-2 row-start-3 row-span-1  w-full ">
                         <div className={"flex flex-row justify-center gap-2 items-center "}>
-                            <DangerDisplay position={POSITION.LEFT} orientation={DangerDisplayOrientation.VERTICAL}></DangerDisplay>
+                            <DangerDisplay position={DIRECTION_WARNING.LEFT} orientation={DangerDisplayOrientation.VERTICAL}></DangerDisplay>
                             <Button value={"a"}
                                     handlePressed={() => handleInputDown("a")}
                                     handleReleased={() => handleInputUp("a")}
@@ -294,61 +280,15 @@ export const ControlMotor = () => {
                                     handleEngineState={engine}
                                     isPressed={pressedKeys.has("d")}
                             />
-                            <DangerDisplay position={POSITION.RIGHT} orientation={DangerDisplayOrientation.VERTICAL}></DangerDisplay>
+                            <DangerDisplay position={DIRECTION_WARNING.RIGHT} orientation={DangerDisplayOrientation.VERTICAL}></DangerDisplay>
                         </div>
                     </div>
 
-                    <div className="col-span-1 col-start-5 row-start-3 row-span-1 border border-gray-700 self-start ">
 
-                    </div>
-
-                    <div className="col-span-1 col-start-3 row-start-4 row-span-1 border border-gray-700 justify-self-start w-full ">
-                        <DangerDisplay position={POSITION.BACK}  orientation={DangerDisplayOrientation.HORIZONTAL}></DangerDisplay>
+                    <div className="col-span-1 col-start-3 row-start-4 row-span-1  justify-self-start w-full ">
+                        <DangerDisplay position={DIRECTION_WARNING.BACK}  orientation={DangerDisplayOrientation.HORIZONTAL}></DangerDisplay>
                     </div>
                 </div>
-
-                {/*<div>*/}
-                {/*    <DangerDisplay orientation={DangerDisplayOrientation.VERTICAL}></DangerDisplay>*/}
-                {/*    <div className={"flex flex-row justify-center items-center mb-2 gap-2"}>*/}
-                {/*    <button disabled={true} className={"btn btn-neutral w-1/6 invisible"}>*/}
-                {/*        </button>*/}
-                {/*        <Button value={"w"} color={""}*/}
-                {/*                handlePressed={() => handleInputDown("w")}*/}
-                {/*                handleReleased={() => handleInputUp("w")}*/}
-                {/*                handleEngineState={engine}*/}
-                {/*                isPressed={pressedKeys.has("w")}/>*/}
-                {/*        <button className={`btn btn-neutral w-1/6 ${engineStartedColor()}`}*/}
-                {/*                onClick={() => handleInputDown('e')}>*/}
-                {/*            {engine ? <FaStop/> : <FaPlay/>}*/}
-                {/*        </button>*/}
-                {/*    </div>*/}
-
-                {/*    <div className={"flex flex-row justify-center gap-2 items-center"}>*/}
-                {/*        <Button value={"a"}*/}
-                {/*                handlePressed={() => handleInputDown("a")}*/}
-                {/*                handleReleased={() => handleInputUp("a")}*/}
-                {/*                color={""}*/}
-                {/*                handleEngineState={engine}*/}
-                {/*                isPressed={pressedKeys.has("a")}*/}
-                {/*        />*/}
-                {/*        <Button value={"s"}*/}
-                {/*                handlePressed={() => handleInputDown("s")}*/}
-                {/*                handleReleased={() => handleInputUp("s")}*/}
-                {/*                color={""}*/}
-                {/*                handleEngineState={engine}*/}
-                {/*                isPressed={pressedKeys.has("s")}*/}
-                {/*        />*/}
-                {/*        <Button value={"d"}*/}
-                {/*                handlePressed={() => handleInputDown("d")}*/}
-                {/*                handleReleased={() => handleInputUp("d")}*/}
-                {/*                color={""}*/}
-                {/*                handleEngineState={engine}*/}
-                {/*                isPressed={pressedKeys.has("d")}*/}
-                {/*        />*/}
-                {/*    </div>*/}
-                {/*    <DangerDisplay orientation={DangerDisplayOrientation.VERTICAL}></DangerDisplay>*/}
-                {/*</div>*/}
-
             </div>
         </>
     );

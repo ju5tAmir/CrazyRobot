@@ -8,3 +8,6 @@ export type {DangerDisplayProps as DangerDisplayProps} from "./dangerDisplay/Dan
  export {DangerDisplayOrientation as DangerDisplayOrientation}  from "./dangerDisplay/DangerDisplayProps.ts";
  export type {DotColumnProps as DotColumnProps} from "./dangerDisplay/DangerDisplayProps.ts";
  export type {NegativeDistanceWarning as NegativeDistanceWarning} from "./mqttModels/MqttModels.ts";
+ export type {DistanceWarning as DistanceWarning} from "./mqttModels/MqttModels.ts";
+ export  {WARNING_LEVEL as WARNING_LEVEL } from "./mqttModels/MqttModels.ts";
+ export {DIRECTION_WARNING as DIRECTION_WARNING} from "./mqttModels/MqttModels.ts"

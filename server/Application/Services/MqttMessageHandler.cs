@@ -73,7 +73,16 @@ public class MqttMessageHandler:IMqttMessageHandler
                         };
 
                         Console.WriteLine("Successfully created command: " + JsonSerializer.Serialize(command));
-                        await _distanceWarningHandler.HandleCommand(topic, command);
+                        try
+                        {
+                            await _distanceWarningHandler.HandleCommand(topic, command);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine("Error in HandleCommand: " + ex.Message);
+                            Console.WriteLine("StackTrace: " + ex.StackTrace);
+                        }
+
                     }
                     catch (Exception ex)
                     {

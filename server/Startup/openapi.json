@@ -1156,6 +1156,67 @@
           }
         }
       },
+      "DangerMovementDto": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseDto"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "command": {
+                "$ref": "#/components/schemas/ClientCommandOfDistanceWarning"
+              }
+            }
+          }
+        ]
+      },
+      "ClientCommandOfDistanceWarning": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "commandType": {
+            "$ref": "#/components/schemas/ClientCommandType"
+          },
+          "payload": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/DistanceWarning"
+              }
+            ]
+          }
+        }
+      },
+      "ClientCommandType": {
+        "type": "string",
+        "description": "",
+        "x-enumNames": [
+          "Initialized",
+          "BatteryStatus",
+          "DistanceWarning",
+          "NegativeWarning"
+        ],
+        "enum": [
+          "initialized",
+          "batteryStatus",
+          "distanceWarning",
+          "negativeWarning"
+        ]
+      },
+      "DistanceWarning": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "warning": {
+            "type": "string"
+          },
+          "direction": {
+            "type": "string"
+          }
+        }
+      },
       "InitializeEnginResponseDto": {
         "allOf": [
           {
@@ -1188,22 +1249,6 @@
             ]
           }
         }
-      },
-      "ClientCommandType": {
-        "type": "string",
-        "description": "",
-        "x-enumNames": [
-          "Initialized",
-          "BatteryStatus",
-          "DistanceWarning",
-          "NegativeWarning"
-        ],
-        "enum": [
-          "initialized",
-          "batteryStatus",
-          "distanceWarning",
-          "negativeWarning"
-        ]
       },
       "InitializeEngineResponse": {
         "type": "object",
@@ -1463,6 +1508,7 @@
         "description": "Available eventType and string constants",
         "enum": [
           "MemberLeftNotification",
+          "DangerMovementDto",
           "InitializeEnginResponseDto",
           "NegativeDistanceNotifierDto",
           "RobotMovementDto",

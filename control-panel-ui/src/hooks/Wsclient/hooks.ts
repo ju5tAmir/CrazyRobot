@@ -9,7 +9,7 @@ interface ClientIdHook {
 
 export const useClientIdState = (key: string): ClientIdHook => {
     const generateClientId = (): string => {
-        // якщо браузер підтримує — крипто-UUID, якщо ні — uuidv4()
+
         return (crypto as any).randomUUID?.() ?? uuidv4();
     };
 

@@ -1,11 +1,12 @@
 import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import SchoolInfoLayout from './layout/SchoolInfoLayout';
-import Admin from "./admin";
+import {ControlMotor} from "../components/Movement/MovementNew/Movement/ControlMotor.tsx";
+import {UTTTPage} from "../components/UTTT/UTTTpage.tsx";
 
 const ContactsPage = lazy(() => import('./pages/ContactsPage'));
 const EventsPage   = lazy(() => import('./pages/EventsPage'));
-const SurveysPage   = lazy(() => import('../components/surveys/user/SurveysPageUser.tsx'));
+const SurveysPage   = lazy(() => import('../components/surveys/user/SurveysPageUser'));
 
 
 export default function SchoolInfo() {
@@ -17,7 +18,8 @@ export default function SchoolInfo() {
                     <Route path="contacts"     element={<ContactsPage />} />
                     <Route path="events"       element={<EventsPage />} />
                     <Route path="surveys-user"       element={<SurveysPage />} />
-                    <Route path="admin/*"      element={<Admin />} />
+                    <Route path="/RobotMovement" element={<ControlMotor />} />
+                    <Route path="/tic-tac-toe" element={<UTTTPage />} />
                 </Routes>
             </Suspense>
         </SchoolInfoLayout>

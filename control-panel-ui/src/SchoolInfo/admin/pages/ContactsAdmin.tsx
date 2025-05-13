@@ -7,7 +7,7 @@ export default function ContactsAdmin() {
     const { jwt } = useAuth();
 
 
-    const client = new ContactsClient(import.meta.env.VITE_API_URL, {
+    const client = new ContactsClient(import.meta.env.VITE_API_BASE_URL, {
         fetch: (url, init) =>
             fetch(url, {
                 ...init,

@@ -9,8 +9,8 @@ public interface ISecurityService
     public void VerifyPasswordOrThrow(string password, string hashedPassword);
     public string GenerateSalt();
     public string GenerateJwt(JwtClaims claims);
-    public AuthResponseDto Login(AuthRequestDto dto);
+    public AuthResponseDto LoginAdmin(AuthRequestDto dto);
+    public AuthResponseDto LoginOrRegisterUser(AuthUserRequest dto);
     public AuthResponseDto RegisterAdmin(AuthRequestDto dto);
-    public AuthResponseDto RegisterUser(AuthUserRequest dto);
     public JwtClaims VerifyJwtOrThrow(string jwt);
 }

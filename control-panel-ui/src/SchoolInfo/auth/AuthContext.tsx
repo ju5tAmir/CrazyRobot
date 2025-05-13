@@ -4,6 +4,7 @@ import { AuthClient } from '../../api/generated-client'; // або '@/api/genera
 interface AuthContextType {
     jwt: string | null;
     login(email: string, password: string): Promise<void>;
+    loginOrRegisterUser(email: string): Promise<void>;
     logout(): void;
 }
 
@@ -22,13 +23,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setJwt(token);
     }
 
+    async function loginOrRegisterUser(email: string) {
+        const client = new AuthClient(import.meta.env.VITE_API_BASE_URL);
+        const { jwt: token } = await client.loginOrRegisterUser({ email, role: 'user' });
+        localStorage.setItem('jwt', token);
+        setJwt(token);
+    }
+
     function logout() {
         localStorage.removeItem('jwt');
         setJwt(null);
     }
 
     return (
-        <AuthContext.Provider value={{ jwt, login, logout }}>
+        <AuthContext.Provider value={{ jwt, login, loginOrRegisterUser, logout }}>
             {children}
         </AuthContext.Provider>
     );

@@ -1,6 +1,5 @@
-// src/SchoolInfo/layout/Header.tsx
 import { Menu } from 'lucide-react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
 interface HeaderProps {
     openSidebar: () => void;
@@ -8,7 +7,6 @@ interface HeaderProps {
 
 export default function Header({ openSidebar }: HeaderProps) {
     const { pathname } = useLocation();
-    const nav = useNavigate();
 
     const title = pathname.includes('events')
         ? 'School Events'
@@ -28,14 +26,6 @@ export default function Header({ openSidebar }: HeaderProps) {
             <div className="text-2xl font-semibold flex-1 text-center md:text-left md:ml-0 ml-8">
                 {title}
             </div>
-
-            <button
-                className="btn btn-outline btn-sm flex items-center"
-                onClick={() => nav('/school-info/admin/login')}
-            >
-                <span className="mr-1">Login</span>
-                <i className="icon-[lucide--log-in] w-4 h-4" />
-            </button>
         </header>
     );
 }

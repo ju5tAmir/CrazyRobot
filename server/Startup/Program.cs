@@ -43,15 +43,14 @@ public class Program
     public static void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
         var appOptions = services.AddAppOptions(configuration);
-
+        services.AddMqttClient();
         services.RegisterApplicationServices();
-
         services.AddDataSourceAndRepositories();
-       
         services.AddWebsocketInfrastructure();
         //services.AddSingleton(StorageClient.Create());
         services.RegisterWebsocketApiServices();
         services.RegisterRestApiServices();
+        
         services.AddOpenApiDocument(conf =>
         {
             conf.DocumentProcessors.Add(new AddAllDerivedTypesProcessor());
@@ -89,7 +88,7 @@ public class Program
         var document = await app.Services.GetRequiredService<IOpenApiDocumentGenerator>().GenerateAsync("v1");
         var json = document.ToJson();
         await File.WriteAllTextAsync("openapi.json", json);
-        app.GenerateTypeScriptClient("/../../control-panel-ui/src/api/generated-socketclient.ts").GetAwaiter().GetResult();
+        app.GenerateTypeScriptClient("/../../control-panel-ui/src/api/generated-client.ts").GetAwaiter().GetResult();
         app.MapScalarApiReference();
     }
 }

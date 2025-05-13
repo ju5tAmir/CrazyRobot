@@ -19,7 +19,12 @@ MODEL  = os.getenv("MODEL", rag_cfg.get("model", "llama3:latest"))
 PROMPT = rag_cfg["prompt_template"]
 
 DB_URL  = os.getenv("DATABASE_URL")
-engine  = create_engine(DB_URL, echo=False)
+engine = create_engine(
+    DB_URL,
+    echo=False,
+    pool_pre_ping=True,   # ✅ checks if the connection is "live" before requesting
+    pool_recycle=240      # ✅ reassembles connections older than ~4.5 minutes
+)
 
 # ---------- FastAPI ----------
 app = FastAPI()
@@ -85,7 +90,7 @@ def get_session():
 
 # ---------- helper ----------
 def load_examples() -> str:
-    """Повертає текст із rag_data.txt, якщо файл існує."""
+    """Returns the text from rag_data.txt if the file exists."""
     try:
         return Path("rag_data.txt").read_text(encoding="utf-8")
     except FileNotFoundError:
@@ -168,32 +173,40 @@ def report_summary(session: Session = Depends(get_session)):
 
 # ---------- generate ----------
 @router.post("/reports/generate")
-def generate_report(survey_id: str, session: Session = Depends(get_session)):
-    surveys = report_summary(session)["surveys"]
+def generate_report(survey_id: str):
+    # ── 1. we read the summary in a short-lived session ──────────────
+    with Session(engine) as read_db:
+        surveys = report_summary(read_db)["surveys"]
     summary = next((s for s in surveys if s["survey_id"] == survey_id), None)
     if not summary:
         raise HTTPException(status_code=404, detail="Survey not found")
 
-    # ➊ survey data
-    prompt = PROMPT.replace("{data}", json.dumps(summary, ensure_ascii=False))
-
-    # ➋ historical examples, if any
+    # ── 2. form a prompt ───────────────────────────────────
+    prompt = PROMPT.replace(
+        "{data}", json.dumps(summary, ensure_ascii=False)
+    )
     examples = load_examples()
     if examples:
         prompt += f"\n\nExamples of previous reports:\n{examples}"
 
+    # ── 3. long Ollama call (can last 5-8 minutes) ────────
     r = requests.post(
         f"{OLLAMA}/v1/chat/completions",
-        json={"model": MODEL, "messages": [{"role": "user", "content": prompt}]}
+        json={"model": MODEL, "messages": [{"role": "user", "content": prompt}]},
+        timeout=900        # (15 min) spare
     )
     if r.status_code != 200:
         raise HTTPException(status_code=502, detail=f"LLM error: {r.text}")
 
     text_out = r.json()["choices"][0]["message"]["content"]
-    rep = GeneratedReport(survey_id=survey_id, report_text=text_out)
-    session.add(rep)
-    session.commit()
-    session.refresh(rep)
+
+    # ── 4. we write the result in a new session ────────────────────
+    with Session(engine) as write_db:
+        rep = GeneratedReport(survey_id=survey_id, report_text=text_out)
+        write_db.add(rep)
+        write_db.commit()
+        write_db.refresh(rep)
+
     return {"id": rep.id, "report_text": rep.report_text}
 @router.post("/ask")
 async def ask(request: Request):

@@ -7,6 +7,7 @@ public class DistanceWarningHandler(IClientMovementNotifier clientNotifier)
 {
     public async Task HandleCommand(string topic, ClientCommand<DistanceWarning> command)
     {
+        
         await clientNotifier.SenddistancewarningToClient(command.Payload);
     } 
 }

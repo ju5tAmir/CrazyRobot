@@ -32,6 +32,8 @@ public sealed class WebSocketConnectionManager : IConnectionManager
         _mqttOptionsMonitor = mqttOptionsMonitor;
         topics.Add(_mqttOptionsMonitor.CurrentValue.SubscribeEngineTopic);
         topics.Add(_mqttOptionsMonitor.CurrentValue.SubscribeCommandsTopic);
+        topics.Add(_mqttOptionsMonitor.CurrentValue.DistanceWarningTopic);
+        topics.Add(_mqttOptionsMonitor.CurrentValue.NegativeDistanceWarningTopic);
     }
 
 

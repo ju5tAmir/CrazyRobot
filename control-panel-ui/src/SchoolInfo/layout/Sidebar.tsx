@@ -1,5 +1,5 @@
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Home, Users, Calendar, LogOut, ClipboardList, ChartBar, ClipboardPen } from 'lucide-react';
+import { Home, Users, Calendar, LogOut, ClipboardList, ChartBar, ClipboardPen, FileText } from 'lucide-react';
 import ThemeToggle from '../ThemeToggle.tsx';
 import { useAuth } from '../auth/AuthContext';
 import { JSX } from 'react';
@@ -122,7 +122,15 @@ export default function Sidebar({ isOpen, closeSidebar }: SidebarProps) {
                     {/* Surveys / Surveys Results - Admin */}
                     {item(`${base}/surveys`, <ClipboardList size={18} />, 'Surveys')}
                     {item(`${base}/survey-results`,   <ChartBar size={18} />, 'Survey Results')}
-                </ul>
+                    {isAdmin && item(
+                        `${base}/ai-reports`,
+
+                        <FileText size={18}/>,
+                        'AI Reports'
+                    )}
+
+
+            </ul>
 
                 {/* Logout */}
                 {jwt && (

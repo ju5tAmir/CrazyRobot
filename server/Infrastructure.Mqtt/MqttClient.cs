@@ -26,8 +26,23 @@ public class MqttClientService
         _messageHandler = messageHandler;
         var factory = new MqttClientFactory();
         _client = factory.CreateMqttClient();
-    }
+        _client.DisconnectedAsync += async e =>
+        {
+            _logger.LogWarning("MQTT client disconnected. Reason: " + e.Reason);
 
+            await Task.Delay(TimeSpan.FromSeconds(5));
+
+            try
+            {
+                await ConnectAsync(); 
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Reconnection attempt failed.");
+            }
+        };
+    }
+    
     public async Task<bool> ConnectAsync()
     {
         Console.WriteLine(_mqttOptions.CurrentValue.broker + " Trying to connect...");
@@ -38,6 +53,7 @@ public class MqttClientService
             var brokerUri = _mqttOptions.CurrentValue.broker;
             var options = new MqttClientOptionsBuilder()
                 .WithWebSocketServer(o => o.WithUri(brokerUri))
+                .WithKeepAlivePeriod(TimeSpan.FromSeconds(15))
                 .WithCredentials("FlespiToken " + _mqttOptions.CurrentValue.Username, "")
                 .WithClientId(Guid.NewGuid().ToString())
                 .WithCleanSession()
@@ -52,7 +68,8 @@ public class MqttClientService
 
                 await SubscribeAsync(_mqttOptions.CurrentValue.SubscribeEngineTopic);
                 await SubscribeAsync(_mqttOptions.CurrentValue.SubscribeCommandsTopic); 
-                await SubscribeAsync(_mqttOptions.CurrentValue.DistanceWarningTopic); 
+                await SubscribeAsync(_mqttOptions.CurrentValue.DistanceWarningTopic);
+                await SubscribeAsync(_mqttOptions.CurrentValue.NegativeDistanceWarningTopic);
                 await SubscribeAsync("test"); 
                 await PublishAsync(_mqttOptions.CurrentValue.PublishEngineTopic, "From server engine");
                 await PublishAsync("test", "From server");

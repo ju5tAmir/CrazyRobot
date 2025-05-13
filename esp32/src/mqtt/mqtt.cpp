@@ -17,20 +17,17 @@ const char* engineManagementTopic = "engineManagementEsp";
 const char* distanceWarningTopic = "distanceWarningTopic";
 const char* negativeDistanceWarningTopic = "negativeDistanceWarningTopic";
 
-unsigned long buzzerStartTime = 0;
-bool buzzerActive = false;
-const unsigned long buzzerDuration = 100; 
+
 
 
 //solve the arriving message trough mqtt
 void callback(const char* topic, byte* payload, unsigned int length,RobotData* robotData) {
-      Serial.print("Message arrived on topic: ");
-      Serial.println(topic);
+
       String response = "";
       for (int i = 0; i < length; i++) {
         response += (char)payload[i];
     }
-    Serial.println(response);
+
     receiveData(response,robotData);
 }
 
@@ -41,27 +38,17 @@ void connectWiFi() {
     WiFi.mode(WIFI_STA);    
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
-    Serial.println("Connecting to SSID:");
-    Serial.println(WIFI_SSID);
-    Serial.println("With password:");
-    Serial.println(WIFI_PASSWORD);
-
     int retryCount = 0;
     while (WiFi.status() != WL_CONNECTED && retryCount < 30) {
-        Serial.print(".");
-        // digitalWrite(LED_BUILTIN, HIGH);
-        // delay(250);
-        // digitalWrite(LED_BUILTIN, LOW);
-        // delay(250);
         retryCount++;
     }
 
-    if (WiFi.status() == WL_CONNECTED) {
-        Serial.println(" Connected to WiFi!");
-        Serial.println(WiFi.localIP());
-    } else {
-        Serial.println(" Failed to connect to WiFi.");
-    }
+    // if (WiFi.status() == WL_CONNECTED) {
+    //     Serial.println(" Connected to WiFi!");
+    //     Serial.println(WiFi.localIP());
+    // } else {
+    //     Serial.println(" Failed to connect to WiFi.");
+    // }
 }
 
 
@@ -76,23 +63,23 @@ void connectWiFi() {
   int attempts = 0;
   while (!client.connected() && attempts < 5) {
      // digitalWrite(LED_BUILTIN,HIGH);
-     Serial.println("Connecting to MQTT...");
+    //  Serial.println("Connecting to MQTT...");
       if (client.connect("ESP32Client", MQTT_TOKEN, "")) {
-          Serial.println("Connected to MQTT");
+        //   Serial.println("Connected to MQTT");
           client.subscribe(engineManagementUserTopic);
           client.subscribe(commanduser);
           publisher.client=client;
           return;
       } else {
-          Serial.print("MQTT connection failed. State: ");
-          Serial.println(client.state());
+        //   Serial.print("MQTT connection failed. State: ");
+        //   Serial.println(client.state());
           attempts++;
           delay(2000);
       }
   }
 
   if (!client.connected()) {
-      Serial.println("Failed to connect to MQTT after multiple attempts, rebooting...");
+    //   Serial.println("Failed to connect to MQTT after multiple attempts, rebooting...");
       ESP.restart(); 
   } 
  };
@@ -105,8 +92,8 @@ RobotData parseJson(String jsonString) {
     DeserializationError error = deserializeJson(doc, jsonString);
 
     if (error) {
-        Serial.print("Deserialization failed: ");
-        Serial.println(error.f_str());
+        // Serial.print("Deserialization failed: ");
+        // Serial.println(error.f_str());
         return RobotData(); 
     }
 
@@ -114,7 +101,6 @@ RobotData parseJson(String jsonString) {
 
     if(doc.containsKey("CommandType")){
         if(doc["CommandType"] == "Initialize"){
-            startBuzzer(); 
             if (doc.containsKey("Payload")) {
                 JsonObject payload = doc["Payload"]; 
                 if (payload.containsKey("Engine")) {
@@ -137,15 +123,17 @@ RobotData parseJson(String jsonString) {
                 if (directions.containsKey("ActiveMovements")) {
                     JsonArray movements = directions["ActiveMovements"];
                     int i = 0;
+                    
                     for (JsonVariant v : movements) {
-                        if (i < 4 && v.is<const char*>()) {
-                            data.activeMovements[i++] = v.as<const char*>();
+                        const char* s = v.as<const char*>();
+                        if (i < 4 && s != nullptr && strlen(s) > 0) {
+                            data.activeMovements[i++] = s[0]; 
                         } else {
-                            data.activeMovements[i++] = nullptr;
+                            data.activeMovements[i++] = '_';
                         }
                     }
                     while (i < 4) {
-                        data.activeMovements[i++] = nullptr;
+                        data.activeMovements[i++] = '_';
                     }
                 }
             }
@@ -157,12 +145,10 @@ RobotData parseJson(String jsonString) {
 }
 
 
+
 //map the temporary object to the one used in the main.cpp
 void receiveData(String value ,RobotData * robotData){
     RobotData data = parseJson(value);
-    Serial.print("Engine: ");
-     Serial.print("IsMoving: ");
-    Serial.println(data.isMoving);
     robotData->initializing =data.initializing;
     robotData->isMoving=data.isMoving;
     robotData->isStopping=data.isStopping;
@@ -171,12 +157,7 @@ void receiveData(String value ,RobotData * robotData){
     }
 }
 
-void startBuzzer() {
-    digitalWrite(buzzer, HIGH);   // Start buzzing
-    buzzerStartTime = millis();      // Save the current time
-    buzzerActive = true;             // Now it's active
-    Serial.println("Buzzer ON");
-}
+
 
 
 //send response back to the server recarding intialization process
@@ -188,7 +169,7 @@ void sendInitializeMessage(bool initialized, String error){
     pl["ErrorMessage"] = error;
     String out;
     serializeJson(doc, out);
-    Serial.println(out);
+    // Serial.println(out);
     publisher.publish(engineManagementTopic, out.c_str());
     }
 //send shut off performed message
@@ -213,7 +194,7 @@ void sendDistanceWarning(String level,String direction){
     pl["Direction"] = direction;
     String out;
     serializeJson(doc, out);
-    Serial.println(out);
+    // Serial.println(out);
     publisher.publish(distanceWarningTopic, out.c_str());
 }
 
@@ -227,7 +208,6 @@ void sendNegativeWarning(String level){
     pl["Warning"] = level;
     String out;
     serializeJson(doc, out);
-    Serial.println(out);
+    // Serial.println(out);
     publisher.publish(negativeDistanceWarningTopic, out.c_str());
 }
-

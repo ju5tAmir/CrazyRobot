@@ -34,6 +34,7 @@ export default function App() {
             <Route path="/RobotMovement" element={<ControlMotor />} />
             <Route path="/tic-tac-toe" element={<UTTTPage />} />
             <Route path="/" element={<Navigate to="/school-info" replace />} />
+
           </Routes>
           <Toaster />
         </WsClientProvider>

@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from '../auth/AuthContext';
 import LoginPage     from '../auth/LoginPage';
 import SurveysPageAdmin from "../../components/surveys/admin/SurveysPageAdmin.tsx";
 import SurveyResultsPageAdmin from "../../components/surveys/admin/SurveyResultsPageAdmin.tsx";
+import AIReportsPage from './pages/AIReportsPage';
 
 function RequireAuth() {
     const { jwt } = useAuth();
@@ -25,6 +26,7 @@ export default function Admin() {
                     <Route path="events"   element={<EventsAdmin />} />
                     <Route path="surveys" element={<SurveysPageAdmin />} />
                     <Route path="survey-results"   element={<SurveyResultsPageAdmin />} />
+                    <Route path="ai-reports" element={<AIReportsPage />} />
                 </Route>
             </Routes>
         </AuthProvider>

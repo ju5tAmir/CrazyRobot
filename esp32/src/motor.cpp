@@ -4,7 +4,7 @@
 
 
 //default speed
-const int MOVE_SPEED = 160;
+const int MOVE_SPEED = 190;
 void moveRobotTwo(Direction dir, int leftSpeed, int rightSpeed, Motor leftMotor, Motor rightMotor) {
   switch (dir) {
       case FORWARD:

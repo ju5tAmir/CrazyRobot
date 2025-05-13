@@ -1,9 +1,14 @@
 #include "lidar.h"
 #include "fns.h"
 #include "../models/models.h"
+#include <messages/messages.h>
+
 
 RPLidar lidar;
 HardwareSerial LidarSerial(2);
+SemaphoreHandle_t robotMutex = xSemaphoreCreateMutex();
+
+
 Gap gaps[10];
 int gapCount = 0;
 
@@ -11,6 +16,18 @@ Point* scanPoints = nullptr;
 
 int pointCount = 0;              
 bool collectingScan = false;
+const String directions[4] = {FT, BK, LT, RT};
+String warnings[4] = {FREE, FREE, FREE, FREE};
+String lastWarnings[4] = {FREE, FREE, FREE, FREE};
+int directionIndex(const String direction) {
+    if (direction == FT) return 0;
+    if (direction==BK) return 1;
+    if (direction==LT) return 2;
+    if (direction==RT) return 3;
+    return -1;
+  }
+  
+
 
 const int TRUST_THRESHOLD = 3; // Minimum trust to consider real obstacle
 const int TRUST_DECAY_INTERVAL = 5; // Every 5 scans, decay trust
@@ -56,7 +73,7 @@ pointCount = 0;
 bool stopLidar(){
     lidar.stop();
     ledcWrite(pwmChannel,0);
-    collectingScan=false;
+    collectingScan=false;\
     pointCount = 0; 
     return true;
 }
@@ -79,17 +96,6 @@ void readLidarData(RobotData* data) {
         float angle = point.angle;
         byte quality = point.quality;
         bool startBit = point.startBit;
-    
-      
-    
-        if (point.distance > 0 && point.quality > 0) {
-          
-            // You can process/store the point here
-        } else {
-           // Serial.println("[WARN] Received zeroed point after waitPoint.");
-        }
-
-
         if(startBit){
   
             if (collectingScan && pointCount > 0) {
@@ -97,8 +103,6 @@ void readLidarData(RobotData* data) {
                  averageDistances(scanPoints, pointCount, averagedDistances);
                 detectAndUpdateObstacles(averagedDistances,data);
             }
-        
-    
             pointCount = 0;
             collectingScan = true;
         }
@@ -113,87 +117,9 @@ void readLidarData(RobotData* data) {
     } else {
      //   Serial.println("[WARN] waitPoint() timed out — no data.");
     }
-
-
 }
 
-// void readLidarData() {
-//     Serial.println("Starting new scan...");
- 
-//     if (IS_OK(lidar.waitPoint())) {
-//         float distance = lidar.getCurrentPoint().distance;
-//         float angle = lidar.getCurrentPoint().angle;
-//         bool startBit = lidar.getCurrentPoint().startBit;
-//         byte quality = lidar.getCurrentPoint().quality;
 
-//         if (startBit) {
-//             // Start of a new scan
-//             Serial.println("Starting new scan...");
-            
-//             if (collectingScan && pointCount > 0) {
-//                 float averagedDistances[NUM_BUCKETS];
-//                 averageDistances(scanPoints, pointCount, averagedDistances);
-//                 detectAndUpdateObstacles(averagedDistances);
-
-//                 if (++scanCounter % TRUST_DECAY_INTERVAL == 0) {
-//                     decayTrust();
-//                 }
-
-//                 // === Danger evaluation ===
-//                 float frontAvg = (frontDangerCount > 0) ? (frontDangerSum / frontDangerCount) : 9999;
-//                 float leftAvg = (leftDangerCount > 0) ? (leftDangerSum / leftDangerCount) : 9999;
-//                 float rightAvg = (rightDangerCount > 0) ? (rightDangerSum / rightDangerCount) : 9999;
-//                 float backAvg = (backDangerCount > 0) ? (backDangerSum / backDangerCount) : 9999;
-
-//                 Serial.print("Front Avg: "); Serial.println(frontAvg);
-//                 Serial.print("Left Avg: "); Serial.println(leftAvg);
-//                 Serial.print("Right Avg: "); Serial.println(rightAvg);
-//                 Serial.print("Back Avg: "); Serial.println(backAvg);
-
-//                 // === Movement Decision or LED Indication ===
-//                 CheckAvailableSpace(frontAvg,rightAvg,leftAvg,backAvg);
-
-//                 frontDangerSum = 0;
-//                 frontDangerCount = 0;
-//                 leftDangerSum = 0;
-//                 leftDangerCount = 0;
-//                 rightDangerSum = 0;
-//                 rightDangerCount = 0;
-//                 backDangerSum = 0;
-//                 backDangerCount = 0;
-
-//                 collectingScan = false;
-//             }
-            
-//             pointCount = 0;
-//             collectingScan = true;
-//         }
-
-//         if (collectingScan && distance != 0 && quality > 0 && distance <= 2000) {
-//             if (pointCount < MAX_POINTS) {
-//                 scanPoints[pointCount++] = {angle, distance};
-
-//                 // === Classify point into zones ===
-//                 if ((angle <= 15 || angle >= 345)) { // FRONT
-//                     frontDangerSum += distance;
-//                     frontDangerCount++;
-//                 } 
-//                 else if (angle >= 75 && angle <= 105) { // LEFT
-//                     leftDangerSum += distance;
-//                     leftDangerCount++;
-//                 }
-//                 else if (angle >= 255 && angle <= 285) { // RIGHT
-//                     rightDangerSum += distance;
-//                     rightDangerCount++;
-//                 }
-//                 else if (angle >= 165 && angle <= 195) { // BACK
-//                     backDangerSum += distance;
-//                     backDangerCount++;
-//                 }
-//             }
-//         }
-//     }
-// }
 
 
 
@@ -289,17 +215,21 @@ void detectAndUpdateObstacles(float* averageDistances, RobotData* robot) {
             merged[mergedCount++] = newObs;
         }
     }
- 
-     //keep old reading
-    for (int i = 0; i < NUM_BUCKETS; i++) {
-        robot->previousObstacles[i] = robot->obstacles[i];
-    }
-    //add new reading 
-    for (int i = 0; i < mergedCount; i++) {
-        robot->obstacles[i] = merged[i];
-    }
-   
 
+
+    if (xSemaphoreTake(robotMutex, pdMS_TO_TICKS(50))) {
+        // for (int i = 0; i < NUM_BUCKETS; i++) {
+        //     robot->previousObstacles[i] = robot->obstacles[i];
+        // }
+        for (int i = 0; i < mergedCount; i++) {
+            robot->obstacles[i] = merged[i];
+        }
+        robot->currentObstaclesCount=mergedCount;
+        xSemaphoreGive(robotMutex);
+    }
+
+    // Serial.println("<<<<<<<<Obstacles found >>>>>>>>>>>" );
+    // Serial.println(mergedCount);
 }
 
 
@@ -327,81 +257,7 @@ float chordLength(float radius_mm, float angle_deg) {
     return 2 * radius_mm * sin(angle_rad / 2);
 }
 
-// void printObstacles(const Obstacle* obstacles, int obstacleCount) {
-//     Serial.println("Detected Obstacles:");
-//     for (int i = 0; i < obstacleCount; i++) {
-//         Serial.print("Obstacle ");
-//         Serial.print(i);
-//         Serial.print(": Start ");
-//         Serial.print(obstacles[i].startAngle);
-//         Serial.print("°, End ");
-//         Serial.print(obstacles[i].endAngle);
-//         Serial.print("°, Distance ");
-//         Serial.print(obstacles[i].distance, 1);
-//         Serial.println(" mm");
-//     }
-// }
 
-
-// void mergeOverlappingObstacles(RobotData * robot) {
-//     if (obstacleCount <= 1) return;
-
-//     for (int i = 0; i < obstacleCount - 1; i++) {
-//         for (int j = i + 1; j < obstacleCount; j++) {
-          
-//             if (!(robot->obstacles[i].endAngle < robot->obstacles[j].startAngle || robot->obstacles[j].endAngle < robot->obstacles[i].startAngle)) {
-             
-//                 robot-> obstacles[i].startAngle = min(robot->obstacles[i].startAngle, robot->obstacles[j].startAngle);
-//                 robot->obstacles[i].endAngle = max(robot->obstacles[i].endAngle,robot-> obstacles[j].endAngle);
-//                 robot->obstacles[i].distance = min(robot->obstacles[i].distance, robot->obstacles[j].distance); 
-
-//                 for (int k = j; k < obstacleCount - 1; k++) {
-//                     robot-> obstacles[k] = robot->obstacles[k + 1];
-//                 }
-//                 obstacleCount--; 
-//                 j--; 
-//             }
-//         }
-//     }
-// }
-
-
-// void findGaps(int degrees ,RobotData*  robot) {
-//     gapCount = 0;
-
-//     // 1. Sort obstacles by startAngle
-//     for (int i = 0; i < obstacleCount - 1; i++) {
-//         for (int j = i + 1; j < obstacleCount; j++) {
-//             if (robot->obstacles[i].startAngle > robot->obstacles[j].startAngle) {
-//                 Obstacle temp = robot->obstacles[i];
-//                 robot->obstacles[i] =robot->obstacles[j];
-//                 robot-> obstacles[j] = temp;
-//             }
-//         }
-//     }
-
-//     // 2. Check gaps between obstacles
-//     for (int i = 0; i < obstacleCount - 1; i++) {
-//         int gapStart = robot-> obstacles[i].endAngle;
-//         int gapEnd =robot-> obstacles[i + 1].startAngle;
-
-//         if (gapEnd > gapStart) {
-//             int gapWidth = gapEnd - gapStart;
-//             if (gapWidth >= degrees) { // Only consider big enough gaps
-//                 gaps[gapCount++] = {gapStart, gapEnd, gapWidth};
-//             }
-//         }
-//     }
-
-//     // 3. Optional: check gap between last obstacle and start of first (wraparound)
-//     int wrapGapStart = robot->obstacles[obstacleCount - 1].endAngle;
-//     int wrapGapEnd =robot-> obstacles[0].startAngle + 360;
-//     int wrapGapWidth = wrapGapEnd - wrapGapStart;
-
-//     if (wrapGapWidth >= 5) {
-//         gaps[gapCount++] = {wrapGapStart % 360, wrapGapEnd % 360, wrapGapWidth};
-//     }
-// }
 
 void printGaps() {
     Serial.println("Detected Gaps:");
@@ -419,37 +275,7 @@ void printGaps() {
 }
 
 
-// int getGap() {
-//     if (gapCount == 0) {
-//         Serial.println("No gaps detected!");
-//         return -1; // No free space
-//     }
 
-//     int bestGapIndex = -1;
-//     int bestScore = 9999; // Lower is better
-//     int targetAngle = 0;  // 0° = front of robot
-
-//     for (int i = 0; i < gapCount; i++) {
-//         int gapCenter = (gaps[i].startAngle + gaps[i].endAngle) / 2;
-//         int distanceFromFront = abs((gapCenter + 360) % 360 - targetAngle); 
-//         int penalty = distanceFromFront - gaps[i].width; // Prefer gaps close to 0° and wide
-
-//         if (penalty < bestScore) {
-//             bestScore = penalty;
-//             bestGapIndex = i;
-//         }
-//     }
-
-//     if (bestGapIndex != -1) {
-//         int bestAngle = (gaps[bestGapIndex].startAngle + gaps[bestGapIndex].endAngle) / 2;
-//         Serial.print("Best Direction (Prioritized): ");
-//         Serial.print(bestAngle);
-//         Serial.println("°");
-//         return bestAngle; // <-- This is the angle your robot should go towards
-//     }
-
-//     return -1; // No good gap found
-// }
 
 
 

@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using Application.Interfaces.Infrastructure.mqtt;
+using Application.Services.robot;
 using Core.Domain.Entities.Robot;
 
 namespace Application.Services;
@@ -8,12 +9,14 @@ public class MqttMessageHandler:IMqttMessageHandler
 {
     private InitializeEngineHandler _initializeHandler;
     private DistanceWarningHandler _distanceWarningHandler;
+    private NegativeDistanceHandler _negativeDistanceHandler;
 
 
-    public MqttMessageHandler(InitializeEngineHandler initializeHandler,DistanceWarningHandler distanceWarningHandler)
+    public MqttMessageHandler(InitializeEngineHandler initializeHandler,DistanceWarningHandler distanceWarningHandler,NegativeDistanceHandler negativeDistanceHandler)
     {
       _initializeHandler = initializeHandler;
       _distanceWarningHandler = distanceWarningHandler;
+      _negativeDistanceHandler = negativeDistanceHandler;
     }
 
     public async Task HandleAsync(string topic, ClientCommandDto payload)
@@ -70,7 +73,16 @@ public class MqttMessageHandler:IMqttMessageHandler
                         };
 
                         Console.WriteLine("Successfully created command: " + JsonSerializer.Serialize(command));
-                        await _distanceWarningHandler.HandleCommand(topic, command);
+                        try
+                        {
+                            await _distanceWarningHandler.HandleCommand(topic, command);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine("Error in HandleCommand: " + ex.Message);
+                            Console.WriteLine("StackTrace: " + ex.StackTrace);
+                        }
+
                     }
                     catch (Exception ex)
                     {
@@ -78,6 +90,34 @@ public class MqttMessageHandler:IMqttMessageHandler
                     }
 
                     break;
+                
+                case ClientCommandType.NegativeWarning:
+                    try
+                    {
+                        var distanceWarning = payload.Payload.Deserialize<NegativeDistanceWarning>();
+
+                        if (distanceWarning == null)
+                        {
+                            Console.WriteLine("Deserialization to  DistanceWarning  returned null!");
+                            throw new InvalidOperationException("Payload could not be deserialized into InitializeEngineResponse.");
+                        }
+
+                        var command = new ClientCommand<NegativeDistanceWarning>
+                        {
+                            CommandType = payload.CommandType,
+                            Payload = distanceWarning,
+                        };
+
+                        Console.WriteLine("Successfully created command: " + JsonSerializer.Serialize(command));
+                        await _negativeDistanceHandler.HandleCommand(topic, command);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Error during deserialization or handling: " + ex.Message);
+                    }
+
+                    break;
+                    
                     
                 default:
                     throw new InvalidOperationException($"Unknown CommandType: {payload.CommandType}");

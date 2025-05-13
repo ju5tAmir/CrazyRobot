@@ -10,6 +10,7 @@
 #include  "obstacles/obstacles.h"
 #include "ir/ir.h"
 
+
 // Create servo manager instance - automatically loads all servo configurations
 // ServoManager servoManager;
 
@@ -17,10 +18,10 @@ Motor rightMotor(IN1, IN2, ENA, pwmChannel1);
 Motor leftMotor(IN4, IN3, ENB, pwmChannel2);
 ServoEasing myServo;
 RobotData robot = RobotData();
-
 void actOnMovements();
-void checkRobotState(RobotData& robot);
+void checkRobotState(RobotData& robot,HardwareSerial &serial);
 void stopEngines();
+void  sendLidarCommands(String message,HardwareSerial &serial);
 
 //Todo move them in another 
 bool isMovementAllowed(char(&activeMovements)[4],char currentMovement,int size);
@@ -38,6 +39,11 @@ const unsigned long holdDelay = 1000;
 const unsigned long  measureLidar = 200;
 String getDirectionForAngle(float angle);
 
+///TODO move the UARt communication to a separate file  fr clean code 
+//wait for the second esp to respond back for maximum 6 seconds
+ const unsigned long timeoutMs = 6000;
+
+
 
 int initializeRetries= 3;
 int countRetries=0;
@@ -52,6 +58,7 @@ void lidarTask(void* pvParameters);
 void setup() {
   analogReadResolution(12);
   Serial.begin(115200); 
+ LidarSerial.begin(115200, SERIAL_8N1, RPLIDAR_RX, RPLIDAR_TX);
 connectWiFi();
 connectMQTT(&robot);
 setupMotors();
@@ -78,64 +85,68 @@ void loop() {
         connectMQTT(&robot);
     }
     client.loop(); 
-    unsigned long currentMillis = millis();
-    checkRobotState(robot);
+
+
+  //   unsigned long currentMillis = millis();
+    checkRobotState(robot,LidarSerial);
   
-    if (!robot.isStopped) {
-      unsigned long currentMillis = millis();
+  //   if (!robot.isStopped) {
+  //     unsigned long currentMillis = millis();
   
-      if (currentMillis - lastCheckTime >= measureLidar) {
-          lastCheckTime = currentMillis;
-          Obstacle localObstacles[NUM_BUCKETS];
-          int localCounter=0;
-          if (xSemaphoreTake(robotMutex, pdMS_TO_TICKS(50))) {
-            localCounter=robot.currentObstaclesCount;
-              for (int i = 0; i < NUM_BUCKETS; i++) {
-                  localObstacles[i] = robot.obstacles[i];
-              }
-              xSemaphoreGive(robotMutex);
-          } else {
-              Serial.println("Failed to get robotMutex in loop");
-              return;
-          }
-          for (int i = 0; i < 4; i++) {
-            warnings[i] = FREE;
-        }
-          for (int i = 0; i <localCounter; i++) {
-              Obstacle obs = localObstacles[i];
-              float angle = obs.startAngle;
-              float dist = obs.distance;
-              Serial.println(dist);
-              Serial.println("distance");
+  //     if (currentMillis - lastCheckTime >= measureLidar) {
+  //         lastCheckTime = currentMillis;
+  //         Obstacle localObstacles[NUM_BUCKETS];
+  //         int localCounter=0;
+  //         if (xSemaphoreTake(robotMutex, pdMS_TO_TICKS(50))) {
+  //           localCounter=robot.currentObstaclesCount;
+  //             for (int i = 0; i < NUM_BUCKETS; i++) {
+  //                 localObstacles[i] = robot.obstacles[i];
+  //             }
+  //             xSemaphoreGive(robotMutex);
+  //         } else {
+  //             Serial.println("Failed to get robotMutex in loop");
+  //             return;
+  //         }
 
-              Serial.println(angle);
-              Serial.println("angle");
+  //         for (int i = 0; i < 4; i++) {
+  //           warnings[i] = FREE;
+  //       }
 
-              if (dist > 600) continue;
-              const String dir = getDirectionForAngle(angle);
-              int index = directionIndex(dir);
+  //         for (int i = 0; i <localCounter; i++) {
+  //             Obstacle obs = localObstacles[i];
+  //             float angle = obs.startAngle;
+  //             float end = obs.endAngle;
+  //             float dist = obs.distance;
+  //             Serial.println(dist);
+  //             Serial.println("distance");
+  //             Serial.println(angle);
+  //             Serial.println("anglestart");
+  //             Serial.println(end);
+  //             Serial.println("angle end");
+  //             if (dist > 600) continue;
+  //             const String dir = getDirectionForAngle(angle);
+  //             int index = directionIndex(dir);
 
-               if (index == -1) continue;
+  //              if (index == -1) continue;
 
-              if (dist >= 250 && dist<=300) {
-                  warnings[index] = SEVERE; 
-               } else if ((dist > 300 && dist <=500) && warnings[index] != SEVERE) {
-                 warnings[index] = MILD;
-              } 
-          }
+  //             if (dist >= 250 && dist<=300) {
+  //                 warnings[index] = SEVERE; 
+  //              } else if ((dist > 300 && dist <=500) && warnings[index] != SEVERE) {
+  //                warnings[index] = MILD;
+  //             } 
+  //         }
          
-
-        for (int i = 0; i < 4; i++) {
-          if(warnings[i]!=lastWarnings[i]){
-            sendDistanceWarning(warnings[i], directions[i]); 
-            lastWarnings[i]=warnings[i];
-          }
+  //       for (int i = 0; i < 4; i++) {
+  //         if(warnings[i]!=lastWarnings[i]){
+  //           sendDistanceWarning(warnings[i], directions[i]); 
+  //           lastWarnings[i]=warnings[i];
+  //         }
              
-         }
+  //        }
 
 
-      }
-  }
+  //     }
+  // }
 }
 
 void actOnMovements() {
@@ -193,26 +204,61 @@ void stopEngines(){
   moveRobotTwo(STOP,0,0,leftMotor,rightMotor);  
 }
 
-void checkRobotState(RobotData& robot){
-  if (robot.initializing){
-   bool  lidarReadyTemp = initializeHardware();
-    if(lidarReadyTemp){
-       robot.initializing=false;
-       robot.isStopped=false;  
-       robot.lidarReady=true; 
-       xTaskNotifyGive(lidarTaskHandle);
-       sendInitializeMessage(false,"");
-    }else{
-      robot.lidarReady=false;
-      robot.initializing=false;
-      robot.isStopped=true;
-      stopLidar();
-      xTaskNotifyGive(lidarTaskHandle);
-      sendInitializeMessage(true,InitializeError);
-      Serial.println("error occured while starting");
+void checkRobotState(RobotData& robot,HardwareSerial &serial){
+if (robot.initializing) {
+  sendLidarCommands(LidarOn, serial); 
+  unsigned long startTime = millis();
+  String response = "";
+  while ((millis() - startTime) < timeoutMs) {
+    if (serial.available()) {
+      String temp = serial.readStringUntil(Terminator);
+      temp.trim();
+      temp+=Terminator;
+      if (temp == LidarOn || temp == LidarOff) {
+        response = temp;
+        break;
+      } else {
+        Serial.println("Ignored invalid response: " + temp);
+      }
     }
-    return;
+    delay(10);  
   }
+Serial.println(response);
+Serial.println("Received from the lidar");
+  if (response == LidarOn) {
+    robot.initializing = false;
+    robot.isStopped = false;
+    robot.lidarReady = true;
+    sendInitializeMessage(false, "");
+  } else {
+    robot.lidarReady = false;
+    robot.initializing = false;
+    robot.isStopped = true;
+    sendLidarCommands(LidarOff, serial); 
+    sendInitializeMessage(true, InitializeError);
+    Serial.println("Error occurred while starting");
+  }
+  return;
+}
+  
+  // if (robot.initializing){
+  //  bool  lidarReadyTemp = initializeHardware();
+  //   if(lidarReadyTemp){
+  //      robot.initializing=false;
+  //      robot.isStopped=false;  
+  //      robot.lidarReady=true; 
+  //      xTaskNotifyGive(lidarTaskHandle);
+  //      sendInitializeMessage(false,"");
+  //   }else{
+  //     robot.lidarReady=false;
+  //     robot.initializing=false;
+  //     robot.isStopped=true;
+  //     stopLidar();
+  //     sendInitializeMessage(true,InitializeError);
+  //     Serial.println("error occured while starting");
+  //   }
+  //   return;
+  // }
 
   if(robot.isStopped ){
     return;  
@@ -221,8 +267,24 @@ void checkRobotState(RobotData& robot){
   //Add retry to stop if stop fails
   if(robot.isStopping){
     Serial.println("Stopping");
-    bool stopped = stopLidar();
-    if(stopped){
+    // bool stopped = stopLidar();
+     sendLidarCommands(LidarOff,serial); 
+  unsigned long startTime = millis();
+  String response = "";
+  while ((millis() - startTime) < 1000) {
+    if (serial.available()) {
+      String temp = serial.readStringUntil(Terminator);
+      temp.trim();
+      temp+=Terminator;
+      if (temp ==LidarOff) {
+        response =temp;
+        break;
+      } else {
+        Serial.println("Ignored invalid response: " + temp);
+      }
+    }
+  }
+    if(response==LidarOff){
       robot.lidarReady=false;
       robot.isStopped=true;
       sendTurnOffMessage("");
@@ -270,7 +332,7 @@ void lidarTask(void* pvParameters) {
   RobotData* robot = (RobotData*)pvParameters;
 
   while (true) {
-    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);//Toodo look into this because is maxed with 
    // Serial.println("[LIDAR Task] Notification received, starting scan,outside");
     while (robot->lidarReady) {
       readLidarData(robot);
@@ -307,7 +369,6 @@ void addAllowedMovement(char (&allowedMovements)[4], char target) {
 }
 
 bool isMovementAllowed(char(&activeMovements)[4],char currentMovement,int size){
-
   for (int i = 0; i < size; ++i) {
     if (activeMovements[i] == currentMovement) {
       return true;
@@ -327,6 +388,30 @@ String getDirectionForAngle(float angle) {
       return LT;
   }
 }
+
+
+
+// send uart commands to the second esp32 after is tested needs to be moved in a separate file 
+/**
+ * @param message the message to controll the lidar with the following format "L:0#" to stop where '#' means the end of the line, and "L:1#" to start
+ */
+void  sendLidarCommands(String message,HardwareSerial &serial){
+ serial.println(message);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

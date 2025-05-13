@@ -35,6 +35,7 @@ const int pwmFreq = 25000;
 const int pwmResolution = 8;
 extern String warnings[];
 extern String lastWarnings[4];
+extern bool scanComplete;
 
 extern const String directions[4];
 int directionIndex(const String direction);

@@ -13,24 +13,14 @@ public partial class AppDbContext : DbContext
     }
 
     public virtual DbSet<Answer> Answers { get; set; }
-
     public virtual DbSet<SchoolContact> Contacts { get; set; }
-    
     public virtual DbSet<GeneratedReport> GeneratedReports { get; set; } = null!;
     public virtual DbSet<SchoolEvent> Events { get; set; }
-
-    public virtual DbSet<GeneratedReport> GeneratedReports { get; set; }
-
     public virtual DbSet<Question> Questions { get; set; }
-
     public virtual DbSet<QuestionOption> QuestionOptions { get; set; }
-
     public virtual DbSet<Survey> Surveys { get; set; }
-
     public virtual DbSet<SurveyResponse> SurveyResponses { get; set; }
-
     public virtual DbSet<User> Users { get; set; }
-
     public virtual DbSet<UserGuest> UserGuests { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

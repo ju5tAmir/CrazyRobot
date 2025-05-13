@@ -17,5 +17,5 @@ public partial class SurveyResponse
 
     public virtual Survey Survey { get; set; } = null!;
 
-    public virtual User User { get; set; } = null!;
+    public virtual UserGuest User { get; set; } = null!;
 }

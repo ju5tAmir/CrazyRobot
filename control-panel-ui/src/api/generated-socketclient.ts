@@ -966,8 +966,8 @@ export class AuthClient {
         return Promise.resolve<AuthResponseDto>(null as any);
     }
 
-    register(dto: AuthRequestDto): Promise<AuthResponseDto> {
-        let url_ = this.baseUrl + "/api/auth/Register";
+    registerAdmin(dto: AuthRequestDto): Promise<AuthResponseDto> {
+        let url_ = this.baseUrl + "/api/auth/RegisterAdmin";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(dto);
@@ -982,11 +982,48 @@ export class AuthClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processRegister(_response);
+            return this.processRegisterAdmin(_response);
         });
     }
 
-    protected processRegister(response: Response): Promise<AuthResponseDto> {
+    protected processRegisterAdmin(response: Response): Promise<AuthResponseDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as AuthResponseDto;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<AuthResponseDto>(null as any);
+    }
+
+    registerUser(dto: AuthUserRequest): Promise<AuthResponseDto> {
+        let url_ = this.baseUrl + "/api/auth/RegisterUser";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(dto);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRegisterUser(_response);
+        });
+    }
+
+    protected processRegisterUser(response: Response): Promise<AuthResponseDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -1157,6 +1194,11 @@ export interface AuthResponseDto {
 export interface AuthRequestDto {
     email: string;
     password: string;
+}
+
+export interface AuthUserRequest {
+    email: string;
+    role: string;
 }
 
 

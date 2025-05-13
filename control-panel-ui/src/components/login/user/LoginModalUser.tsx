@@ -101,16 +101,16 @@ export const LoginModalUser = ({isOpen, setIsOpen}: LoginUserProps) => {
                         </div>
                     ) : (
                         <div className="mr-2">
-                            <p className={`${modalState.required.username ? "text-red-500" : "text-transparent"} `}>
+                            <p className={`${modalState.required.username ? "text-purple-600" : "text-transparent"} `}>
                                 {modalState.errors.username}
                             </p>
-                            <p className={`${modalState.required.email ? "text-red-500" : "text-transparent"} `}>
+                            <p className={`${modalState.required.email ? "text-purple-600" : "text-transparent"} `}>
                                 {modalState.errors.email}
                             </p>
                         </div>
                     )}
                     <button onClick={loginUser}
-                            className="w-36 h-15 text-white py-2 bg-red-600 font-semibold rounded-md border border-transparent hover:bg-black hover:text-white hover:border-black transition-colors duration-300 text-center">
+                            className="w-36 h-15 text-white py-2 bg-purple-600 font-semibold rounded-md border border-transparent hover:bg-black hover:text-white hover:border-black transition-colors duration-300 text-center">
                         Login
                     </button>
                 </div>

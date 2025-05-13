@@ -1,5 +1,6 @@
 import { Menu } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
+import { adminNavItems, userNavItems } from '../../components/navigation/NavigationPathConfig';
 
 interface HeaderProps {
     openSidebar: () => void;
@@ -8,11 +9,25 @@ interface HeaderProps {
 export default function Header({ openSidebar }: HeaderProps) {
     const { pathname } = useLocation();
 
-    const title = pathname.includes('events')
-        ? 'School Events'
-        : pathname.includes('admin')
-            ? 'Admin Panel'
-            : 'School Contacts';
+    const isAdmin = pathname.startsWith('/admin');
+    const navItems = isAdmin ? adminNavItems : userNavItems;
+
+    // Find the current page in navigation items
+    const currentPage = navItems.find(item =>
+        pathname === item.path || pathname.startsWith(`${item.path}/`)
+    );
+
+    let title = currentPage?.text;
+
+    if (!title) {
+        if (isAdmin) {
+            title = 'Admin Panel';
+        } else if (pathname.includes('/school-info')) {
+            title = 'School Portal';
+        } else {
+            title = 'School Info';
+        }
+    }
 
     return (
         <header className="h-16 px-6 flex items-center justify-between bg-base-100 border-b sticky top-0 z-40">

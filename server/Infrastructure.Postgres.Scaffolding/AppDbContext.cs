@@ -1,4 +1,6 @@
-﻿using Core.Domain.Entities;
+﻿using System;
+using System.Collections.Generic;
+using Core.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Postgres.Scaffolding;
@@ -11,24 +13,20 @@ public partial class AppDbContext : DbContext
     }
 
     public virtual DbSet<Answer> Answers { get; set; }
-
     public virtual DbSet<SchoolContact> Contacts { get; set; }
-    
     public virtual DbSet<GeneratedReport> GeneratedReports { get; set; } = null!;
     public virtual DbSet<SchoolEvent> Events { get; set; }
-
     public virtual DbSet<Question> Questions { get; set; }
-
     public virtual DbSet<QuestionOption> QuestionOptions { get; set; }
-
     public virtual DbSet<Survey> Surveys { get; set; }
-
     public virtual DbSet<SurveyResponse> SurveyResponses { get; set; }
-
     public virtual DbSet<User> Users { get; set; }
+    public virtual DbSet<UserGuest> UserGuests { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasPostgresExtension("uuid-ossp");
+
         modelBuilder.Entity<Answer>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("answer_pkey");
@@ -90,6 +88,20 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Status).HasColumnName("status");
             entity.Property(e => e.Time).HasColumnName("time");
             entity.Property(e => e.Title).HasColumnName("title");
+        });
+
+        modelBuilder.Entity<GeneratedReport>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("generated_report_pkey");
+
+            entity.ToTable("generated_report", "crazyrobot");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.GeneratedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnName("generated_at");
+            entity.Property(e => e.ReportText).HasColumnName("report_text");
+            entity.Property(e => e.SurveyId).HasColumnName("survey_id");
         });
 
         modelBuilder.Entity<Question>(entity =>
@@ -173,7 +185,7 @@ public partial class AppDbContext : DbContext
 
             entity.HasIndex(e => e.SurveyId, "IX_survey_response_survey_id");
 
-            entity.HasIndex(e => e.UserId, "IX_survey_response_user_id");
+            entity.HasIndex(e => e.UserId, "ix_survey_response_user_guest_id");
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.SubmittedAt).HasColumnName("submitted_at");
@@ -186,7 +198,7 @@ public partial class AppDbContext : DbContext
 
             entity.HasOne(d => d.User).WithMany(p => p.SurveyResponses)
                 .HasForeignKey(d => d.UserId)
-                .HasConstraintName("fk_response_user");
+                .HasConstraintName("fk_response_user_guest");
         });
 
         modelBuilder.Entity<User>(entity =>
@@ -201,6 +213,18 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Hash).HasColumnName("hash");
             entity.Property(e => e.Role).HasColumnName("role");
             entity.Property(e => e.Salt).HasColumnName("salt");
+        });
+
+        modelBuilder.Entity<UserGuest>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("user_guest_pkey");
+
+            entity.ToTable("user_guest", "crazyrobot");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.CreatedDate).HasColumnName("created_date");
+            entity.Property(e => e.Email).HasColumnName("email");
+            entity.Property(e => e.Role).HasColumnName("role");
         });
 
         OnModelCreatingPartial(modelBuilder);

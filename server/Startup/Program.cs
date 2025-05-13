@@ -47,7 +47,7 @@ public class Program
         services.RegisterApplicationServices();
         services.AddDataSourceAndRepositories();
         services.AddWebsocketInfrastructure();
-        services.AddSingleton(StorageClient.Create());
+        //services.AddSingleton(StorageClient.Create());
         services.RegisterWebsocketApiServices();
         services.RegisterRestApiServices();
         

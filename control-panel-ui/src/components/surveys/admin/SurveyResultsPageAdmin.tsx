@@ -5,7 +5,7 @@ import Loading from '../../../shared/Loading.tsx';
 import Pagination from '../../../shared/Pagination.tsx';
 
 
-export default function SurveyResultsAdmin() {
+export default function SurveyResultsPageAdmin() {
     const { jwt } = useAuth();
     const client = new AdminSurveysClient(import.meta.env.VITE_API_BASE_URL, {
         fetch: (url, init) => fetch(url, {

@@ -11,8 +11,8 @@ HardwareSerial TransmitSerial(1);
 
 // put function declarations here:
 int myFunction(int, int);
-RobotData robot = RobotData();
-void readReceivedMessages(HardwareSerial &serial);
+LidarState lidarState = LidarState();
+void readReceivedMessages(HardwareSerial &serial,LidarState &liadrState);
 boolean readLidarcommand(String message);
 
 void setup() {
@@ -25,9 +25,11 @@ void setup() {
 
 void loop() {
   if(TransmitSerial.available()){
-   readReceivedMessages(TransmitSerial);
+   readReceivedMessages(TransmitSerial,lidarState);
   }
-  
+  if(lidarState.lidarReady){
+    readLidarData(&lidarState);
+  }
   // readLidarData(&robot);
 //  int result = myFunction(2, 3);
 //   digitalWrite(led,HIGH);
@@ -46,17 +48,23 @@ int myFunction(int x, int y) {
 
 
 // this method can be improved to handle the state when lidar could not be turned off 
-void readReceivedMessages(HardwareSerial &serial){
+void readReceivedMessages(HardwareSerial &serial,LidarState &liadrState){
 String line = serial.readStringUntil('#');
 line.trim();
+line+=Terminator;
 if(line.startsWith("L")){
  boolean lidarStateOn = readLidarcommand(line);
  if(lidarStateOn){
   boolean isStarted = initializeHardware();  
   Serial.println("Receiver: Initialization completed.");
   String response = isStarted ? LidarOn : LidarOff;
+  lidarState.lidarReady=isStarted;
+    serial.println(response);
+    Serial.println(response);
+    serial.println("Response sent");
  }else{
   stopLidar();
+    lidarState.lidarReady=false;
    serial.println(LidarOff);
  }
 }
@@ -65,15 +73,13 @@ if(line.startsWith("L")){
 
 //read start stopCommand for the lidar 
 boolean readLidarcommand(String message) {
-  int delimiter = message.indexOf(":");
-  if (delimiter != -1 && delimiter < message.length() - 1) {
-    String command = message.substring(delimiter + 1);
-    if (command == "0") {
-      return false;
-    } else if (command == "1") {
-      return true;
-    }
-  }
-  Serial.println("Invalid LIDAR message: " + message);
+ Serial.println("arrived LIDAR message: " + message);
+ if(message==LidarOn){
+  return true;
+ }else if(message==LidarOff){
+  return false;
+ }else{
+   Serial.println("arrived LIDAR message invalid " + message);
+ }
   return false;
 }

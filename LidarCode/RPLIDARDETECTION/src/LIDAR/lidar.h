@@ -14,14 +14,20 @@
 extern RPLidar lidar;
 bool stopLidar();
 extern HardwareSerial LidarSerial;
-const int ANGLE_BUCKET_SIZE = 5; 
+const int ANGLE_BUCKET_SIZE = 3; 
 const int NUM_BUCKETS = 360 / ANGLE_BUCKET_SIZE;
-const float SIMILARITY_TOLERANCE = 70; // mm
-const int MAX_POINTS = 1000;  
+const float SIMILARITY_TOLERANCE = 30; // mm 
+const int MAX_POINTS = 500;  
 extern Point* scanPoints;    
 extern int pointCount;
 extern bool collectingScan;
-void detectAndUpdateObstacles(float * averageDistances,RobotData *robot);
+
+//old method , not used
+// void detectAndUpdateObstacles(float * averageDistances,RobotData *robot);
+
+
+// new method , used 
+void detectAndUpdateObstacles(float* averageDistances, int* countDistances, LidarState* lidar);
 // void mergeOverlappingObstacles(RobotData* robot);
 
 
@@ -33,13 +39,17 @@ const int pwmResolution = 8;
 extern String warnings[];
 extern String lastWarnings[4];
 extern bool scanComplete;
-
 extern const String directions[4];
+
+extern const int MIN_OBJECT_WIDTH_DEG;
 // int directionIndex(const String direction);
 
 // void printObstacles(const Obstacle* obstacles, int obstacleCount);
+// old average method
+// void averageDistances(const Point* measurements, int size,float* output);
 
-void averageDistances(const Point* measurements, int size,float* output);
+//new average method that outputs also how manny readings are  per bucket
+void averageDistances(const Point* measurements, int size, float* output, int* countOut);
 float chordLength(float radius_mm, float angle_deg);
 bool initializeHardware();
 void startMotor();

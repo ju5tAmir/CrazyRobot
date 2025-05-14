@@ -5,6 +5,12 @@ RPLidar lidar;
 HardwareSerial LidarSerial(2);
 float lastScanTime = 0;
 
+const int MIN_OBJECT_WIDTH_DEG=3;
+Point* scanPoints = nullptr;     
+
+int pointCount = 0;              
+bool collectingScan = false;
+
 bool initializeHardware() {
     delay(1000);
     pinMode(RPLIDAR_MOTOR, OUTPUT);
@@ -73,18 +79,18 @@ void readLidarData(LidarState* data) {
             lastScanTime = currentTime;
             if (collectingScan && pointCount > 0) {
                 float averagedDistances[NUM_BUCKETS];
-                float readingsPerbucket[NUM_BUCKETS];
-                //  averageDistances(scanPoints, pointCount, averagedDistances);
-                // detectAndUpdateObstacles(averagedDistances,data);
+                int readingsPerbucket[NUM_BUCKETS];
+                 averageDistances(scanPoints, pointCount, averagedDistances,readingsPerbucket);
+                detectAndUpdateObstacles(averagedDistances,readingsPerbucket,data);
                      
-                Serial.println("A new scan has started");
-                    for (int i = 0; i < pointCount; i++) {
-                          Serial.println("start point");
-                       Serial.println(scanPoints[i].angle);
-                        Serial.println(scanPoints[i].distance);
-                            Serial.println("end point");
-                     }
-              Serial.println("Previous scan processed  ");
+            //     Serial.println("A new scan has started");
+            //         for (int i = 0; i < pointCount; i++) {
+            //               Serial.println("start point");
+            //            Serial.println(scanPoints[i].angle);
+            //             Serial.println(scanPoints[i].distance);
+            //                 Serial.println("end point");
+            //          }
+            //   Serial.println("Previous scan processed  ");
             }
             pointCount = 0;
             collectingScan = true;
@@ -120,4 +126,65 @@ void averageDistances(const Point* measurements, int size, float* output, int* c
         }
         countOut[i] = countDistances[i];
     }
+}
+
+
+void updateAndDetectObstacles(){
+    
+}
+
+
+
+void detectAndUpdateObstacles(float* averageDistances, int* countDistances, LidarState* lidar) {
+    Obstacle obstaclesTemp[NUM_BUCKETS];
+    int tempCount = 0;
+    int i = 0;
+    
+
+
+while (i < NUM_BUCKETS) {
+    // if no readings skip the bucket
+    if (averageDistances[i] < 0) {
+        i++;
+        continue;
+    }
+
+    float startAngle = i * ANGLE_BUCKET_SIZE;
+    float sumDist = averageDistances[i];
+    int count = 1;
+    int j = i + 1;
+
+    // Group adjacent, similar-distance, continuous-angle buckets, and similar angles 
+    while (j < NUM_BUCKETS &&
+           averageDistances[j] >= 0 &&
+           countDistances[j] >= 2 &&
+           fabs(averageDistances[j] - averageDistances[j - 1]) < SIMILARITY_TOLERANCE &&
+           j == i + count) {
+        sumDist += averageDistances[j];
+        count++;
+        j++;
+    }
+
+    float endAngle = (j - 1) * ANGLE_BUCKET_SIZE;
+    float avgDist = sumDist / count;
+    float angleSpan = endAngle - startAngle;
+
+    // Filter out narrow noise
+    if (angleSpan >= MIN_OBJECT_WIDTH_DEG && tempCount < NUM_BUCKETS) {
+        obstaclesTemp[tempCount++] = { startAngle, endAngle, avgDist };
+    }
+
+    i = j;
+}
+for (int i=0;i<tempCount;i++)
+{
+   Obstacle obs = obstaclesTemp[i]; 
+    Serial.println("New object ");
+    Serial.println(obs.startAngle);
+    Serial.println(obs.endAngle);
+    Serial.println(obs.distance);
+   Serial.println("End object ");
+
+}
+
 }

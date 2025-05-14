@@ -1293,10 +1293,15 @@
         "type": "object",
         "additionalProperties": false,
         "required": [
+          "username",
           "email",
           "role"
         ],
         "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 1
+          },
           "email": {
             "type": "string",
             "minLength": 3

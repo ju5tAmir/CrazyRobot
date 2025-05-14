@@ -3,11 +3,17 @@ import {useNavigate} from "react-router-dom";
 import {LoginUserProps} from "../../../models/login-models/user/LoginUserProps.ts"
 import {useAuth} from "../../../helpers/useAuth.ts";
 import {TextInput} from "../shared/TextInput.tsx";
+import {ValidationError} from "../../../helpers/ServerErrors.tsx";
+import toast from "react-hot-toast";
+import {ErrorMessages} from "../../../helpers/ErrorTypes.ts";
+import Loading from "../../../shared/Loading.tsx";
 
 export const LoginModalUser = ({isOpen, setIsOpen}: LoginUserProps) => {
     const navigate = useNavigate();
-    const { loginOrRegisterUser } = useAuth();
+    const authLogin = useAuth();
     const [modalClass, setModalClass] = useState("");
+    const [serverErrors, setServerErrors] = useState<ValidationError | null>(null);
+    const [serverErrorMessages, setServerErrorMessages] = useState<string[]>([]);
     const initialState = {
         username:"",
         email: "",
@@ -24,12 +30,28 @@ export const LoginModalUser = ({isOpen, setIsOpen}: LoginUserProps) => {
 
     useEffect(() => {
         setModalClass(isOpen ? "modal-open" : "");
-    }, [isOpen]);
+        if (serverErrors) {
+            const serverMessages: string[] = [];
+            Object.entries(serverErrors).forEach(([, messages]) => {
+                if (messages) {
+                    messages.forEach((message) => {
+                        if (message) {
+                            serverMessages.push(message);
+                            toast.error(message);
+                        }
+                    });
+                }
+            });
+            setServerErrorMessages(serverMessages);
+        }
+    }, [serverErrors, isOpen]);
 
 
     const closeModal = () => {
         setModalClass(isOpen ? "modal-open" : "");
         setModalState(initialState);
+        setServerErrors(null);
+        setServerErrorMessages([])
         setIsOpen();
     }
 
@@ -59,7 +81,7 @@ export const LoginModalUser = ({isOpen, setIsOpen}: LoginUserProps) => {
         if (isInputEmpty(modalState.username)) {
             setModalState((prev) => ({
                 ...prev,
-                errors: {...prev.errors, username: "Username is required"},
+                errors: {...prev.errors, username: ErrorMessages.UserName},
                 required: {...prev.required, username: true}
             }))
             return;
@@ -68,7 +90,7 @@ export const LoginModalUser = ({isOpen, setIsOpen}: LoginUserProps) => {
         if (isInputEmpty(modalState.email)) {
             setModalState((prev) => ({
                 ...prev,
-                errors: {...prev.errors, email: "Email is required"},
+                errors: {...prev.errors, email: ErrorMessages.EmailInvalid},
                 required: {...prev.required, email: true}
             }))
             return;
@@ -76,43 +98,72 @@ export const LoginModalUser = ({isOpen, setIsOpen}: LoginUserProps) => {
 
         setModalState((prev) => (
             {...prev, loading: true}));
-            loginOrRegisterUser(modalState.email).then(() => {
+        authLogin
+            .loginOrRegisterUser(modalState.email, modalState.username)
+            .then(() => {
                 navigate("/school-info/robot-movement");
             })
+            .catch((e) => {
+                setModalState((prev) => ({
+                    ...prev,
+                    loading: false
+                }));
+                const errorData = e.response?.data;
+                if (errorData?.errors) {
+                    setServerErrors(errorData.errors);
+                } else if (errorData?.message) {
+                    toast.error(errorData.message);
+                } else {
+                    toast.error("Network error. Please try again later.");
+                }
+        });
     }
 
     return (
         <dialog className={`modal ${modalClass}`}>
             <div className="modal-box">
-                <div>
-                    <button onClick={closeModal} className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕
-                    </button>
+
+                <button onClick={closeModal} className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+
+                <h3 className="font-bold text-lg mb-4 text-center text-transparent bg-clip-text bg-gradient-to-r from-gray-500 to-purple-600">WALL-E Login</h3>
+
+                <div className={"flex flex-col items-center gap-4 px-2 mb-6"}>
+                    <TextInput
+                        getInputValue={setUserName}
+                        value={modalState.username}
+                        placeholder={"Username"}
+                    />
+                    <TextInput
+                        getInputValue={setUserEmail}
+                        value={modalState.email}
+                        placeholder={"Email"}
+                    />
                 </div>
-                <div className={"flex flex-col gap-2 mt-2"}>
-                    <TextInput getInputValue={setUserName} value={modalState.username}
-                               placeholder={"Username"}></TextInput>
-                    <TextInput getInputValue={setUserEmail} value={modalState.email}
-                                   placeholder={"Email"}></TextInput>
-                </div>
-                <div className={"flex flex-row justify-end mt-2"}>
+
+                <div className={"flex flex-col items-center mb-4"}>
                     {modalState.loading ? (
-                        <div className={"mr-2"}>
-                            <p>Loading...</p>
+                        <div className={"mb-6"}>
+                            <Loading/>
                         </div>
                     ) : (
-                        <div className="mr-2">
-                            <p className={`${modalState.required.username ? "text-purple-600" : "text-transparent"} `}>
+                        <div className="text-center mb-6">
+                            <p className={`${modalState.required.username ? "text-red-400" : "text-transparent"} `}>
                                 {modalState.errors.username}
                             </p>
-                            <p className={`${modalState.required.email ? "text-purple-600" : "text-transparent"} `}>
+                            <p className={`${modalState.required.email ? "text-red-400" : "text-transparent"} `}>
                                 {modalState.errors.email}
+                            </p>
+                            <p className={`${serverErrorMessages.length > 0 ? "text-red-400" : "text-transparent"}`}>
+                                {serverErrorMessages}
                             </p>
                         </div>
                     )}
-                    <button onClick={loginUser}
-                            className="w-36 h-15 text-white py-2 bg-purple-600 font-semibold rounded-md border border-transparent hover:bg-black hover:text-white hover:border-black transition-colors duration-300 text-center">
-                        Login
-                    </button>
+                    <div className="flex justify-center">
+                        <button onClick={loginUser}
+                                className="w-36 h-15 text-purple-500 py-2 bg-transparent font-semibold rounded-md border border-purple-600 hover:bg-purple-500 hover:text-white transition-colors duration-300 text-center">
+                            Login
+                        </button>
+                    </div>
                 </div>
             </div>
         </dialog>

@@ -11,6 +11,8 @@ import LoginPageUser from "./components/login/user/LoginPageUser.tsx";
 import LoginPage from "./SchoolInfo/auth/LoginPage.tsx";
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
 const prod = import.meta.env.PROD;
+
+
 export default function App() {
   const manageClientId = useClientIdState(KEYS.CLIENT_ID);
   const [clientId] = useState(manageClientId.getClientId());
@@ -37,7 +39,7 @@ export default function App() {
             <Route path="/admin-login" element={<LoginPage />} />
             <Route path="/admin/*" element={<Admin />} />
           </Routes>
-          <Toaster />
+          <Toaster position="bottom-center"/>
         </WsClientProvider>
       )}
     </>

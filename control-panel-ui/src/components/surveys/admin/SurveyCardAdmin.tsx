@@ -8,11 +8,11 @@ export default function SurveyCardAdmin({
             }: SurveyCardProps)
 {
     return (
-        <div className="card bg-base-100 shadow-sm relative transition-transform hover:scale-105">
-            <div className="card-body p-4 gap-2">
-                <div className="flex justify-between items-start gap-2">
+        <div className="card bg-base-100 shadow-xl h-full flex flex-col transition-transform hover:scale-105">
+            <div className="card-body flex flex-col p-4 gap-2">
+
                     <h2 className="card-title text-base">{survey.title}</h2>
-                    <div className="flex items-center gap-4">
+                    <div className="flex justify-between items-center gap-4">
                         <div className={`badge badge-sm font-bold ${
                             survey.isActive
                                 ? 'badge-primary text-primary-content'
@@ -37,7 +37,6 @@ export default function SurveyCardAdmin({
                             </button>
                         </div>
                     </div>
-                </div>
                 <p className="text-sm opacity-80">{survey.description}</p>
                 <div className="flex flex-wrap gap-2 mt-2">
                     <div className="badge badge-outline">{survey.surveyType}</div>

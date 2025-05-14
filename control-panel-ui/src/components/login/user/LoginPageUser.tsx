@@ -28,7 +28,7 @@ export default function LoginPageUser() {
                 <div className="mt-6">
                     <button
                         onClick={() => openModalAction()}
-                        className="w-36 h-15 text-white py-2 bg-purple-600 font-semibold rounded-md border border-transparent hover:bg-black hover:text-white hover:border-black transition-colors duration-300 text-center">
+                        className="w-36 h-15 text-purple-500 py-2 bg-transparent font-semibold rounded-md border border-purple-600 hover:bg-purple-500 hover:text-white transition-colors duration-300 text-center">
                         WALL-E Access
                     </button>
                 </div>

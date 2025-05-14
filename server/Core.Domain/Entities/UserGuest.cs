@@ -13,5 +13,7 @@ public partial class UserGuest
 
     public DateTime CreatedDate { get; set; }
 
+    public string Username { get; set; } = null!;
+
     public virtual ICollection<SurveyResponse> SurveyResponses { get; set; } = new List<SurveyResponse>();
 }

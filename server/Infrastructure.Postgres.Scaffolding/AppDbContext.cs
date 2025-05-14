@@ -13,14 +13,23 @@ public partial class AppDbContext : DbContext
     }
 
     public virtual DbSet<Answer> Answers { get; set; }
+
     public virtual DbSet<SchoolContact> Contacts { get; set; }
-    public virtual DbSet<GeneratedReport> GeneratedReports { get; set; } = null!;
+
     public virtual DbSet<SchoolEvent> Events { get; set; }
+
+    public virtual DbSet<GeneratedReport> GeneratedReports { get; set; }
+
     public virtual DbSet<Question> Questions { get; set; }
+
     public virtual DbSet<QuestionOption> QuestionOptions { get; set; }
+
     public virtual DbSet<Survey> Surveys { get; set; }
+
     public virtual DbSet<SurveyResponse> SurveyResponses { get; set; }
+
     public virtual DbSet<User> Users { get; set; }
+
     public virtual DbSet<UserGuest> UserGuests { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -163,19 +172,6 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.CreatedByUserId)
                 .HasConstraintName("fk_survey_user");
         });
-        
-        modelBuilder.Entity<GeneratedReport>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("generated_report_pkey");
-
-            
-            entity.ToTable("generated_report", "crazyrobot");
-
-            entity.Property(x => x.Id).HasColumnName("id");
-            entity.Property(x => x.SurveyId).HasColumnName("survey_id");
-            entity.Property(x => x.GeneratedAt).HasColumnName("generated_at");
-            entity.Property(x => x.ReportText).HasColumnName("report_text");
-        });
 
         modelBuilder.Entity<SurveyResponse>(entity =>
         {
@@ -225,6 +221,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.CreatedDate).HasColumnName("created_date");
             entity.Property(e => e.Email).HasColumnName("email");
             entity.Property(e => e.Role).HasColumnName("role");
+            entity.Property(e => e.Username).HasColumnName("username");
         });
 
         OnModelCreatingPartial(modelBuilder);

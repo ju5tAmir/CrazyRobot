@@ -1,16 +1,6 @@
-import {createContext, useState, ReactNode, useEffect} from 'react';
+import {useState, ReactNode, useEffect} from 'react';
 import { http } from '../../helpers/http.ts';
-
-
-interface AuthContextType {
-    jwt: string | null;
-    role: string | null;
-    login(email: string, password: string): Promise<void>;
-    loginOrRegisterUser(email: string): Promise<void>;
-    logout(): void;
-}
-
-export const AuthContext = createContext<AuthContextType>(null as never);
+import { AuthContext } from '../../helpers/useAuthContext.ts';
 
 interface JwtPayload {
     sub: string;
@@ -60,8 +50,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setJwt(token);
     }
 
-    async function loginOrRegisterUser(email: string) {
-        const { jwt: token } = await http.auth.loginOrRegisterUser({ email, role: 'user' });
+    async function loginOrRegisterUser(email: string, username: string) {
+        const role = "user";
+        const { jwt: token } = await http.auth.loginOrRegisterUser({ username, email, role });
         localStorage.setItem('jwt', token);
         setJwt(token);
     }

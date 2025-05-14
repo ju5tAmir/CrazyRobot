@@ -2,7 +2,7 @@ import {UserInputProps} from "../../../models/login-models/UserNameProps.ts";
 
 export const TextInput = ({getInputValue, placeholder, value}: UserInputProps) => {
     return (
-        <div className="input input-bordered flex items-center gap-2">
+        <div className="input text-purple-500 py-2 bg-transparent font-semibold rounded-md border border-purple-600 flex items-center gap-2">
             <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 16 16"

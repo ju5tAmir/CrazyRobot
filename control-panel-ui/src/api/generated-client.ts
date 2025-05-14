@@ -1325,6 +1325,7 @@ export interface AuthRequestDto {
 }
 
 export interface AuthUserRequest {
+    username: string;
     email: string;
     role: string;
 }

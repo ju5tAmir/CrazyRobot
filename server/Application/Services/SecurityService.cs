@@ -84,6 +84,7 @@ public class SecurityService(IOptionsMonitor<AppOptions> optionsMonitor, IUserRe
         var insertedUser = repository.AddUser(new UserGuest
         {
             Id = Guid.NewGuid().ToString(),
+            Username = dto.Username,
             Email = dto.Email,
             Role = dto.Role,
             CreatedDate = DateTime.UtcNow

@@ -37,9 +37,12 @@ def surveys_with_responses(limit: int = 50) -> list[str]:
         LIMIT  {limit};
     """)
     return [row["survey_id"] for row in rows]   # ← key by name
+
 def generate_report_for_survey(survey_id: str) -> None:
+    # Log the start of report generation
     print("▶ START", survey_id, datetime.utcnow().isoformat(timespec="seconds"), "UTC", flush=True)
 
+    # SQL query to aggregate answers by question and option
     summary_sql = f"""
         SELECT a.question_id,
                COALESCE(a.selected_option_id, 'text') AS option,
@@ -53,10 +56,12 @@ def generate_report_for_survey(survey_id: str) -> None:
     """
     summary_data = sql_db.run(summary_sql)
 
+    # Skip if there is no data
     if not summary_data.strip():
         print("ℹ  No data for", survey_id, flush=True)
         return
 
+    # Prompt to send to LLM for generating the report
     prompt = (
         "You are an analyst. Below is aggregated survey data (SQL output):\n\n"
         f"{summary_data}\n\n"
@@ -65,17 +70,30 @@ def generate_report_for_survey(survey_id: str) -> None:
         "Please write a concise report with key insights and recommendations."
     )
 
+    # Call the LLM to generate the report
     report_text = llm.invoke(prompt)
 
+    # Save the generated report to the database
     with Session(engine) as sess:
-        sess.add(GeneratedReport(
+        new_report = GeneratedReport(
             survey_id    = survey_id,
             generated_at = datetime.utcnow(),
             report_text  = report_text
-        ))
+        )
+        sess.add(new_report)
         sess.commit()
 
     print("✓ SAVED report for", survey_id, flush=True)
+
+    # Append the generated report to rag_data.txt (used as few-shot examples for next generations)
+    try:
+        with open("rag_data.txt", "a", encoding="utf-8") as f:
+            f.write(f"\n\nReport for survey {survey_id} ({datetime.utcnow().date()}):\n")
+            f.write(report_text.strip() + "\n")
+        print("📄 Appended report to rag_data.txt", flush=True)
+    except Exception as e:
+        print(f"⚠️ Failed to append to rag_data.txt: {e}", flush=True)
+
 
 def generate_reports_for_all_surveys() -> None:
     for sid in surveys_with_responses():
@@ -84,7 +102,7 @@ def generate_reports_for_all_surveys() -> None:
             SELECT 1
             FROM   crazyrobot.generated_report
             WHERE  survey_id = '{sid}'
-              AND  generated_at > now() - interval '12 hours'
+              AND  generated_at > now() - interval '15 minutes'
             LIMIT 1;
         """)
         if recent.strip():
@@ -97,12 +115,12 @@ def generate_reports_for_all_surveys() -> None:
 sched = BackgroundScheduler()
 sched.add_job(
     func          = generate_reports_for_all_surveys,
-    id            = "12h_reports_all",
+    id            = "15min_reports_all",
     trigger       = "interval",
-    hours         = 12,
+    minutes       = 15,
     next_run_time = datetime.utcnow(),        # immediately the first launch
 )
-print("JOB ADDED 12‑hour interval for *all* surveys", flush=True)
+print("JOB ADDED 15min interval for *all* surveys", flush=True)
 
 # running in a container
 if __name__ == "__main__":

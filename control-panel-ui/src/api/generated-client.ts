@@ -1259,13 +1259,13 @@ export interface MemberLeftNotification extends BaseDto {
     topic?: string;
 }
 
-export interface InitializeEnginResponseDto extends BaseDto {
-    command?: ClientCommandOfInitializeEngineResponse;
+export interface DangerMovementDto extends BaseDto {
+    command?: ClientCommandOfDistanceWarning;
 }
 
-export interface ClientCommandOfInitializeEngineResponse {
+export interface ClientCommandOfDistanceWarning {
     commandType?: ClientCommandType;
-    payload?: InitializeEngineResponse | undefined;
+    payload?: DistanceWarning | undefined;
 }
 
 export enum ClientCommandType {
@@ -1273,6 +1273,20 @@ export enum ClientCommandType {
     BatteryStatus = "batteryStatus",
     DistanceWarning = "distanceWarning",
     NegativeWarning = "negativeWarning",
+}
+
+export interface DistanceWarning {
+    warning?: string;
+    direction?: string;
+}
+
+export interface InitializeEnginResponseDto extends BaseDto {
+    command?: ClientCommandOfInitializeEngineResponse;
+}
+
+export interface ClientCommandOfInitializeEngineResponse {
+    commandType?: ClientCommandType;
+    payload?: InitializeEngineResponse | undefined;
 }
 
 export interface InitializeEngineResponse {
@@ -1355,6 +1369,7 @@ export interface ServerConfirmsDto extends BaseDto {
 /** Available eventType and string constants */
 export enum StringConstants {
     MemberLeftNotification = "MemberLeftNotification",
+    DangerMovementDto = "DangerMovementDto",
     InitializeEnginResponseDto = "InitializeEnginResponseDto",
     NegativeDistanceNotifierDto = "NegativeDistanceNotifierDto",
     RobotMovementDto = "RobotMovementDto",

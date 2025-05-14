@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
-import { AuthClient } from '../../api/generated-client'; // або '@/api/generated-client'
+import {createContext, useContext, useState, ReactNode, useEffect} from 'react';
+import { http } from '../../helpers/http.ts';
+
 
 interface AuthContextType {
     jwt: string | null;
@@ -16,16 +17,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.getItem('jwt')
     );
 
+    useEffect(() => {
+        http.resetClients();
+    }, [jwt]);
+
     async function login(email: string, password: string) {
-        const client = new AuthClient(import.meta.env.VITE_API_BASE_URL);
-        const { jwt: token } = await client.login({ email, password });
+        const { jwt: token } = await http.auth.login({ email, password });
         localStorage.setItem('jwt', token);
         setJwt(token);
     }
 
     async function loginOrRegisterUser(email: string) {
-        const client = new AuthClient(import.meta.env.VITE_API_BASE_URL);
-        const { jwt: token } = await client.loginOrRegisterUser({ email, role: 'user' });
+        const { jwt: token } = await http.auth.loginOrRegisterUser({ email, role: 'user' });
         localStorage.setItem('jwt', token);
         setJwt(token);
     }
@@ -33,6 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     function logout() {
         localStorage.removeItem('jwt');
         setJwt(null);
+        http.resetClients();
     }
 
     return (

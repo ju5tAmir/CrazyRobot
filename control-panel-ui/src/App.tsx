@@ -34,7 +34,7 @@ export default function App() {
             <Route path="/guest-login" element={<LoginPageUser />} />
             <Route path="/school-info/*" element={<SchoolInfo />} />
 
-            <Route path="/admin/login" element={<LoginPage />} />
+            <Route path="/admin-login" element={<LoginPage />} />
             <Route path="/admin/*" element={<Admin />} />
           </Routes>
           <Toaster />

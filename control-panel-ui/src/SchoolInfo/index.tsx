@@ -18,8 +18,8 @@ export default function SchoolInfo() {
                     <Route path="contacts"     element={<ContactsPage />} />
                     <Route path="events"       element={<EventsPage />} />
                     <Route path="surveys-user"       element={<SurveysPage />} />
-                    <Route path="/RobotMovement" element={<ControlMotor />} />
-                    <Route path="/tic-tac-toe" element={<UTTTPage />} />
+                    <Route path="robot-movement" element={<ControlMotor />} />
+                    <Route path="tic-tac-toe" element={<UTTTPage />} />
                 </Routes>
             </Suspense>
         </SchoolInfoLayout>

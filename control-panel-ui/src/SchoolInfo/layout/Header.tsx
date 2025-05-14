@@ -24,8 +24,6 @@ export default function Header({ openSidebar }: HeaderProps) {
             title = 'Admin Panel';
         } else if (pathname.includes('/school-info')) {
             title = 'School Portal';
-        } else {
-            title = 'School Info';
         }
     }
 

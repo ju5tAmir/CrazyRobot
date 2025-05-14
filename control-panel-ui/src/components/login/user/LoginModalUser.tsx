@@ -77,7 +77,7 @@ export const LoginModalUser = ({isOpen, setIsOpen}: LoginUserProps) => {
         setModalState((prev) => (
             {...prev, loading: true}));
             loginOrRegisterUser(modalState.email).then(() => {
-                navigate("/school-info/RobotMovement");
+                navigate("/school-info/robot-movement");
             })
     }
 

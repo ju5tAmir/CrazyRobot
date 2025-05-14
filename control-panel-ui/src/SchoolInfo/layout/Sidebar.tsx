@@ -21,8 +21,13 @@ export default function Sidebar({ isOpen, closeSidebar }: SidebarProps) {
 
     const handleLogout = () => {
         logout();
-        navigate(base, { replace: true });
-        setTimeout(() => navigate(base, { replace: true }), 0);
+        if(base == '/admin'){
+            navigate(base + '-login', { replace: true });
+            setTimeout(() => navigate(base + '-login', { replace: true }), 0);
+        } else {
+            navigate('/guest-login', { replace: true });
+            setTimeout(() => navigate('/guest-login', { replace: true }), 0);
+        }
         closeSidebar();
     };
 

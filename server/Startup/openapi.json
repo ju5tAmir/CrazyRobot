@@ -775,6 +775,29 @@
         }
       }
     },
+    "/api/survey-submission/GetActiveSurveys": {
+      "get": {
+        "tags": [
+          "UserSurveys"
+        ],
+        "operationId": "UserSurveys_GetActiveSurveys",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SurveyResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/auth/Login": {
       "post": {
         "tags": [
@@ -807,18 +830,50 @@
         }
       }
     },
-    "/api/auth/Register": {
+    "/api/auth/RegisterAdmin": {
       "post": {
         "tags": [
           "Auth"
         ],
-        "operationId": "Auth_Register",
+        "operationId": "Auth_RegisterAdmin",
         "requestBody": {
           "x-name": "dto",
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/AuthRequestDto"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/RegisterUser": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "operationId": "Auth_RegisterUser",
+        "requestBody": {
+          "x-name": "dto",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthUserRequest"
               }
             }
           },
@@ -1011,6 +1066,9 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
+          "id": {
+            "type": "string"
+          },
           "questionText": {
             "type": "string"
           },
@@ -1228,6 +1286,24 @@
           "password": {
             "type": "string",
             "minLength": 4
+          }
+        }
+      },
+      "AuthUserRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "email",
+          "role"
+        ],
+        "properties": {
+          "email": {
+            "type": "string",
+            "minLength": 3
+          },
+          "role": {
+            "type": "string",
+            "minLength": 1
           }
         }
       },

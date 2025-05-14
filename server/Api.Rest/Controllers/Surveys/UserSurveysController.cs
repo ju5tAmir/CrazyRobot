@@ -12,6 +12,8 @@ public class UserSurveysController(ISecurityService securityService, IUserSurvey
 {
     private const string ControllerRoute = "api/survey-submission/";
     private const string SubmitRoute = ControllerRoute + nameof(SubmitResponse);
+    private const string GetActiveSurveysRoute = ControllerRoute + nameof(GetActiveSurveys);
+
     
     [HttpPost]
     [Route(SubmitRoute)]
@@ -22,6 +24,22 @@ public class UserSurveysController(ISecurityService securityService, IUserSurvey
             var user = securityService.VerifyJwtOrThrow(HttpContext.GetJwt());
             var result = await userSurveyService.SubmitResponse(requestDto, user.Id);
             return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            logger.Log(LogLevel.Warning, ex.Message, ex);
+            return BadRequestErrorMessage(ex.Message);
+        }
+    }
+    
+    [HttpGet]
+    [Route(GetActiveSurveysRoute)]
+    public async Task<ActionResult<List<SurveyResponseDto>>> GetActiveSurveys()
+    {
+        try
+        {
+            var surveys = await userSurveyService.GetActiveSurveys();
+            return Ok(surveys);
         }
         catch (Exception ex)
         {

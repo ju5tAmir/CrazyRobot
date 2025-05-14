@@ -37,4 +37,36 @@ public class UserSurveyService(IUserSurveyRepository userSurveyRepository) : IUs
             }).ToList()
         };
     }
+
+    public async Task<List<SurveyResponseDto>> GetActiveSurveys()
+    {
+        var surveys = await userSurveyRepository.GetActiveSurveys();
+        return surveys.Select(s => new SurveyResponseDto
+        {
+            Id = s.Id,
+            Title = s.Title,
+            Description = s.Description,
+            SurveyType = s.SurveyType,
+            IsActive = s.IsActive,
+            CreatedAt = s.CreatedAt,
+            Questions = s.Questions
+                .OrderBy(q => q.OrderNumber)
+                .Select(q => new QuestionDto
+                {
+                    Id = q.Id,
+                    QuestionText = q.QuestionText,
+                    QuestionType = q.QuestionType,
+                    OrderNumber = q.OrderNumber,
+                    Options = q.QuestionOptions
+                        .OrderBy(o => o.OrderNumber)
+                        .Select(o => new QuestionOptionDto
+                        {
+                            OptionText = o.OptionText,
+                            OrderNumber = o.OrderNumber
+                        })
+                        .ToList()
+                })
+                .ToList()
+        }).ToList();
+    }
 }

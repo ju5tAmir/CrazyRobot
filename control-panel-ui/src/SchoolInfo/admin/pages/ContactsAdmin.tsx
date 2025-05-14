@@ -1,7 +1,7 @@
 import { useEffect, useState }   from 'react';
 import { ContactDto, ContactsClient } from '../../../api/generated-client';
 import ContactForm               from '../../components/forms/ContactForm';
-import { useAuth }               from '../../auth/AuthContext';
+import { useAuth }               from '../../../helpers/useAuth.ts';
 
 export default function ContactsAdmin() {
     const { jwt } = useAuth();

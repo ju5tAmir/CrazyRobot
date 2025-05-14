@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { EventDto, EventsClient } from '../../../api/generated-client';
 import EventForm     from '../../components/forms/EventForm';
-import { useAuth } from '../../auth/AuthContext';
+import {useAuth} from "../../../helpers/useAuth.ts";
 
 export default function EventsAdmin() {
     const { jwt } = useAuth();

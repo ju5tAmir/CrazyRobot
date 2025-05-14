@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { LogOut } from 'lucide-react';
 import ThemeToggle from '../ThemeToggle.tsx';
-import { useAuth } from '../auth/AuthContext';
+import { useAuth } from '../../helpers/useAuth.ts';
 import NavigationItemsGroup from '../../components/navigation/NavigationItemsGroup.tsx';
 import { adminNavItems, userNavItems } from '../../components/navigation/NavigationPathConfig.tsx';
 

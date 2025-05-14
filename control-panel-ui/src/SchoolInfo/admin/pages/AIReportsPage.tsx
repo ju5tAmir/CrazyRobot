@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { GeneratedReportsClient, GeneratedReportDto } from '../../../api/generated-client';
-import { useAuth } from '../../auth/AuthContext';
+import { useAuth } from '../../../helpers/useAuth.ts';
 import { FileText, BookOpen, Trash2, ChevronDown, Plus } from 'lucide-react';
 
 interface SurveySummary {

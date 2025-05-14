@@ -1,7 +1,7 @@
 import {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import {LoginUserProps} from "../../../models/login-models/user/LoginUserProps.ts"
-import {useAuth} from "../../../SchoolInfo/auth/AuthContext.tsx";
+import {useAuth} from "../../../helpers/useAuth.ts";
 import {TextInput} from "../shared/TextInput.tsx";
 
 export const LoginModalUser = ({isOpen, setIsOpen}: LoginUserProps) => {

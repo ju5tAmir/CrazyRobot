@@ -1,23 +1,56 @@
-import {createContext, useContext, useState, ReactNode, useEffect} from 'react';
+import {createContext, useState, ReactNode, useEffect} from 'react';
 import { http } from '../../helpers/http.ts';
 
 
 interface AuthContextType {
     jwt: string | null;
+    role: string | null;
     login(email: string, password: string): Promise<void>;
     loginOrRegisterUser(email: string): Promise<void>;
     logout(): void;
 }
 
-const AuthContext = createContext<AuthContextType>(null as never);
-export const useAuth = () => useContext(AuthContext);
+export const AuthContext = createContext<AuthContextType>(null as never);
+
+interface JwtPayload {
+    sub: string;
+    role?: string;
+    exp: number;
+    [key: string]: string | number | boolean | undefined;
+}
+
+function decodeJwt(token: string): JwtPayload | null {
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(
+            atob(base64)
+                .split('')
+                .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+                .join('')
+        );
+        return JSON.parse(jsonPayload);
+    } catch (error) {
+        console.error('Failed to decode JWT', error);
+        return null;
+    }
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [jwt, setJwt] = useState<string | null>(
         localStorage.getItem('jwt')
     );
+    const [role, setRole] = useState<string | null>(null);
 
     useEffect(() => {
+        if (jwt) {
+            const payload = decodeJwt(jwt);
+            if (payload) {
+                setRole(payload.role || null);
+            }
+        } else {
+            setRole(null);
+        }
         http.resetClients();
     }, [jwt]);
 
@@ -40,7 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     return (
-        <AuthContext.Provider value={{ jwt, login, loginOrRegisterUser, logout }}>
+        <AuthContext.Provider value={{ jwt, role, login, loginOrRegisterUser, logout }}>
             {children}
         </AuthContext.Provider>
     );

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { UserSurveysClient, QuestionDto } from '../../../api/generated-client';
-import { useAuth } from '../../../SchoolInfo/auth/AuthContext.tsx';
+import { useAuth } from '../../../helpers/useAuth.ts';
 import { SurveyModalProps } from '../../../models/surveys-models/SurveyModalProps.ts';
 import { QuestionType } from '../../../models/surveys-models/enums/QuestionType.ts';
 

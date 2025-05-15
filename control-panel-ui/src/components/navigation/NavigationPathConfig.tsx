@@ -1,4 +1,4 @@
-import { Users, Calendar, ClipboardList, ChartBar, ClipboardPen, FileText, Bot, Gamepad2 } from 'lucide-react';
+import { Users, Calendar, ClipboardList, ChartBar, ClipboardPen, FileText, Bot, Gamepad2, Box } from 'lucide-react';
 import {NavItemTypeConfig} from "../../models/navigation/NavItemTypeConfig.ts";
 
 export const adminNavItems: NavItemTypeConfig[] = [
@@ -15,4 +15,5 @@ export const userNavItems: NavItemTypeConfig[] = [
     { path: '/school-info/contacts', icon: <Users size={18} />, text: 'Contacts' },
     { path: '/school-info/events', icon: <Calendar size={18} />, text: 'Events' },
     { path: '/school-info/surveys-user', icon: <ClipboardPen size={18} />, text: 'Surveys' },
+    { path: '/school-info/3d', icon: <Box size={18} />, text: '3D' },
 ];

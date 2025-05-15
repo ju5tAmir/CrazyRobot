@@ -1,5 +1,4 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
-import { UTTTPage } from './components/UTTT/UTTTpage';
 import SchoolInfo from './SchoolInfo';
 import Admin from './SchoolInfo/admin';
 import './App.css';
@@ -7,9 +6,7 @@ import { WsClientProvider } from 'ws-request-hook';
 import { useClientIdState } from './hooks/Wsclient';
 import { KEYS } from './hooks/KEYS';
 import { useEffect, useState } from 'react';
-import { ControlMotor } from './components/Movement/MovementNew/Movement/ControlMotor.tsx';
 import { Toaster } from 'react-hot-toast';
-import ThreeDView from './components/ThreeD/ThreeDView.tsx';
 import LoginPageUser from "./components/login/user/LoginPageUser.tsx";
 import LoginPage from "./SchoolInfo/auth/LoginPage.tsx";
 const baseUrl = import.meta.env.VITE_API_BASE_URL;

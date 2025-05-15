@@ -2,6 +2,13 @@
 #include <WiFi.h>
 #ifndef MODELS_h
 #define MODELS_h
+const int ANGLE_BUCKET_SIZE = 3; 
+const int NUM_BUCKETS = 360 / ANGLE_BUCKET_SIZE;
+const float SIMILARITY_TOLERANCE = 30; // mm 
+const int MAX_POINTS = 500;  
+const int MERGE_ANGLE_TOLERANCE=7;
+const int MAX_HISTORY= 5;
+
 
 
 
@@ -14,8 +21,16 @@ struct Obstacle {
 
 struct LidarState {
  bool lidarReady = false; 
-     Obstacle obstacles[72] = {}; 
+     Obstacle obstacles[NUM_BUCKETS] = {}; 
     int currentObstaclesCount = 0;
+    Obstacle history[MAX_HISTORY][NUM_BUCKETS];
+    int historyCounts[MAX_HISTORY];
+    int historyIndex;
+    bool fullScanForProcessing= false;
+    bool collectingScan=false;
+    Obstacle obstacleBuffers[2][NUM_BUCKETS];
+    int obstacleCounts[2] = {0, 0};
+    int activeBufferIndex = 0;
 };
 
 

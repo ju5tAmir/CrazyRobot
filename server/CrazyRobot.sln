@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Domain", "Core.Domain\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure.Mqtt", "Infrastructure.Mqtt\Infrastructure.Mqtt.csproj", "{A07FEC6C-4E5C-42A9-A4C9-3022B0ACB3E8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Startup.Tests", "Startup.Tests\Startup.Tests.csproj", "{E8259399-3CF6-4B40-B784-4AAACD6BC7E5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -66,5 +68,9 @@ Global
 		{A07FEC6C-4E5C-42A9-A4C9-3022B0ACB3E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A07FEC6C-4E5C-42A9-A4C9-3022B0ACB3E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A07FEC6C-4E5C-42A9-A4C9-3022B0ACB3E8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E8259399-3CF6-4B40-B784-4AAACD6BC7E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E8259399-3CF6-4B40-B784-4AAACD6BC7E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E8259399-3CF6-4B40-B784-4AAACD6BC7E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E8259399-3CF6-4B40-B784-4AAACD6BC7E5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

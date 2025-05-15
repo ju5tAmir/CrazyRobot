@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../../../SchoolInfo/auth/AuthContext.tsx';
+import { useAuth } from '../../../helpers/useAuth.ts';
 import { CreateSurveyRequestDto, AdminSurveysClient, SurveyResponseDto, UpdateSurveyRequestDto } from '../../../api/generated-client.ts';
 import SurveyCardAdmin from './SurveyCardAdmin.tsx';
 import SurveyForm from '../../surveys/admin/SurveyForm';

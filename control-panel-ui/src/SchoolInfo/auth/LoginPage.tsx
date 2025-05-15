@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from './AuthContext';
+import { useAuth } from '../../helpers/useAuth.ts';
 
 export default function LoginPage() {
     const { login } = useAuth();
@@ -12,7 +12,7 @@ export default function LoginPage() {
     const handle = async () => {
         try {
             await login(email, password);
-            nav('/school-info/admin/contacts');
+            nav('/admin/contacts');
         } catch {
             setError('Incorrect email or password');
         }

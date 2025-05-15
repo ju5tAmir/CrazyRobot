@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../../../SchoolInfo/auth/AuthContext.tsx';
 import { AdminSurveysClient, SurveyResultsDto } from '../../../api/generated-client.ts';
+import {useAuth} from "../../../helpers/useAuth.ts";
 import Loading from '../../../shared/Loading.tsx';
 import Pagination from '../../../shared/Pagination.tsx';
 

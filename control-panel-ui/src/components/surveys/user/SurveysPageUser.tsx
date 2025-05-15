@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { UserSurveysClient, SurveyResponseDto} from '../../../api/generated-client';
 import SurveyModal from './SurveyModal';
-import {useAuth} from "../../../SchoolInfo/auth/AuthContext.tsx";
+import {useAuth} from "../../../helpers/useAuth.ts";
 import SurveyCardUser from './SurveyCardUser.tsx';
 import Loading from "../../../shared/Loading.tsx";
 

@@ -1124,8 +1124,8 @@ export class AuthClient {
         return Promise.resolve<AuthResponseDto>(null as any);
     }
 
-    registerUser(dto: AuthUserRequest): Promise<AuthResponseDto> {
-        let url_ = this.baseUrl + "/api/auth/RegisterUser";
+    loginOrRegisterUser(dto: AuthUserRequest): Promise<AuthResponseDto> {
+        let url_ = this.baseUrl + "/api/auth/LoginOrRegisterUser";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(dto);
@@ -1140,11 +1140,11 @@ export class AuthClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processRegisterUser(_response);
+            return this.processLoginOrRegisterUser(_response);
         });
     }
 
-    protected processRegisterUser(response: Response): Promise<AuthResponseDto> {
+    protected processLoginOrRegisterUser(response: Response): Promise<AuthResponseDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -1325,6 +1325,7 @@ export interface AuthRequestDto {
 }
 
 export interface AuthUserRequest {
+    username: string;
     email: string;
     role: string;
 }

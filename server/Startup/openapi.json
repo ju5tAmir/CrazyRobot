@@ -862,12 +862,12 @@
         }
       }
     },
-    "/api/auth/RegisterUser": {
+    "/api/auth/LoginOrRegisterUser": {
       "post": {
         "tags": [
           "Auth"
         ],
-        "operationId": "Auth_RegisterUser",
+        "operationId": "Auth_LoginOrRegisterUser",
         "requestBody": {
           "x-name": "dto",
           "content": {
@@ -1293,10 +1293,15 @@
         "type": "object",
         "additionalProperties": false,
         "required": [
+          "username",
           "email",
           "role"
         ],
         "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 1
+          },
           "email": {
             "type": "string",
             "minLength": 3

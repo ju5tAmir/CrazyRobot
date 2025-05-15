@@ -60,6 +60,7 @@ CREATE TABLE crazyrobot.user_guest (
     email text NOT NULL,
     role text NOT NULL,
     created_date timestamp with time zone NOT NULL,
+    username text NOT NULL,
     CONSTRAINT user_guest_pkey PRIMARY KEY (id)
 );
 

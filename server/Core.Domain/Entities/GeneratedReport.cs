@@ -1,9 +1,15 @@
+﻿using System;
+using System.Collections.Generic;
+
 namespace Core.Domain.Entities;
 
-public class GeneratedReport
+public partial class GeneratedReport
 {
-    public int      Id          { get; set; }
-    public string   SurveyId    { get; set; }
+    public int Id { get; set; }
+
+    public string SurveyId { get; set; } = null!;
+
     public DateTime GeneratedAt { get; set; }
-    public string   ReportText  { get; set; } = null!;
+
+    public string ReportText { get; set; } = null!;
 }

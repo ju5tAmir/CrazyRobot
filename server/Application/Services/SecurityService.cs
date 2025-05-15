@@ -18,9 +18,9 @@ namespace Application.Services;
 
 public class SecurityService(IOptionsMonitor<AppOptions> optionsMonitor, IUserRepository repository) : ISecurityService
 {
-    public AuthResponseDto Login(AuthRequestDto dto)
+    public AuthResponseDto LoginAdmin(AuthRequestDto dto)
     {
-        var user = repository.GetUserByIdOrNull(dto.Email) ?? throw new ValidationException("Username not found");
+        var user = repository.GetUserByIdOrNull(dto.Email) ?? throw new ValidationException("Admin not found");
         VerifyPasswordOrThrow(dto.Password + user.Salt, user.Hash);
         return new AuthResponseDto
         {
@@ -63,14 +63,28 @@ public class SecurityService(IOptionsMonitor<AppOptions> optionsMonitor, IUserRe
         };
     }
     
-    public AuthResponseDto RegisterUser(AuthUserRequest dto)
+    public AuthResponseDto LoginOrRegisterUser(AuthUserRequest dto)
     {
         var user = repository.GetGuestByIdOrNull(dto.Email);
-        if (user is not null) throw new ValidationException("User already exists");
+        if (user != null)
+            return new AuthResponseDto
+            {
+                Jwt = GenerateJwt(new JwtClaims
+                {
+                    Id = user.Id,
+                    Role = user.Role,
+                    Exp = DateTimeOffset.UtcNow.AddHours(1000)
+                        .ToUnixTimeSeconds()
+                        .ToString(),
+                    Email = dto.Email
+                })
+            };
         
+        //If Guest doesn't exist
         var insertedUser = repository.AddUser(new UserGuest
         {
             Id = Guid.NewGuid().ToString(),
+            Username = dto.Username,
             Email = dto.Email,
             Role = dto.Role,
             CreatedDate = DateTime.UtcNow
@@ -85,6 +99,8 @@ public class SecurityService(IOptionsMonitor<AppOptions> optionsMonitor, IUserRe
                 Email = insertedUser.Email
             })
         };
+
+
     }
 
     /// <summary>

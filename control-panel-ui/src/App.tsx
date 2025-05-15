@@ -9,6 +9,7 @@ import { KEYS } from './hooks/KEYS';
 import { useEffect, useState } from 'react';
 import { ControlMotor } from './components/Movement/MovementNew/Movement/ControlMotor.tsx';
 import { Toaster } from 'react-hot-toast';
+import ThreeDView from './components/ThreeD/ThreeDView.tsx';
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
 const prod = import.meta.env.PROD;
 export default function App() {
@@ -33,6 +34,7 @@ export default function App() {
             <Route path="/school-info/*" element={<SchoolInfo />} />
             <Route path="/RobotMovement" element={<ControlMotor />} />
             <Route path="/tic-tac-toe" element={<UTTTPage />} />
+            <Route path="/3d" element={<ThreeDView />} />
             <Route path="/" element={<Navigate to="/school-info" replace />} />
 
           </Routes>

@@ -1,7 +1,7 @@
 import {BaseDto} from "ws-request-hook";
 import {
     ClientCommand,
-    Command,
+    Command, DistanceWarning,
     InitializeEngineResponse,
     NegativeDistanceWarning
 } from "../models/mqttModels/MqttModels.ts";
@@ -27,6 +27,9 @@ export interface InitializeEnginResponseDto extends BaseDto
 {
     command: ClientCommand<InitializeEngineResponse>;
 }
+export interface DangerMovementDto extends BaseDto {
+    command: ClientCommand<DistanceWarning>;
+}
 
 
 export enum StringConstants {
@@ -35,5 +38,6 @@ export enum StringConstants {
     ServerSendsErrorMessageDto = "ServerSendsErrorMessageDto",
     InitializeEnginResponseDto="InitializeEnginResponseDto",
     RobotMovementDto = "RobotMovementDto",
-    NegativeDistanceNotifierDto="NegativeDistanceNotifierDto"
+    NegativeDistanceNotifierDto="NegativeDistanceNotifierDto",
+    DangerMovementDto = "DangerMovementDto"
 }

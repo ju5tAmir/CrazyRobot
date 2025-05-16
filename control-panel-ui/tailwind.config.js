@@ -18,7 +18,6 @@ export default {
     themes: [
       'light',
       'dark',
-      // якщо потрібні ще — наприклад 'cupcake','garden' і т.д.
     ]
   }
 }

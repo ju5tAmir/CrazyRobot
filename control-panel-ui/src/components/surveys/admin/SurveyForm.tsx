@@ -3,7 +3,7 @@ import { QuestionDto, CreateSurveyRequestDto } from '../../../api/generated-clie
 import {SurveyFormProps} from "../../../models/surveys-models/SurveyFormProps.ts"
 import {Trash2} from "lucide-react";
 
-export default function SurveyForm({ initial, onSubmit }: SurveyFormProps) {
+export default function SurveyForm({ initial, onSubmit, onCancel }: SurveyFormProps) {
     const [survey, setSurvey] = useState<CreateSurveyRequestDto>(initial || {
         title: '',
         description: '',
@@ -201,13 +201,18 @@ export default function SurveyForm({ initial, onSubmit }: SurveyFormProps) {
                 </button>
             </div>
 
-            <button
-                className="btn btn-primary mt-4"
-                onClick={() => onSubmit(survey)}
-                disabled={!survey.title || !survey.questions?.length}
-            >
-                {initial?.id ? 'Update Survey' : 'Create Survey'}
-            </button>
+            <div className="modal-action mt-8">
+                <button className="btn btn-outline btn-error" onClick={onCancel}>
+                    Cancel
+                </button>
+                <button
+                    className="btn btn-primary"
+                    onClick={() => onSubmit(survey)}
+                    disabled={!survey.title || !survey.questions?.length}
+                >
+                    {initial?.id ? 'Update Survey' : 'Create Survey'}
+                </button>
+            </div>
         </div>
     );
 }

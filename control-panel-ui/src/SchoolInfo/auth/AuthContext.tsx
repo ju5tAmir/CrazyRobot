@@ -1,23 +1,58 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
-import { AuthClient } from '../../api/generated-client'; // або '@/api/generated-client'
+import {useState, ReactNode, useEffect} from 'react';
+import { http } from '../../helpers/http.ts';
+import { AuthContext } from '../../helpers/useAuthContext.ts';
 
-interface AuthContextType {
-    jwt: string | null;
-    login(email: string, password: string): Promise<void>;
-    logout(): void;
+interface JwtPayload {
+    sub: string;
+    role?: string;
+    exp: number;
+    [key: string]: string | number | boolean | undefined;
 }
 
-const AuthContext = createContext<AuthContextType>(null as never);
-export const useAuth = () => useContext(AuthContext);
+function decodeJwt(token: string): JwtPayload | null {
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(
+            atob(base64)
+                .split('')
+                .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+                .join('')
+        );
+        return JSON.parse(jsonPayload);
+    } catch (error) {
+        console.error('Failed to decode JWT', error);
+        return null;
+    }
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [jwt, setJwt] = useState<string | null>(
         localStorage.getItem('jwt')
     );
+    const [role, setRole] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (jwt) {
+            const payload = decodeJwt(jwt);
+            if (payload) {
+                setRole(payload.role || null);
+            }
+        } else {
+            setRole(null);
+        }
+        http.resetClients();
+    }, [jwt]);
 
     async function login(email: string, password: string) {
-        const client = new AuthClient(import.meta.env.VITE_API_BASE_URL);
-        const { jwt: token } = await client.login({ email, password });
+        const { jwt: token } = await http.auth.login({ email, password });
+        localStorage.setItem('jwt', token);
+        setJwt(token);
+    }
+
+    async function loginOrRegisterUser(email: string, username: string) {
+        const role = "user";
+        const { jwt: token } = await http.auth.loginOrRegisterUser({ username, email, role });
         localStorage.setItem('jwt', token);
         setJwt(token);
     }
@@ -25,10 +60,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     function logout() {
         localStorage.removeItem('jwt');
         setJwt(null);
+        http.resetClients();
     }
 
     return (
-        <AuthContext.Provider value={{ jwt, login, logout }}>
+        <AuthContext.Provider value={{ jwt, role, login, loginOrRegisterUser, logout }}>
             {children}
         </AuthContext.Provider>
     );

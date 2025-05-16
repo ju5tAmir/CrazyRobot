@@ -775,6 +775,29 @@
         }
       }
     },
+    "/api/survey-submission/GetActiveSurveys": {
+      "get": {
+        "tags": [
+          "UserSurveys"
+        ],
+        "operationId": "UserSurveys_GetActiveSurveys",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SurveyResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/auth/Login": {
       "post": {
         "tags": [
@@ -807,18 +830,50 @@
         }
       }
     },
-    "/api/auth/Register": {
+    "/api/auth/RegisterAdmin": {
       "post": {
         "tags": [
           "Auth"
         ],
-        "operationId": "Auth_Register",
+        "operationId": "Auth_RegisterAdmin",
         "requestBody": {
           "x-name": "dto",
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/AuthRequestDto"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/LoginOrRegisterUser": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "operationId": "Auth_LoginOrRegisterUser",
+        "requestBody": {
+          "x-name": "dto",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthUserRequest"
               }
             }
           },
@@ -1011,6 +1066,9 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
+          "id": {
+            "type": "string"
+          },
           "questionText": {
             "type": "string"
           },
@@ -1231,6 +1289,29 @@
           }
         }
       },
+      "AuthUserRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "username",
+          "email",
+          "role"
+        ],
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 1
+          },
+          "email": {
+            "type": "string",
+            "minLength": 3
+          },
+          "role": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
       "MemberLeftNotification": {
         "allOf": [
           {
@@ -1258,6 +1339,67 @@
             "type": "string"
           },
           "requestId": {
+            "type": "string"
+          }
+        }
+      },
+      "DangerMovementDto": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseDto"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "command": {
+                "$ref": "#/components/schemas/ClientCommandOfDistanceWarning"
+              }
+            }
+          }
+        ]
+      },
+      "ClientCommandOfDistanceWarning": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "commandType": {
+            "$ref": "#/components/schemas/ClientCommandType"
+          },
+          "payload": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/DistanceWarning"
+              }
+            ]
+          }
+        }
+      },
+      "ClientCommandType": {
+        "type": "string",
+        "description": "",
+        "x-enumNames": [
+          "Initialized",
+          "BatteryStatus",
+          "DistanceWarning",
+          "NegativeWarning"
+        ],
+        "enum": [
+          "initialized",
+          "batteryStatus",
+          "distanceWarning",
+          "negativeWarning"
+        ]
+      },
+      "DistanceWarning": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "warning": {
+            "type": "string"
+          },
+          "direction": {
             "type": "string"
           }
         }
@@ -1294,22 +1436,6 @@
             ]
           }
         }
-      },
-      "ClientCommandType": {
-        "type": "string",
-        "description": "",
-        "x-enumNames": [
-          "Initialized",
-          "BatteryStatus",
-          "DistanceWarning",
-          "NegativeWarning"
-        ],
-        "enum": [
-          "initialized",
-          "batteryStatus",
-          "distanceWarning",
-          "negativeWarning"
-        ]
       },
       "InitializeEngineResponse": {
         "type": "object",
@@ -1569,6 +1695,7 @@
         "description": "Available eventType and string constants",
         "enum": [
           "MemberLeftNotification",
+          "DangerMovementDto",
           "InitializeEnginResponseDto",
           "NegativeDistanceNotifierDto",
           "RobotMovementDto",

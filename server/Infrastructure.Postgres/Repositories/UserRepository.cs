@@ -15,10 +15,22 @@ public class UserRepository(AppDbContext ctx) : IUserRepository
     {
         return ctx.Users.FirstOrDefault(u => u.Email == email);
     }
+    
+    public UserGuest? GetGuestByIdOrNull(string email)
+    {
+        return ctx.UserGuests.FirstOrDefault(u => u.Email == email);
+    }
 
-    public User AddUser(User user)
+    public User AddAdmin(User user)
     {
         ctx.Users.Add(user);
+        ctx.SaveChanges();
+        return user;
+    }
+    
+    public UserGuest AddUser(UserGuest user)
+    {
+        ctx.UserGuests.Add(user);
         ctx.SaveChanges();
         return user;
     }

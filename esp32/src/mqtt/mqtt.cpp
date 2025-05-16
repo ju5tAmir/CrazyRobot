@@ -198,6 +198,16 @@ void sendDistanceWarning(String level,String direction){
     publisher.publish(distanceWarningTopic, out.c_str());
 }
 
+//send distance warning to the client new 
+void sendDistanceWarningNew(String levels){
+    DynamicJsonDocument doc(256);
+    doc["CommandType"] = "DistanceWarning";
+    JsonObject pl = doc.createNestedObject("Payload");
+    pl["Warning"] = levels;
+    String out;
+    serializeJson(doc, out);
+    publisher.publish(distanceWarningTopic, out.c_str());
+}
 
 // send negative space information
 

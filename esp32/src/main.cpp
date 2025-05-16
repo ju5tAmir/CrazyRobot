@@ -4,11 +4,11 @@
 #include "mqtt/mqtt.h"
 #include <ESP32Servo.h>
 #include <ServoEasing.hpp>
-#include "lidar/lidar.h"
 #include <ArduinoJson.h>
 #include "messages/messages.h"
 #include  "obstacles/obstacles.h"
 #include "ir/ir.h"
+#include "serialRead/uartSer.h"
 
 
 // Create servo manager instance - automatically loads all servo configurations
@@ -18,6 +18,7 @@ Motor rightMotor(IN1, IN2, ENA, pwmChannel1);
 Motor leftMotor(IN4, IN3, ENB, pwmChannel2);
 ServoEasing myServo;
 RobotData robot = RobotData();
+ HardwareSerial LidarSerial(2);
 void actOnMovements();
 void checkRobotState(RobotData& robot,HardwareSerial &serial);
 void stopEngines();
@@ -37,7 +38,6 @@ const unsigned long negativeHoldDelay = 500;
 const unsigned long holdDelay = 1000;
 //lidar readings and processing
 const unsigned long  measureLidar = 200;
-String getDirectionForAngle(float angle);
 
 ///TODO move the UARt communication to a separate file  fr clean code 
 //wait for the second esp to respond back for maximum 6 seconds
@@ -51,29 +51,14 @@ unsigned long lastCheckTime = 0;
 static unsigned long lastWarnTime = 0;
 
 
-//Thread management for lidar thread
-TaskHandle_t lidarTaskHandle;
-void lidarTask(void* pvParameters);
-
 void setup() {
   analogReadResolution(12);
   Serial.begin(115200); 
  LidarSerial.begin(115200, SERIAL_8N1, RPLIDAR_RX, RPLIDAR_TX);
+  while (LidarSerial.available()) LidarSerial.read();
 connectWiFi();
 connectMQTT(&robot);
 setupMotors();
-
-
-xTaskCreatePinnedToCore(
-  lidarTask,
-  "LidarTask",
-  8192,
-  &robot,
-  1,
-  &lidarTaskHandle,
-  1
-);
-
 }
 
 void loop() {
@@ -85,68 +70,9 @@ void loop() {
         connectMQTT(&robot);
     }
     client.loop(); 
-
-
-  //   unsigned long currentMillis = millis();
+    handleWarningChange(LidarSerial);
     checkRobotState(robot,LidarSerial);
-  
-  //   if (!robot.isStopped) {
-  //     unsigned long currentMillis = millis();
-  
-  //     if (currentMillis - lastCheckTime >= measureLidar) {
-  //         lastCheckTime = currentMillis;
-  //         Obstacle localObstacles[NUM_BUCKETS];
-  //         int localCounter=0;
-  //         if (xSemaphoreTake(robotMutex, pdMS_TO_TICKS(50))) {
-  //           localCounter=robot.currentObstaclesCount;
-  //             for (int i = 0; i < NUM_BUCKETS; i++) {
-  //                 localObstacles[i] = robot.obstacles[i];
-  //             }
-  //             xSemaphoreGive(robotMutex);
-  //         } else {
-  //             Serial.println("Failed to get robotMutex in loop");
-  //             return;
-  //         }
 
-  //         for (int i = 0; i < 4; i++) {
-  //           warnings[i] = FREE;
-  //       }
-
-  //         for (int i = 0; i <localCounter; i++) {
-  //             Obstacle obs = localObstacles[i];
-  //             float angle = obs.startAngle;
-  //             float end = obs.endAngle;
-  //             float dist = obs.distance;
-  //             Serial.println(dist);
-  //             Serial.println("distance");
-  //             Serial.println(angle);
-  //             Serial.println("anglestart");
-  //             Serial.println(end);
-  //             Serial.println("angle end");
-  //             if (dist > 600) continue;
-  //             const String dir = getDirectionForAngle(angle);
-  //             int index = directionIndex(dir);
-
-  //              if (index == -1) continue;
-
-  //             if (dist >= 250 && dist<=300) {
-  //                 warnings[index] = SEVERE; 
-  //              } else if ((dist > 300 && dist <=500) && warnings[index] != SEVERE) {
-  //                warnings[index] = MILD;
-  //             } 
-  //         }
-         
-  //       for (int i = 0; i < 4; i++) {
-  //         if(warnings[i]!=lastWarnings[i]){
-  //           sendDistanceWarning(warnings[i], directions[i]); 
-  //           lastWarnings[i]=warnings[i];
-  //         }
-             
-  //        }
-
-
-  //     }
-  // }
 }
 
 void actOnMovements() {
@@ -172,7 +98,6 @@ void actOnMovements() {
     moveRobotTwo(LEFT, MOVE_SPEED, MOVE_SPEED, leftMotor, rightMotor);
     return;
   }
-
 
   if (foundD) {
     moveRobotTwo(RIGHT, MOVE_SPEED, MOVE_SPEED, leftMotor, rightMotor);
@@ -241,25 +166,6 @@ Serial.println("Received from the lidar");
   return;
 }
   
-  // if (robot.initializing){
-  //  bool  lidarReadyTemp = initializeHardware();
-  //   if(lidarReadyTemp){
-  //      robot.initializing=false;
-  //      robot.isStopped=false;  
-  //      robot.lidarReady=true; 
-  //      xTaskNotifyGive(lidarTaskHandle);
-  //      sendInitializeMessage(false,"");
-  //   }else{
-  //     robot.lidarReady=false;
-  //     robot.initializing=false;
-  //     robot.isStopped=true;
-  //     stopLidar();
-  //     sendInitializeMessage(true,InitializeError);
-  //     Serial.println("error occured while starting");
-  //   }
-  //   return;
-  // }
-
   if(robot.isStopped ){
     return;  
  }
@@ -267,7 +173,6 @@ Serial.println("Received from the lidar");
   //Add retry to stop if stop fails
   if(robot.isStopping){
     Serial.println("Stopping");
-    // bool stopped = stopLidar();
      sendLidarCommands(LidarOff,serial); 
   unsigned long startTime = millis();
   String response = "";
@@ -328,22 +233,7 @@ Serial.println("Received from the lidar");
 }
 
 
-void lidarTask(void* pvParameters) {
-  RobotData* robot = (RobotData*)pvParameters;
 
-  while (true) {
-    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);//Toodo look into this because is maxed with 
-   // Serial.println("[LIDAR Task] Notification received, starting scan,outside");
-    while (robot->lidarReady) {
-      readLidarData(robot);
-     // Serial.println("[LIDAR Task] Notification received, starting scan inside");
-      vTaskDelay(30 / portTICK_PERIOD_MS);
-      yield();
-    }
-
-   // Serial.println("[LIDAR Task] Scan stopped, waiting again...");
-  }
-}
 
 
 void removeAllowedMovement(char (&allowedMovements)[4], char target) {
@@ -376,20 +266,6 @@ bool isMovementAllowed(char(&activeMovements)[4],char currentMovement,int size){
   }
   return false;
 }
-
-String getDirectionForAngle(float angle) {
-  if (angle >= 315 || angle <= 45) {
-      return FT; 
-  } else if (angle > 45 && angle <= 135) {
-      return RT; 
-  } else if (angle > 135 && angle <= 225) {
-      return BK; 
-  } else {
-      return LT;
-  }
-}
-
-
 
 // send uart commands to the second esp32 after is tested needs to be moved in a separate file 
 /**

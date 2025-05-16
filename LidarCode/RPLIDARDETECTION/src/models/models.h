@@ -4,8 +4,8 @@
 #define MODELS_h
 const int ANGLE_BUCKET_SIZE = 3; 
 const int NUM_BUCKETS = 360 / ANGLE_BUCKET_SIZE;
-const float SIMILARITY_TOLERANCE = 30; // mm 
-const int MAX_POINTS = 500;  
+const float SIMILARITY_TOLERANCE = 50; // mm 
+const int MAX_POINTS = 1000;  
 const int MERGE_ANGLE_TOLERANCE=7;
 const int MAX_HISTORY= 5;
 
@@ -16,6 +16,12 @@ struct Obstacle {
     float startAngle;
     float endAngle;
     float distance;
+};
+
+struct DirectionZone {
+  String name;
+  float centerAngle;
+  float widthCm;
 };
 
 

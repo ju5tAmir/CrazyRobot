@@ -4,23 +4,12 @@
 
 RPLidar lidar;
 HardwareSerial LidarSerial(2);
-float lastScanTime = 0;
-
-const int MIN_OBJECT_WIDTH_DEG=3;
+const int MIN_OBJECT_WIDTH_DEG = 3;
 Point* scanPoints = nullptr;     
 
 int pointCount = 0;              
-const String directions[4] = {FT, BK, LT, RT};
-String warnings[4] = {FREE, FREE, FREE, FREE};
-String lastWarnings[4] = {FREE, FREE, FREE, FREE};
-
-int directionIndex(const String direction) {
-    if (direction == FT) return 0;
-    if (direction==BK) return 1;
-    if (direction==LT) return 2;
-    if (direction==RT) return 3;
-    return -1;
-  }
+    int counter=0;
+        int startBitC = 0;
 
 bool initializeHardware(LidarState &lidarState) {
     delay(1000);
@@ -29,166 +18,212 @@ bool initializeHardware(LidarState &lidarState) {
     lidar.begin(LidarSerial);
     scanPoints = (Point*) malloc(MAX_POINTS * sizeof(Point));
     delay(1000);
+    
     if (!scanPoints) {
         Serial.println("Failed to allocate memory for scanPoints!");
         return false;
     }
+    
     rplidar_response_device_info_t info;
     if (!IS_OK(lidar.getDeviceInfo(info, 1000))) {
         Serial.println("RPLIDAR not detected!");
         return false;
     }
+    
     Serial.println("RPLIDAR detected.");
     startMotor();
     delay(3000);
+    
     u_result result = lidar.startScan(false);  
-if (!IS_OK(result)) {
-    Serial.print("Failed to start scan! Error code: ");
-    Serial.println(result, HEX);
-    return false;
-}
-lidarState.collectingScan=false;
-pointCount = 0;  
+    if (!IS_OK(result)) {
+        Serial.print("Failed to start scan! Error code: ");
+        Serial.println(result, HEX);
+        return false;
+    }
+    
+    lidarState.collectingScan = false;
+    pointCount = 0;  
+    
+    // Initialize buffer indices
+    lidarState.activeBufferIndex = 0;
+    lidarState.fullScanForProcessing = false;
+    
     Serial.println("LIDAR scan started successfully.");
     return true;
 }
 
-
-//Stop the lidar 
-bool stopLidar(LidarState &lidarState){
+// Stop the lidar 
+bool stopLidar(LidarState &lidarState) {
     lidar.stop();
-    ledcWrite(pwmChannel,0);
-    lidarState.collectingScan=false;
+    ledcWrite(pwmChannel, 0);
+    lidarState.collectingScan = false;
+    lidarState.fullScanForProcessing = false;
     pointCount = 0; 
+       if (scanPoints != nullptr) {
+        free(scanPoints);
+        scanPoints = nullptr;
+    }
+    Serial.println("LIDAR motor stopped.");
     return true;
 }
 
-
-//start the motor of the lidar 
+// Start the motor of the lidar 
 void startMotor() {
     ledcSetup(pwmChannel, pwmFreq, pwmResolution);
     ledcAttachPin(RPLIDAR_MOTOR, pwmChannel);
-  ledcWrite(pwmChannel, 153); 
+    ledcWrite(pwmChannel, 160); 
+    Serial.println("LIDAR motor started.");
 }
 
-
-
 void readLidarData(LidarState* data) {
-    if (IS_OK(lidar.waitPoint())) { 
-        RPLidarMeasurement point  = lidar.getCurrentPoint();
-        float distance = point.distance;
-        float angle = point.angle;
-        byte quality = point.quality;
-        bool startBit = point.startBit;
-        if(startBit){
-            unsigned long currentTime = millis();
-            // Print time taken since last scan (scan duration)
-            if (lastScanTime > 0) {
-                Serial.print("Scan duration (ms): ");
-                Serial.println(currentTime - lastScanTime);
-            }
-            lastScanTime = currentTime;
-            if (data->collectingScan && pointCount > 0) {
-                float averagedDistances[NUM_BUCKETS];
-                int readingsPerbucket[NUM_BUCKETS];
-                 averageDistances(scanPoints, pointCount, averagedDistances,readingsPerbucket);
-                detectAndUpdateObstacles(averagedDistances,readingsPerbucket,data);
-              
-            }
-             data->fullScanForProcessing = true;
-            pointCount = 0;
-            data->collectingScan = true;
-        }
+  pointCount = 0;
+  data->collectingScan = false;
+  bool scanStarted = false;
 
+  unsigned long scanStartTime = millis();
+  const unsigned long maxScanDuration = 500; 
+  int counter=0;
 
-            if (data->collectingScan && distance != 0 && quality > 0 && distance <= 2000) {
-                if (pointCount < MAX_POINTS) {
-                    scanPoints[pointCount++] = {angle, distance};
-                }
-            }
-     
-    
+  while (millis() - scanStartTime < maxScanDuration) {
+    if (!IS_OK(lidar.waitPoint())) {
+      delay(1);
+      continue;
     }
-    
+    counter ++;
+    RPLidarMeasurement point = lidar.getCurrentPoint();
+    float distance = point.distance;
+    float angle = point.angle;
+    byte quality = point.quality;
+    bool startBit = point.startBit;
+
+    if (startBit) {
+      if (scanStarted && pointCount > 0) {
+        float averagedDistances[NUM_BUCKETS];
+        int readingsPerbucket[NUM_BUCKETS];
+        averageDistances(scanPoints, pointCount, averagedDistances, readingsPerbucket);
+        detectAndUpdateObstacles(averagedDistances, readingsPerbucket, data);
+        data->fullScanForProcessing = true;
+        return;  
+      }
+
+      scanStarted = true;
+      pointCount = 0;
+    }
+
+    if (scanStarted && distance > 0 && quality > 0 && distance <= 2000 && pointCount < MAX_POINTS) {
+      scanPoints[pointCount++] = { angle, distance };
+    }
+  }
+
+  data->fullScanForProcessing = false;
+  //flush the serial buffer if the collection fails by not geting a start
+ // bit or time allocated for reading expires
+  unsigned long flushStart = millis();
+  while (millis() - flushStart < 100) {
+  if (!IS_OK(lidar.waitPoint())) break;
+  lidar.getCurrentPoint(); 
+}
 }
 
 void averageDistances(const Point* measurements, int size, float* output, int* countOut) {
     float sumDistances[NUM_BUCKETS] = {0};
     int countDistances[NUM_BUCKETS] = {0};
-
     for (int i = 0; i < size; i++) {
         int bucket = (int)(measurements[i].angle / ANGLE_BUCKET_SIZE);
-        sumDistances[bucket] += measurements[i].distance;
-        countDistances[bucket]++;
+        if (bucket >= 0 && bucket < NUM_BUCKETS) {  // Bounds check
+            sumDistances[bucket] += measurements[i].distance;
+            countDistances[bucket]++;
+        }
     }
 
     for (int i = 0; i < NUM_BUCKETS; i++) {
         if (countDistances[i] > 0) {
             output[i] = sumDistances[i] / countDistances[i];
         } else {
-            output[i] = -1;
+            output[i] = -1;  // No data for this bucket
         }
         countOut[i] = countDistances[i];
     }
 }
 
 
-void updateAndDetectObstacles(){
-    
+// Helper to dynamically choose group sizes based on distance
+const int* getDynamicGroupSizes(float dist, int& sizeOut) {
+    static const int nearGroups[] = {2, 3};    // 6°–9° obstacle measurement span
+    static const int midGroups[]  = {3, 5};    // 9°–15°  obstacle measurement span
+    static const int farGroups[]  = {5, 10};   // 15°–30°  obstacle measurement span
+
+    if (dist < 500.0f) {
+        sizeOut = 2;
+        return nearGroups;
+    } else if (dist < 1500.0f) {
+        sizeOut = 2;
+        return midGroups;
+    } else {
+        sizeOut = 2;
+        return farGroups;
+    }
 }
 
 
 
 
-
-
+//The one with gaps
 void detectAndUpdateObstacles(float* averageDistances, int* countDistances, LidarState* lidar) {
     Obstacle obstaclesTemp[NUM_BUCKETS];
     int tempCount = 0;
-    int i = 0;
+    bool used[NUM_BUCKETS] = { false };
 
+    const int MIN_VALID_BUCKETS = 2;
+    const int MAX_GAP_IN_GROUP = 1;
 
-    // process the average distances into similar object bassed on distance and gap between buckets
-    while (i < NUM_BUCKETS) {
-        if (averageDistances[i] < 0) {
-            i++;
-            continue;
+    for (int i = 0; i < NUM_BUCKETS; i++) {
+        if (averageDistances[i] < 0 || used[i]) continue;
+
+        float refDist = averageDistances[i];
+        int groupCount = 0;
+        const int* groupSizes = getDynamicGroupSizes(refDist, groupCount);
+
+        for (int g = 0; g < groupCount; g++) {
+            int group = groupSizes[g];
+            if (i + group > NUM_BUCKETS) continue;
+
+            int valid = 0, gaps = 0;
+            float minDist = 10000.0f, maxDist = 0.0f, sum = 0.0f;
+
+            for (int k = 0; k < group; k++) {
+                int idx = i + k;
+                float d = averageDistances[idx];
+
+                if (d >= 0 && !used[idx]) {
+                    minDist = min(minDist, d);
+                    maxDist = max(maxDist, d);
+                    sum += d;
+                    valid++;
+                } else {
+                    gaps++;
+                }
+            }
+
+            if (valid >= MIN_VALID_BUCKETS && gaps <= MAX_GAP_IN_GROUP && (maxDist - minDist) <= SIMILARITY_TOLERANCE) {
+                float avgDist = sum / valid;
+                float startAngle = i * ANGLE_BUCKET_SIZE;
+                float endAngle = (i + group) * ANGLE_BUCKET_SIZE;
+                float angleSpan = endAngle - startAngle;
+
+                Obstacle candidate = { startAngle, endAngle, avgDist };
+
+                if ((angleSpan >= MIN_OBJECT_WIDTH_DEG || isPersistentObstacle(candidate, lidar)) && tempCount < NUM_BUCKETS) {
+                    obstaclesTemp[tempCount++] = candidate;
+                }
+
+                for (int k = 0; k < group; k++) used[i + k] = true;
+                break;
+            }
         }
-
-        float startAngle = i * ANGLE_BUCKET_SIZE;
-        float sumDist = averageDistances[i];
-        int count = 1;
-        int j = i + 1;
-
-        while (j < NUM_BUCKETS &&
-               averageDistances[j] >= 0 &&
-               countDistances[j] >= 2 &&
-               fabs(averageDistances[j] - averageDistances[j - 1]) < SIMILARITY_TOLERANCE &&
-               j == i + count) {
-            sumDist += averageDistances[j];
-            count++;
-            j++;
-        }
-
-        float endAngle = (j - 1) * ANGLE_BUCKET_SIZE;
-        if (startAngle == endAngle) {
-    endAngle += ANGLE_BUCKET_SIZE;
-}
-        float avgDist = sumDist / count;
-        float angleSpan = endAngle - startAngle;
-
-        Obstacle candidate = { startAngle, endAngle, avgDist };
-
-        if ((angleSpan >= MIN_OBJECT_WIDTH_DEG || isPersistentObstacle(candidate, lidar)) &&
-            tempCount < NUM_BUCKETS) {
-            obstaclesTemp[tempCount++] = candidate;
-        }
-
-        i = j;
     }
 
-    // builds the obtacles from the sparse buckets where we collect the reading points
-    //alows a tolerence of 7 degrees
+    // --- Merge overlapping obstacles ---
     Obstacle merged[NUM_BUCKETS];
     int mergedCount = 0;
 
@@ -198,7 +233,6 @@ void detectAndUpdateObstacles(float* averageDistances, int* countDistances, Lida
 
         for (int j = 0; j < mergedCount; j++) {
             Obstacle& existing = merged[j];
-
             bool angleClose = !(newObs.endAngle < existing.startAngle - MERGE_ANGLE_TOLERANCE ||
                                 newObs.startAngle > existing.endAngle + MERGE_ANGLE_TOLERANCE);
             bool distanceClose = fabs(existing.distance - newObs.distance) < SIMILARITY_TOLERANCE;
@@ -211,7 +245,6 @@ void detectAndUpdateObstacles(float* averageDistances, int* countDistances, Lida
                 existing.startAngle = min(existing.startAngle, newObs.startAngle);
                 existing.endAngle = max(existing.endAngle, newObs.endAngle);
                 existing.distance = (existing.distance * width1 + newObs.distance * width2) / totalWidth;
-
                 mergedExisting = true;
                 break;
             }
@@ -222,34 +255,24 @@ void detectAndUpdateObstacles(float* averageDistances, int* countDistances, Lida
         }
     }
 
-
     Obstacle* writeBuffer = lidar->obstacleBuffers[lidar->activeBufferIndex];
-int& writeCount = lidar->obstacleCounts[lidar->activeBufferIndex];
+    int& writeCount = lidar->obstacleCounts[lidar->activeBufferIndex];
+    writeCount = min(mergedCount, NUM_BUCKETS);
 
-// Fill the buffer as usual:
-writeCount = min(mergedCount, NUM_BUCKETS);
-for (int i = 0; i < writeCount; i++) {
-    writeBuffer[i] = merged[i];
-}
-    // Save to LidarState the current identified obstacles for processing, and send obstacle detection messgaes to the client 
-    //lidar->currentObstaclesCount = min(mergedCount,NUM_BUCKETS);
-    // for (int i = 0; i < lidar->currentObstaclesCount; i++) {
-    //     lidar->obstacles[i] = merged[i];
-    // }
+    for (int i = 0; i < writeCount; i++) {
+        writeBuffer[i] = merged[i];
+    }
 
-    // Saves the obsacles in a histyory buffer that is a 2d array, that according to the datasheet shuold be 5 reads/second 
     int historySlot = lidar->historyIndex % MAX_HISTORY;
-    lidar->historyCounts[historySlot] = lidar->currentObstaclesCount;
-   
-    for (int i = 0; i < lidar->currentObstaclesCount; i++) {
-        lidar->history[historySlot][i] = lidar->obstacles[i];
+    lidar->historyCounts[historySlot] = writeCount;
+    for (int i = 0; i < writeCount; i++) {
+        lidar->history[historySlot][i] = merged[i];
     }
     lidar->historyIndex = (lidar->historyIndex + 1) % MAX_HISTORY;
 }
- 
 
 
-//Check if an object is persistent across 5 scans, with a tolerance of 5 degress between readings  
+// Check if an object is persistent across scans, with a tolerance of 5 degrees between readings  
 bool isPersistentObstacle(const Obstacle& candidate, const LidarState* lidar) {
     int matches = 0;
     for (int h = 0; h < MAX_HISTORY; h++) {
@@ -258,7 +281,7 @@ bool isPersistentObstacle(const Obstacle& candidate, const LidarState* lidar) {
         for (int i = 0; i < count; i++) {
             const Obstacle& past = lidar->history[idx][i];
             bool angleMatch = fabs(past.startAngle - candidate.startAngle) < 5.0f &&
-                              fabs(past.endAngle - candidate.endAngle) < 5.0f;
+                             fabs(past.endAngle - candidate.endAngle) < 5.0f;
 
             if (angleMatch) {
                 matches++;
@@ -271,14 +294,3 @@ bool isPersistentObstacle(const Obstacle& candidate, const LidarState* lidar) {
 }
 
 
-String getDirectionForAngle(float angle) {
-  if (angle >= 315 || angle <= 45) {
-      return FT; 
-  } else if (angle > 45 && angle <= 135) {
-      return RT; 
-  } else if (angle > 135 && angle <= 225) {
-      return BK; 
-  } else {
-      return LT;
-  }
-}

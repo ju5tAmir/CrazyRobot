@@ -5,258 +5,97 @@
 #include "LIDAR/lidar.h"
 #include "models/models.h"
 #include "commands/commands.h"
+#include "LIDAR/zoneDetection.h"
+#define MAX_CMD_LEN 32
 
 //serial to communicate with the motor controll microcontroller
 HardwareSerial TransmitSerial(1);
 unsigned long lastChecked = 0;
-unsigned long lidarChecktimer =200;
-
-// put function declarations here:
-int myFunction(int, int);
+unsigned long lidarChecktimer = 200;
 LidarState lidarState = LidarState();
-void readReceivedMessages(HardwareSerial &serial,LidarState &lidarState);
-boolean readLidarcommand(String message);
-// void upddateObstaclesPerRegion(LidarState &lidar, HardwareSerial &serial);
-void upddateObstaclesPerRegion(Obstacle* obstacles,int count,HardwareSerial &serial);
+void processLidarCommand(const String &msg, LidarState &lidarState);
+void handleSerialCommands(HardwareSerial &serial, LidarState &lidarState);
+
+
+char serialBuffer[MAX_CMD_LEN];
+int serialPos = 0;
 
 void setup() {
    Serial.begin(115200);
-  // put your setup code here, to run once:
-     TransmitSerial.begin(115200, SERIAL_8N1, RX, RTT);
-
+   TransmitSerial.begin(115200, SERIAL_8N1, RX, RTT);
+    while (TransmitSerial.available()) TransmitSerial.read();
+   Serial.println("System initialized and ready");
 }
 
 void loop() {
-  if(TransmitSerial.available()){
-   readReceivedMessages(TransmitSerial,lidarState);
-  }
+  // Process any incoming commands
+handleSerialCommands(TransmitSerial,lidarState);
 
-  if(lidarState.lidarReady){
+  // Only process LIDAR data if it's ready
+  if(lidarState.lidarReady) {
+    // Read data from the LIDAR sensor
     readLidarData(&lidarState);
-    if(lidarState.fullScanForProcessing){
-       int readIndex = lidarState.activeBufferIndex;
-   lidarState.activeBufferIndex = 1 - lidarState.activeBufferIndex; 
-    Obstacle* readBuffer = lidarState.obstacleBuffers[readIndex];
-    int count = lidarState.obstacleCounts[readIndex];
-     upddateObstaclesPerRegion(readBuffer,count,LidarSerial);
-     lidarState.fullScanForProcessing=false;
+    
+    // Process a full scan when it's complete
+    if(lidarState.fullScanForProcessing) {
+      // Switch buffer indexes to avoid data corruption
+      int readIndex = lidarState.activeBufferIndex;
+      lidarState.activeBufferIndex = 1 - lidarState.activeBufferIndex; 
+    
+      // Get the ready-to-read buffer
+      Obstacle* readBuffer = lidarState.obstacleBuffers[readIndex];
+      int count = lidarState.obstacleCounts[readIndex];
+    
+      // Update obstacle warnings using the TransmitSerial (not LidarSerial)
+      updateObstaclesPerRegion(readBuffer, count, TransmitSerial);
+      
+      // Reset the flag to allow for next scan
+      lidarState.fullScanForProcessing = false;
+      
+      // Debug output
+      Serial.print("Processed scan with ");
+      Serial.print(count);
+      Serial.println(" obstacles");
     }   
   }
 
-}
-
-// put function definitions here:
-int myFunction(int x, int y) {
-  return x + y;
+  delay(5);
 }
 
 
-// this method can be improved to handle the state when lidar could not be turned off 
-void readReceivedMessages(HardwareSerial &serial,LidarState &liadrState){
-String line = serial.readStringUntil('#');
-line.trim();
-line+=Terminator;
-if(line.startsWith("L")){
- boolean lidarStateOn = readLidarcommand(line);
- if(lidarStateOn){
-  boolean isStarted = initializeHardware(liadrState);  
-  Serial.println("Receiver: Initialization completed.");
-  String response = isStarted ? LidarOn : LidarOff;
-  lidarState.lidarReady=isStarted;
-    serial.println(response);
-    Serial.println(response);
-    serial.println("Response sent");
- }else{
-  stopLidar(liadrState);
-    lidarState.lidarReady=false;
-    liadrState.collectingScan=false;
-   serial.println(LidarOff);
- }
-}
+void processLidarCommand(const String &msg, LidarState &lidarState) {
+  Serial.println("Received LIDAR message: " + msg);
+  if (msg == LidarOn) {
+    bool started = initializeHardware(lidarState);
+    lidarState.lidarReady = started;
+    TransmitSerial.println(started ? LidarOn : LidarOff);
+    Serial.println(started ? "LIDAR started." : "Failed to start LIDAR.");
+  } else if (msg == LidarOff) {
+    stopLidar(lidarState);
+    lidarState.lidarReady = false;
+    TransmitSerial.println(LidarOff);
+    Serial.println("LIDAR stopped.");
+  } else {
+    Serial.println("Invalid command: " + msg);
+  }
 }
 
+void handleSerialCommands(HardwareSerial &serial, LidarState &lidarState) {
+  while (serial.available()) {
+    char c = serial.read();
+    if (c == Terminator) {
+      serialBuffer[serialPos] = '\0';  // Terminate string
+      String message = String(serialBuffer)+=Terminator;
+      processLidarCommand(message, lidarState);
+      serialPos = 0;
+    }
+    // Normal character
+    else if (serialPos < MAX_CMD_LEN - 1 && isPrintable(c)) {
+      serialBuffer[serialPos++] = c;
+    }
 
-//read start stopCommand for the lidar 
-boolean readLidarcommand(String message) {
- Serial.println("arrived LIDAR message: " + message);
- if(message==LidarOn){
-  return true;
- }else if(message==LidarOff){
-  return false;
- }else{
-   Serial.println("arrived LIDAR message invalid " + message);
- }
-  return false;
-}
-
-
-// void upddateObstaclesPerRegion(LidarState &lidar,HardwareSerial &serial){
-//            for (int i = 0; i < 4; i++) {
-//             warnings[i] = FREE;
-//         }
-
-//           for (int i = 0; i <lidar.currentObstaclesCount; i++) {
-//               Obstacle obs = lidar.obstacles[i];
-//               float angle = obs.startAngle;
-//               float end = obs.endAngle;
-//               float dist = obs.distance;
-//               Serial.println(dist);
-//               Serial.println("distance");
-//               Serial.println(angle);
-//               Serial.println("anglestart");
-//               Serial.println(end);
-//               Serial.println("angle end");
-//               if (dist > 600) continue;
-//               const String dir = getDirectionForAngle(angle);
-//               int index = directionIndex(dir);
-//                if (index == -1) continue;
-//               if (dist >= 200 && dist<=350) {
-//                   warnings[index] = SEVERE; 
-//                } else if ((dist > 350 && dist <=500) && warnings[index] != SEVERE) {
-//                  warnings[index] = MILD;
-//               } 
-//           }
-         
-
-//           boolean changed = false;
-//           String warning ="";
-//         for (int i = 0; i < 4; i++) {
-//           if(warnings[i]!=lastWarnings[i]){
-//             changed=true;
-//             break;
-//           } }
-
-//          if (changed) {
-//         String warning = "";
-//         for (int i = 0; i < 4; i++) {
-//             if (i != 0) {
-//                 warning += ",";
-//             }
-//             warning += warnings[i];
-//             lastWarnings[i] = warnings[i];
-//         }
-         
-//         serial.println(warning+=Terminator);
-//         Serial.print("Warning changed in direction: ");
-//         Serial.println(warning); 
-//     }
-//   }
-
-
-void upddateObstaclesPerRegion(Obstacle* obstacles,int count,HardwareSerial &serial){
-           for (int i = 0; i < 4; i++) {
-            warnings[i] = FREE;
-        }
-
-          for (int i = 0; i <count; i++) {
-              Obstacle obs = obstacles[i];
-              float angle = obs.startAngle;
-              float end = obs.endAngle;
-              float dist = obs.distance;
-              Serial.println(dist);
-              Serial.println("distance");
-              Serial.println(angle);
-              Serial.println("anglestart");
-              Serial.println(end);
-              Serial.println("angle end");
-              if (dist > 600) continue;
-              const String dir = getDirectionForAngle(angle);
-              int index = directionIndex(dir);
-               if (index == -1) continue;
-              if (dist >= 200 && dist<=350) {
-                  warnings[index] = SEVERE; 
-               } else if ((dist > 350 && dist <=500) && warnings[index] != SEVERE) {
-                 warnings[index] = MILD;
-              } 
-          }
-         
-
-          boolean changed = false;
-          String warning ="";
-        for (int i = 0; i < 4; i++) {
-          if(warnings[i]!=lastWarnings[i]){
-            changed=true;
-            break;
-          } }
-
-         if (changed) {
-        String warning = "";
-        for (int i = 0; i < 4; i++) {
-            if (i != 0) {
-                warning += ",";
-            }
-            warning += warnings[i];
-            lastWarnings[i] = warnings[i];
-        }
-         
-        serial.println(warning+=Terminator);
-        Serial.print("Warning changed in direction: ");
-        Serial.println(warning); 
+    else {
+      serialPos = 0;  
     }
   }
-
-
-
-
-
-// void sendWarning(String message){
-
-
-// }
- //   if (!robot.isStopped) {
-  //     unsigned long currentMillis = millis();
-  
-  //     if (currentMillis - lastCheckTime >= measureLidar) {
-  //         lastCheckTime = currentMillis;
-  //         Obstacle localObstacles[NUM_BUCKETS];
-  //         int localCounter=0;
-  //         if (xSemaphoreTake(robotMutex, pdMS_TO_TICKS(50))) {
-  //           localCounter=robot.currentObstaclesCount;
-  //             for (int i = 0; i < NUM_BUCKETS; i++) {
-  //                 localObstacles[i] = robot.obstacles[i];
-  //             }
-  //             xSemaphoreGive(robotMutex);
-  //         } else {
-  //             Serial.println("Failed to get robotMutex in loop");
-  //             return;
-  //         }
-
-  //         for (int i = 0; i < 4; i++) {
-  //           warnings[i] = FREE;
-  //       }
-
-  //         for (int i = 0; i <localCounter; i++) {
-  //             Obstacle obs = localObstacles[i];
-  //             float angle = obs.startAngle;
-  //             float end = obs.endAngle;
-  //             float dist = obs.distance;
-  //             Serial.println(dist);
-  //             Serial.println("distance");
-  //             Serial.println(angle);
-  //             Serial.println("anglestart");
-  //             Serial.println(end);
-  //             Serial.println("angle end");
-  //             if (dist > 600) continue;
-  //             const String dir = getDirectionForAngle(angle);
-  //             int index = directionIndex(dir);
-
-  //              if (index == -1) continue;
-
-  //             if (dist >= 250 && dist<=300) {
-  //                 warnings[index] = SEVERE; 
-  //              } else if ((dist > 300 && dist <=500) && warnings[index] != SEVERE) {
-  //                warnings[index] = MILD;
-  //             } 
-  //         }
-         
-  //       for (int i = 0; i < 4; i++) {
-  //         if(warnings[i]!=lastWarnings[i]){
-  //           sendDistanceWarning(warnings[i], directions[i]); 
-  //           lastWarnings[i]=warnings[i];
-  //         }
-             
-  //        }
-
-
-  //     }
-  // }
+}

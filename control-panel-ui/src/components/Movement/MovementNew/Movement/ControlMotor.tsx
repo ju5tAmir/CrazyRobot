@@ -41,10 +41,11 @@ export const ControlMotor = () => {
             StringConstants.InitializeEnginResponseDto,
             (message) => {
                 const payload = message.command.payload;
-                const error = payload?.ErrorMessage ?? "";
+                const error = payload?.errorMessage ?? "";
                 const status = payload?.initializeEngine;
 
                 console.log("Message Payload:", payload);
+                console.warn("Message Error:", error);
                 console.log("Pressed E:", pressedKeys.has("e"));
                 console.log("Engine Status Flag:", status);
 
@@ -52,16 +53,11 @@ export const ControlMotor = () => {
                 setEngineLocked(false);
 
                 if (error.length > 0) {
-                    toast.error(`Engine error: ${error}`);
-                    setEngine(false);
-                    setEngineAtom(false);
-                    return;
+                    toast.error (`${error}`)
                 }
-
                 const engineOn = !status;
                 setEngine(engineOn);
                 setEngineAtom(engineOn);
-
                 toast.success(`Engine: ${engineOn ? "ON" : "OFF"}`);
             }
         );

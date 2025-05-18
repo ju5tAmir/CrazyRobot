@@ -1,3 +1,4 @@
+
 export type { CellProps as CellProps } from './CellProps.ts';
 export { Player as Player } from './CellProps.ts';
 export type { SmallBoardProps as SmallBoardProps } from './CellProps.ts';
@@ -11,3 +12,4 @@ export type {DangerDisplayProps as DangerDisplayProps} from "./dangerDisplay/Dan
  export type {DistanceWarning as DistanceWarning} from "./mqttModels/MqttModels.ts";
  export  {WARNING_LEVEL as WARNING_LEVEL } from "./mqttModels/MqttModels.ts";
  export {DIRECTION_WARNING as DIRECTION_WARNING} from "./mqttModels/MqttModels.ts"
+export {TERMINATOR as Terminator} from "./mqttModels/MqttModels.ts";

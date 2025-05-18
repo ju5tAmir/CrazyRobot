@@ -7,6 +7,8 @@
 #define RPLIDAR_TX 17  
 extern char serialBuffer[MAX_WARNING_LEN];
 extern int serialPos;
-void handleWarningChange(HardwareSerial &serial);
+// void handleWarningChange(HardwareSerial &serial,RobotData &robotState);
+
+bool readSerialMessage(HardwareSerial &serial, String &outMessage);
 
 #endif

@@ -18,16 +18,15 @@ Motor rightMotor(IN1, IN2, ENA, pwmChannel1);
 Motor leftMotor(IN4, IN3, ENB, pwmChannel2);
 ServoEasing myServo;
 RobotData robot = RobotData();
- HardwareSerial LidarSerial(2);
+HardwareSerial LidarSerial(2);
+MessageQueue lidarResponseQueue = MessageQueue();
 void actOnMovements();
 void checkRobotState(RobotData& robot,HardwareSerial &serial);
 void stopEngines();
+
 void  sendLidarCommands(String message,HardwareSerial &serial);
 
-//Todo move them in another 
-bool isMovementAllowed(char(&activeMovements)[4],char currentMovement,int size);
-void removeAllowedMovement(char (&allowedMovements)[4], char target);
-void addAllowedMovement(char (&allowedMovements)[4], char target);
+
 
 
 //Timing for the ir sensor
@@ -39,9 +38,14 @@ const unsigned long holdDelay = 1000;
 //lidar readings and processing
 const unsigned long  measureLidar = 200;
 
-///TODO move the UARt communication to a separate file  fr clean code 
+
 //wait for the second esp to respond back for maximum 6 seconds
- const unsigned long timeoutMs = 6000;
+const unsigned long timeoutMs = 6000;
+const unsigned long timeoutStopResponse =1000;
+unsigned long startTimeToWaitForResponse = 0;
+bool requestToLidarSent = false;
+bool requestToLidarSentStop = false;
+unsigned long startTimeStop = 0;
 
 
 
@@ -70,8 +74,22 @@ void loop() {
         connectMQTT(&robot);
     }
     client.loop(); 
-    handleWarningChange(LidarSerial);
+
+      String msg;
+  if (readSerialMessage(LidarSerial, msg)) {
+    msg.trim();
+    if (msg.startsWith("L:")) {
+      unsigned long currentMills =millis();
+      lidarResponseQueue.push(msg,currentMills); 
+    } else {
+      robot.lidarWarnings = msg;
+      processDirectionSeverity(msg,robot);
+      sendDistanceWarningNew(msg);
+    }
+  }
+ 
     checkRobotState(robot,LidarSerial);
+
 
 }
 
@@ -105,7 +123,7 @@ void actOnMovements() {
   }
 
   if (foundW) {
-    if (isMovementAllowed(robot.allowedMovements, 'w', 4)) {
+    if (isMovementAllowed(robot.allowedMovements, frontCommand, 4)) {
       moveRobotTwo(FORWARD, MOVE_SPEED, MOVE_SPEED, leftMotor, rightMotor);
     } else {
       moveRobotTwo(STOP, 0, 0, leftMotor, rightMotor);
@@ -114,10 +132,13 @@ void actOnMovements() {
   }
 
   if (foundS) {
-    moveRobotTwo(BACKWARD, MOVE_SPEED, MOVE_SPEED, leftMotor, rightMotor);
+        if (isMovementAllowed(robot.allowedMovements, frontCommand, 4)) {
+      moveRobotTwo(BACKWARD, MOVE_SPEED, MOVE_SPEED, leftMotor, rightMotor);
+    } else {
+      moveRobotTwo(STOP, 0, 0, leftMotor, rightMotor);
+    }
     return;
   }
-
 
   if (!foundW && !foundS && !foundD && !foundA) {
     moveRobotTwo(STOP, 0, 0, leftMotor, rightMotor);
@@ -130,7 +151,7 @@ void stopEngines(){
 }
 
 void checkRobotState(RobotData& robot,HardwareSerial &serial){
-if (robot.initializing) {
+  if (robot.initializing) {
   sendLidarCommands(LidarOn, serial); 
   unsigned long startTime = millis();
   String response = "";
@@ -153,14 +174,12 @@ Serial.println("Received from the lidar");
   if (response == LidarOn) {
     robot.initializing = false;
     robot.isStopped = false;
-    robot.lidarReady = true;
     sendInitializeMessage(false, "");
   } else {
-    robot.lidarReady = false;
     robot.initializing = false;
-    robot.isStopped = true;
+    robot.isStopped = false;
     sendLidarCommands(LidarOff, serial); 
-    sendInitializeMessage(true, InitializeError);
+    sendInitializeMessage(false, InitializeError);
     Serial.println("Error occurred while starting");
   }
   return;
@@ -190,18 +209,19 @@ Serial.println("Received from the lidar");
     }
   }
     if(response==LidarOff){
-      robot.lidarReady=false;
       robot.isStopped=true;
       sendTurnOffMessage("");
       stopEngines();
     }else{
-      robot.lidarReady=false;
       robot.isStopped=true;
       sendTurnOffMessage(StopError);
       stopEngines();
     }
     return;
   }
+
+
+
 
 // check if the sensor reads an negative space and waits for half second for the sensor to read positive space until will reset back
   checkForNegativeSpace();
@@ -228,7 +248,6 @@ Serial.println("Received from the lidar");
     robot.negativeDanger = false;
   }
   }
-
   actOnMovements();
 }
 
@@ -236,36 +255,7 @@ Serial.println("Received from the lidar");
 
 
 
-void removeAllowedMovement(char (&allowedMovements)[4], char target) {
-  for (int i = 0; i < 4; i++) {
-    if (allowedMovements[i] == target) {
-      allowedMovements[i] = '_';
-      break;
-    }
-  }
-}
 
-void addAllowedMovement(char (&allowedMovements)[4], char target) {
-  for (int i = 0; i < 4; i++) {
-    if (allowedMovements[i] == target) return;
-  }
-
-  for (int i = 0; i < 4; i++) {
-    if (allowedMovements[i] == '_') {
-      allowedMovements[i] = target;
-      break;
-    }
-  }
-}
-
-bool isMovementAllowed(char(&activeMovements)[4],char currentMovement,int size){
-  for (int i = 0; i < size; ++i) {
-    if (activeMovements[i] == currentMovement) {
-      return true;
-    }
-  }
-  return false;
-}
 
 // send uart commands to the second esp32 after is tested needs to be moved in a separate file 
 /**

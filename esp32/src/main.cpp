@@ -9,10 +9,11 @@
 #include  "obstacles/obstacles.h"
 #include "ir/ir.h"
 #include "serialRead/uartSer.h"
+#include "servo/ServoManager.h"
 
 
 // Create servo manager instance - automatically loads all servo configurations
-// ServoManager servoManager;
+ServoManager servoManager;
 
 Motor rightMotor(IN1, IN2, ENA, pwmChannel1);
 Motor leftMotor(IN4, IN3, ENB, pwmChannel2);
@@ -63,6 +64,12 @@ void setup() {
 connectWiFi();
 connectMQTT(&robot);
 setupMotors();
+
+    if (servoManager.setup()) {
+        Serial.println("Servo Setup Successfull");
+    } else {
+        Serial.println("Servo Setup Failed.");
+    };
 }
 
 void loop() {
@@ -152,7 +159,6 @@ void stopEngines(){
 }
 
 void checkRobotState(RobotData& robot,HardwareSerial &serial){
-    Serial.println(robot.servo.head);
   if (robot.initializing) {
   sendLidarCommands(LidarOn, serial);
   unsigned long startTime = millis();

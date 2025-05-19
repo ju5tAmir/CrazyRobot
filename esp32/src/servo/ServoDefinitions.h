@@ -19,14 +19,6 @@ enum ServoID : uint8_t {
     RHAND,
 };
 
-enum Position {
-    LEFT,
-    RIGHT,
-    CENTER,
-    UP,
-    DOWN
-};
-
 struct ServoConfig {
     int channel;
     int init;

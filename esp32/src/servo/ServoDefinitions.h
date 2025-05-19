@@ -1,54 +1,50 @@
 #pragma once
 
-enum ServoID {
+#include <Wire.h>
+#include <Adafruit_PWMServoDriver.h>
+
+#define SERVO_MIN  100
+#define SERVO_MAX  580
+#define SERVO_FREQ 60
+#define SERVO_COUNT 7
+
+
+enum ServoID : uint8_t {
     HEAD = 0,
-    NECK,
+    NECKT,
+    NECKB,
     LEYE,
     REYE,
     LHAND,
     RHAND,
+};
 
-    SERVO_COUNT
+enum Position {
+    LEFT,
+    RIGHT,
+    CENTER,
+    UP,
+    DOWN
 };
 
 struct ServoConfig {
-    int pin;
-    int initialAngle;
-    int minAngle;
-    int maxAngle;
+    int channel;
+    int init;
+    int current;
+    int min;
+    int max;
     const char* name;
 };
 
 const ServoConfig SERVO_CONFIGS[SERVO_COUNT] = {
-    // ID             PIN   INIT  MIN  MAX   NAME
-    { /* HEAD */       13,   90,   0,  180,  "Head" },
-    { /* NECK */       12,   45,  10,  170,  "Neck" },
-    { /* LEYE */       14,   90,  30,  150,  "LeftEye" },
-    { /* REYE */       27,   90,   0,  180,  "RightEye" },
-    { /* LHAND */      26,   90,   0,  180,  "LeftHand" },
-    { /* RHAND */      25,   50,   0,  100,  "RightHand" }
+    // ID             CHA  INIT   CRNT    MIN   MAX   NAME
+    { /* HEAD */       0,   90,    90,     0,   180,  "Head" },
+    { /* NECKT */      1,    0,     0,     0,   180,  "NeckTop" },
+    { /* NECKB */      2,   30,    30,    30,   180,  "NeckBottom" },
+    { /* LEYE */       3,   90,    90,    30,   150,  "LeftEye" },
+    { /* REYE */       4,   90,    90,     0,   180,  "RightEye" },
+    { /* LHAND */      5,   90,    90,     0,   180,  "LeftHand" },
+    { /* RHAND */      6,   50,    50,     0,   100,  "RightHand" }
 };
 
-inline const char* getServoName(ServoID id) {
-    if (id >= 0 && id < SERVO_COUNT) {
-        return SERVO_CONFIGS[id].name;
-    }
-    return "Unknown";
-}
 
-// Helper functions to get other servo parameters
-inline int getServoPin(ServoID id) {
-    return (id >= 0 && id < SERVO_COUNT) ? SERVO_CONFIGS[id].pin : -1;
-}
-
-inline int getServoInitialAngle(ServoID id) {
-    return (id >= 0 && id < SERVO_COUNT) ? SERVO_CONFIGS[id].initialAngle : 90;
-}
-
-inline int getServoMinAngle(ServoID id) {
-    return (id >= 0 && id < SERVO_COUNT) ? SERVO_CONFIGS[id].minAngle : 0;
-}
-
-inline int getServoMaxAngle(ServoID id) {
-    return (id >= 0 && id < SERVO_COUNT) ? SERVO_CONFIGS[id].maxAngle : 180;
-}

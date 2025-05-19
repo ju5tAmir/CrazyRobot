@@ -1,24 +1,23 @@
 #pragma once
 
-#include "ServoMotor.h"
 #include "ServoDefinitions.h"
-
 
 class ServoManager {
 private:
-    ServoMotor* servos[SERVO_COUNT];
-    int servoCount;
+    Adafruit_PWMServoDriver pwm;
     bool initialized;
 
-
+    void headMoves(Position position);
+    void neckTMoves(Position position);
+    void neckBMoves(Position position);
+    void leftEyeMoves(Position position);
 public:
-    // Constructor
     ServoManager();
 
-    // Destructor
-    ~ServoManager();
-
     bool setup();
-    bool move(ServoID id, int angle);
-    ServoMotor* getServo(ServoID id);
+    void setServoAngle(uint8_t channel, int angle);
+    void moveServo(ServoID id, int angle);
+    void moveServo(ServoID id, Position position);
+
 };
+

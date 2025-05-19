@@ -689,37 +689,6 @@
         }
       }
     },
-    "/api/surveys/GetSurveyResultById/{surveyId}": {
-      "get": {
-        "tags": [
-          "AdminSurveys"
-        ],
-        "operationId": "AdminSurveys_GetSurveyResultById",
-        "parameters": [
-          {
-            "name": "surveyId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SurveyResultsDto"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/surveys/GetSurveysResults": {
       "get": {
         "tags": [
@@ -1067,7 +1036,8 @@
         "additionalProperties": false,
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "questionText": {
             "type": "string"

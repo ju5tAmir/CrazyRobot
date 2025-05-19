@@ -1,11 +1,11 @@
 import {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
-import {LoginUserProps} from "../../../models/login-models/user/LoginUserProps.ts"
-import {useAuth} from "../../../helpers/useAuth.ts";
 import {TextInput} from "../shared/TextInput.tsx";
-import {ValidationError} from "../../../helpers/ServerErrors.tsx";
 import toast from "react-hot-toast";
-import {ErrorMessages} from "../../../helpers/ErrorTypes.ts";
+import {LoginUserProps} from "../../../models"
+import {ErrorMessages} from "../../../helpers";
+import {ValidationError} from "../../../helpers";
+import {useAuth} from "../../../helpers";
 import Loading from "../../../shared/Loading.tsx";
 
 export const LoginModalUser = ({isOpen, setIsOpen}: LoginUserProps) => {

@@ -1,14 +1,17 @@
 Todo:
 
--> Improve validation related to the surveys and answers;
--> Reformat the code to handle multiple transitions (on create and update);
--> Reformat frontend code to use hooks, atoms, etc...
--> Logic for taken username!
 -> Make TESTS!
+-> Delete column optionID in database?
 
+Missing 15/05/2025:
 
-
-
+-> Timer! Start on server and send info to client
+Create a component in react with toast to subscribe a topic
+Timer starts when the user goes to the Robot Movement page
+User has 15 minutes to use the robot, warn the user when there are 5 minutes left
+The user then should drive the robot back
+When the time is up, the robot stops moving and the user is disconnected from the website
+Check negativeWarning implementation of timer.
 
 NOTES:
 

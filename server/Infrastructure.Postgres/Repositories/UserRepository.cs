@@ -21,10 +21,10 @@ public class UserRepository(AppDbContext ctx) : IUserRepository
         return ctx.UserGuests.FirstOrDefault(u => u.Email == email);
     }
 
-    public User AddAdmin(User user)
+    public async Task<User> AddAdmin(User user)
     {
-        ctx.Users.Add(user);
-        ctx.SaveChanges();
+        await ctx.Users.AddAsync(user);
+        await ctx.SaveChangesAsync();
         return user;
     }
     
@@ -40,5 +40,10 @@ public class UserRepository(AppDbContext ctx) : IUserRepository
         var user = ctx.Users.Find(userId);
         ctx.Users.Remove(user);
         return ctx.SaveChanges() > 0;
+    }
+    
+    public bool IsUsernameTaken(string username)
+    {
+        return ctx.UserGuests.Any(u => u.Username == username);
     }
 }

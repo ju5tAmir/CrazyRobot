@@ -1,39 +1,38 @@
 import { useState } from 'react';
-import { UserSurveysClient, QuestionDto } from '../../../api/generated-client';
-import { useAuth } from '../../../helpers/useAuth.ts';
-import { SurveyModalProps } from '../../../models/surveys-models/SurveyModalProps.ts';
-import { QuestionType } from '../../../models/surveys-models/enums/QuestionType.ts';
+import { QuestionDto, SurveySubmissionRequestDto } from '../../../api';
+import { http } from '../../../helpers';
+import { SurveyModalProps, QuestionType } from '../../../models';
+import toast from "react-hot-toast";
+import Loading from "../../../shared/Loading.tsx";
 
 
 export default function SurveyModal({ survey, onClose, onComplete }: SurveyModalProps) {
-    const { jwt } = useAuth();
     const [answers, setAnswers] = useState<Record<string, string>>({});
-    const client = new UserSurveysClient(import.meta.env.VITE_API_BASE_URL, {
-        fetch: (url, init) => fetch(url, {
-            ...init,
-            headers: {
-                ...init?.headers,
-                'Authorization': `Bearer ${jwt}`
-            }
-        })
-    });
+    const [loading, setLoading] = useState(false);
 
-    const handleSubmit = async () => {
+    async function handleSubmit() {
         try {
-            const response = {
-                surveyId: survey.id!,
-                responses: Object.entries(answers).map(([questionId, answer]) => ({
-                    questionId,
-                    answer
-                }))
-            };
-
-            await client.submitResponse(response);
-            onComplete();
+            setLoading(true);
+            if(survey.id) {
+                const response: SurveySubmissionRequestDto = {
+                    surveyId: survey.id,
+                    responses: Object.entries(answers).map(([questionId, answer]) => ({
+                        questionId,
+                        response: answer,
+                    }))
+                };
+                await http.userSurveys.submitResponse(response)
+                    .then(() => {
+                        onComplete();
+                        toast.success("Survey submitted successfully.");
+                    });
+            }
         } catch (error) {
-            console.error('Failed to submit survey:', error);
+            toast.error("Error submitting the survey: " + error);
+        } finally {
+            setLoading(false);
         }
-    };
+    }
 
     const renderQuestion = (question: QuestionDto) => {
         if (question.questionType === QuestionType.MULTIPLE_CHOICE) {
@@ -74,39 +73,45 @@ export default function SurveyModal({ survey, onClose, onComplete }: SurveyModal
     };
 
     return (
-        <div className="modal modal-open">
-            <div className="modal-box max-w-3xl max-h-[80vh]">
-                <h3 className="font-bold text-xl mb-2">{survey.title}</h3>
-                <p className="text-base-content/70 mb-6">{survey.description}</p>
+        <>
+            {loading ? (
+                <Loading />
+            ) : (
+                <div className="modal modal-open">
+                    <div className="modal-box max-w-3xl max-h-[80vh]">
+                        <h3 className="font-bold text-xl mb-2">{survey.title}</h3>
+                        <p className="text-base-content/70 mb-6">{survey.description}</p>
 
-                <div className="space-y-6">
-                    {survey.questions?.map((question, index) => (
-                        <div key={question.id} className="card bg-base-200 p-4">
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text text-lg font-medium mb-2">
-                                        {index + 1}. {question.questionText}
-                                    </span>
-                                </label>
-                                {renderQuestion(question)}
-                            </div>
+                        <div className="space-y-6">
+                            {survey.questions?.map((question, index) => (
+                                <div key={question.id} className="card bg-base-200 p-4">
+                                    <div className="form-control">
+                                        <label className="label">
+                                            <span className="label-text text-lg font-medium mb-2">
+                                                {index + 1}. {question.questionText}
+                                            </span>
+                                        </label>
+                                        {renderQuestion(question)}
+                                    </div>
+                                </div>
+                            ))}
                         </div>
-                    ))}
-                </div>
 
-                <div className="modal-action mt-8">
-                    <button className="btn btn-outline btn-error" onClick={onClose}>
-                        Cancel
-                    </button>
-                    <button
-                        className="btn btn-primary"
-                        onClick={handleSubmit}
-                        disabled={survey.questions?.some(q => !answers[q.id!])}
-                    >
-                        Submit
-                    </button>
+                        <div className="modal-action mt-8">
+                            <button className="btn btn-outline btn-error" onClick={onClose}>
+                                Cancel
+                            </button>
+                            <button
+                                className="btn btn-primary"
+                                onClick={handleSubmit}
+                                disabled={survey.questions?.some(q => !answers[q.id!])}
+                            >
+                                Submit
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
+            )}
+        </>
     );
 }

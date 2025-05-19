@@ -1,5 +1,14 @@
-export default function Pagination({ total, current, onPageChange, answersPerPage }: { total: number, current: number, onPageChange: (page: number) => void, answersPerPage: number }) {
+export default function Pagination({ total, current, onPageChange, answersPerPage }: {
+    total: number,
+    current: number,
+    onPageChange: (page: number) => void,
+    answersPerPage: number
+}) {
+
+
     const pages = Math.ceil(total / answersPerPage);
+
+
     return (
         <div className="flex justify-center gap-2 mt-4">
             {Array.from({ length: pages }, (_, i) => (

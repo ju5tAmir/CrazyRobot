@@ -1,4 +1,4 @@
-import { SurveyCardProps } from '../../../models/surveys-models/SurveyCardProps.ts';
+import { SurveyCardProps } from '../../../models';
 import { Pencil, Trash2 } from 'lucide-react';
 
 export default function SurveyCardAdmin({

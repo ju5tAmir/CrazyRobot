@@ -11,6 +11,6 @@ public interface ISecurityService
     public string GenerateJwt(JwtClaims claims);
     public AuthResponseDto LoginAdmin(AuthRequestDto dto);
     public AuthResponseDto LoginOrRegisterUser(AuthUserRequest dto);
-    public AuthResponseDto RegisterAdmin(AuthRequestDto dto);
+    public Task<AuthResponseDto>  RegisterAdmin(AuthRequestDto dto);
     public JwtClaims VerifyJwtOrThrow(string jwt);
 }

@@ -1,5 +1,5 @@
 import { Users, Calendar, ClipboardList, ChartBar, ClipboardPen, FileText, Bot, Gamepad2, Box } from 'lucide-react';
-import {NavItemTypeConfig} from "../../models/navigation/NavItemTypeConfig.ts";
+import {NavItemTypeConfig} from "../../models";
 
 export const adminNavItems: NavItemTypeConfig[] = [
     { path: '/admin/contacts', icon: <Users size={18} />, text: 'Contacts' },

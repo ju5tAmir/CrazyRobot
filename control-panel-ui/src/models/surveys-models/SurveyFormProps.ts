@@ -1,4 +1,4 @@
-import {CreateSurveyRequestDto} from "../../api/generated-client.ts";
+import {CreateSurveyRequestDto} from "../../api";
 
 export interface SurveyFormProps {
     initial?: CreateSurveyRequestDto;

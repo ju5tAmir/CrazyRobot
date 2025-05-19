@@ -1,5 +1,5 @@
 import {useState, ReactNode, useEffect} from 'react';
-import { http } from '../../helpers/http.ts';
+import { http } from '../../helpers';
 import { AuthContext } from '../../helpers/useAuthContext.ts';
 
 interface JwtPayload {

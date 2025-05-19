@@ -36,13 +36,13 @@ public class SecurityService(IOptionsMonitor<AppOptions> optionsMonitor, IUserRe
         };
     }
 
-    public AuthResponseDto RegisterAdmin(AuthRequestDto dto)
+    public async Task<AuthResponseDto> RegisterAdmin(AuthRequestDto dto)
     {
         var admin = repository.GetUserByIdOrNull(dto.Email);
         if (admin is not null) throw new ValidationException("Admin already exists");
         var salt = GenerateSalt();
         var hash = HashPassword(dto.Password + salt);
-        var insertedAdmin = repository.AddAdmin(new User
+        var insertedAdmin = await repository.AddAdmin(new User
         {
             Id = Guid.NewGuid().ToString(),
             Email = dto.Email,

@@ -7,7 +7,8 @@ public interface IUserRepository
     List<User> GetAll();
     User? GetUserByIdOrNull(string email);
     UserGuest? GetGuestByIdOrNull(string email);
-    User AddAdmin(User user);
+    Task<User> AddAdmin(User user);
     UserGuest AddUser(UserGuest user);
+    bool IsUsernameTaken(string username);
     bool DeleteUser(string userId);
 }

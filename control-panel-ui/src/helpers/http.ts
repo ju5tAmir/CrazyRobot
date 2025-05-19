@@ -5,7 +5,7 @@ import {
     AdminSurveysClient,
     UserSurveysClient,
     AuthClient
-} from '../api/generated-client.ts';
+} from '../api';
 
 export class ApiClient {
     private baseUrl: string;
@@ -25,6 +25,8 @@ constructor() {
 
     private createHttpClient() {
         const jwt = localStorage.getItem('jwt');
+
+        console.log("JWT: " + jwt);
 
         return {
             fetch: (url: RequestInfo, init?: RequestInit) => {

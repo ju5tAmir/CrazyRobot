@@ -1,5 +1,4 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
-import { UTTTPage } from './components/UTTT/UTTTpage';
 import SchoolInfo from './SchoolInfo';
 import Admin from './SchoolInfo/admin';
 import './App.css';
@@ -7,13 +6,16 @@ import { WsClientProvider } from 'ws-request-hook';
 import { useClientIdState } from './hooks/Wsclient';
 import { KEYS } from './hooks/KEYS';
 import { useEffect, useState } from 'react';
-import { ControlMotor } from './components/Movement/MovementNew/Movement/ControlMotor.tsx';
 import { Toaster } from 'react-hot-toast';
+import LoginPageUser from "./components/login/user/LoginPageUser.tsx";
+import LoginPage from "./SchoolInfo/auth/LoginPage.tsx";
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
 const prod = import.meta.env.PROD;
+
+
 export default function App() {
   const manageClientId = useClientIdState(KEYS.CLIENT_ID);
-  const [clientId, setClientId] = useState(manageClientId.getClientId());
+  const [clientId] = useState(manageClientId.getClientId());
   const [serverUrl, setServerUrl] = useState<string | undefined>(undefined);
 
   useEffect(() => {
@@ -28,13 +30,15 @@ export default function App() {
         <WsClientProvider url={serverUrl}>
           {/*<WebsocketConnectionIndicator></WebsocketConnectionIndicator>*/}
           <Routes>
-            <Route path="/school-info/admin/*" element={<Admin />} />
+            <Route path="/" element={<Navigate to="/guest-login" replace />} />
+
+            <Route path="/guest-login" element={<LoginPageUser />} />
             <Route path="/school-info/*" element={<SchoolInfo />} />
-            <Route path="/RobotMovement" element={<ControlMotor />} />
-            <Route path="/tic-tac-toe" element={<UTTTPage />} />
-            <Route path="/" element={<Navigate to="/school-info" replace />} />
+
+            <Route path="/admin-login" element={<LoginPage />} />
+            <Route path="/admin/*" element={<Admin />} />
           </Routes>
-          <Toaster />
+          <Toaster position="bottom-center"/>
         </WsClientProvider>
       )}
     </>

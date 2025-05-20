@@ -1,5 +1,4 @@
 using Api.Rest.ErrorHandling;
-using Api.Rest.Extensions;
 using Api.Rest.Extensions.AuthExtension;
 using Application.Interfaces.Api.Rest;
 using Application.Interfaces.Security;
@@ -12,6 +11,8 @@ public class UserSurveysController(ISecurityService securityService, IUserSurvey
 {
     private const string ControllerRoute = "api/survey-submission/";
     private const string SubmitRoute = ControllerRoute + nameof(SubmitResponse);
+    private const string GetActiveSurveysRoute = ControllerRoute + nameof(GetActiveSurveys);
+
     
     [HttpPost]
     [Route(SubmitRoute)]
@@ -19,9 +20,33 @@ public class UserSurveysController(ISecurityService securityService, IUserSurvey
     {
         try
         {
+            var list = requestDto.Responses.Select(r => r.Response).ToList();
+            Console.WriteLine("HEREEEEEEEEEEEEEEEEEEE: " + list.First());
+            
+            foreach (var response in requestDto.Responses)
+            {
+                Console.WriteLine($"QuestionId: {response.QuestionId}, Response: '{response.Response}'");
+            }
+            
             var user = securityService.VerifyJwtOrThrow(HttpContext.GetJwt());
             var result = await userSurveyService.SubmitResponse(requestDto, user.Id);
             return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            logger.Log(LogLevel.Warning, ex.Message, ex);
+            return BadRequestErrorMessage(ex.Message);
+        }
+    }
+    
+    [HttpGet]
+    [Route(GetActiveSurveysRoute)]
+    public async Task<ActionResult<List<SurveyResponseDto>>> GetActiveSurveys()
+    {
+        try
+        {
+            var surveys = await userSurveyService.GetActiveSurveys();
+            return Ok(surveys);
         }
         catch (Exception ex)
         {

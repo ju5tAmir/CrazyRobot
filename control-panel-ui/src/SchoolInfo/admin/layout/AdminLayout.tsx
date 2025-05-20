@@ -1,29 +1,23 @@
-// src/SchoolInfo/pages/admin/AdminLayout.tsx
-import { useState } from 'react';
-import { Outlet }   from 'react-router-dom';
+import { PropsWithChildren, useState } from 'react';
 
 import Sidebar from '../../layout/Sidebar';
 import Header  from '../../layout/Header';
 
-export default function AdminLayout() {
-    /** керуємо відкриттям/закриттям бургер-меню */
+export default function AdminLayout({children}: PropsWithChildren) {
+
     const [isSidebarOpen, setSidebarOpen] = useState(false);
+
+    const openSidebar = () => setSidebarOpen(true);
+    const closeSidebar = () => setSidebarOpen(false);
 
     return (
         <div className="flex h-screen bg-base-200">
-            {/* ─────────────  Sidebar  ───────────── */}
-            <Sidebar
-                isOpen={isSidebarOpen}
-                closeSidebar={() => setSidebarOpen(false)}
-            />
+            <Sidebar isOpen={isSidebarOpen} closeSidebar={closeSidebar} />
 
-            {/* ─────────────  Right side  ───────────── */}
             <div className="flex-1 flex flex-col overflow-hidden">
-                {/* Header із бургер-кнопкою (видно тільки на mobile) */}
-                <Header openSidebar={() => setSidebarOpen(true)} />
-
+                <Header openSidebar={openSidebar} />
                 <main className="flex-1 p-6 overflow-auto">
-                    <Outlet />
+                    {children}
                 </main>
             </div>
         </div>

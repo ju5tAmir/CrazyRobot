@@ -8,6 +8,5 @@ public interface IAdminSurveyService
     Task<SurveyResponseDto> UpdateSurvey(UpdateSurveyRequestDto dto, string userId);
     Task DeleteSurvey(string surveyId, string userId);
     Task<List<SurveyResponseDto>> GetAllSurveys();
-    Task<SurveyResultsDto> GetSurveyResults(string surveyId);
     Task<List<SurveyResultsDto>> GetAllSurveysResults();
 }

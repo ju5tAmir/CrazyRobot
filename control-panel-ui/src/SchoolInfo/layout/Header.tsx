@@ -1,6 +1,6 @@
-// src/SchoolInfo/layout/Header.tsx
 import { Menu } from 'lucide-react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
+import { adminNavItems, userNavItems } from '../../components/navigation/NavigationPathConfig';
 
 interface HeaderProps {
     openSidebar: () => void;
@@ -8,13 +8,24 @@ interface HeaderProps {
 
 export default function Header({ openSidebar }: HeaderProps) {
     const { pathname } = useLocation();
-    const nav = useNavigate();
 
-    const title = pathname.includes('events')
-        ? 'School Events'
-        : pathname.includes('admin')
-            ? 'Admin Panel'
-            : 'School Contacts';
+    const isAdmin = pathname.startsWith('/admin');
+    const navItems = isAdmin ? adminNavItems : userNavItems;
+
+    // Find the current page in navigation items
+    const currentPage = navItems.find(item =>
+        pathname === item.path || pathname.startsWith(`${item.path}/`)
+    );
+
+    let title = currentPage?.text;
+
+    if (!title) {
+        if (isAdmin) {
+            title = 'Admin Panel';
+        } else if (pathname.includes('/school-info')) {
+            title = 'School Portal';
+        }
+    }
 
     return (
         <header className="h-16 px-6 flex items-center justify-between bg-base-100 border-b sticky top-0 z-40">
@@ -28,14 +39,6 @@ export default function Header({ openSidebar }: HeaderProps) {
             <div className="text-2xl font-semibold flex-1 text-center md:text-left md:ml-0 ml-8">
                 {title}
             </div>
-
-            <button
-                className="btn btn-outline btn-sm flex items-center"
-                onClick={() => nav('/school-info/admin/login')}
-            >
-                <span className="mr-1">Login</span>
-                <i className="icon-[lucide--log-in] w-4 h-4" />
-            </button>
         </header>
     );
 }

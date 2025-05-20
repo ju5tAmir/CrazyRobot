@@ -1,9 +1,9 @@
-// src/SchoolInfo/layout/Sidebar.tsx
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Home, Users, Calendar, LogOut } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { LogOut } from 'lucide-react';
 import ThemeToggle from '../ThemeToggle.tsx';
-import { useAuth } from '../auth/AuthContext';
-import { JSX } from 'react';
+import { useAuth } from '../../helpers/useAuth.ts';
+import NavigationItemsGroup from '../../components/navigation/NavigationItemsGroup.tsx';
+import { adminNavItems, userNavItems } from '../../components/navigation/NavigationPathConfig.tsx';
 
 type SidebarProps = {
     isOpen: boolean;
@@ -15,36 +15,24 @@ export default function Sidebar({ isOpen, closeSidebar }: SidebarProps) {
     const navigate = useNavigate();
     const { jwt, logout } = useAuth();
 
-    const isAdmin = pathname.startsWith('/school-info/admin');
-    const base = isAdmin ? '/school-info/admin' : '/school-info';
-
-    const item = (to: string, icon: JSX.Element, text: string) => (
-        <li key={to}>
-            <NavLink
-                to={to}
-                className={({ isActive }) =>
-                    `flex gap-2 items-center px-4 py-3 rounded-lg ${
-                        isActive ? 'bg-primary text-primary-content' : 'hover:bg-base-300'
-                    }`
-                }
-                onClick={closeSidebar}
-            >
-                {icon}
-                <span>{text}</span>
-            </NavLink>
-        </li>
-    );
+    const isAdmin = pathname.startsWith('/admin');
+    const base = isAdmin ? '/admin' : '/school-info';
+    const title = isAdmin ? 'Admin Panel' : 'School Portal';
 
     const handleLogout = () => {
         logout();
-        navigate('/', { replace: true });
-        setTimeout(() => navigate('/school-info/contacts', { replace: true }), 0);
+        if(base == '/admin'){
+            navigate(base + '-login', { replace: true });
+            setTimeout(() => navigate(base + '-login', { replace: true }), 0);
+        } else {
+            navigate('/guest-login', { replace: true });
+            setTimeout(() => navigate('/guest-login', { replace: true }), 0);
+        }
         closeSidebar();
     };
 
     return (
         <>
-            {/* overlay для мобільних */}
             {isOpen && (
                 <div
                     className="fixed inset-0 bg-black bg-opacity-30 md:hidden z-40"
@@ -62,58 +50,16 @@ export default function Sidebar({ isOpen, closeSidebar }: SidebarProps) {
                     <div className="absolute left-2">
                         <ThemeToggle />
                     </div>
-                    <span>SchoolPortal</span>
+                    <span>{title}</span>
                 </div>
 
                 {/* Menu */}
                 <ul className="menu p-2 space-y-1 overflow-auto flex-grow">
-                    <li>
-                        <button
-                            className="flex gap-2 items-center px-4 py-3 rounded-lg hover:bg-base-300 w-full text-left"
-                            onClick={() => {
-                                closeSidebar();
-                                // TODO: nav('/')
-                            }}
-                        >
-                            <Home size={18} />
-                            <span>Home</span>
-                        </button>
-                    </li>
-
-                    <li>
-                        <NavLink
-                            to="/RobotMovement"
-                            className={({ isActive }) =>
-                                `flex gap-2 items-center px-4 py-3 rounded-lg ${
-                                    isActive ? 'bg-primary text-primary-content' : 'hover:bg-base-300'
-                                }`
-                            }
-                            onClick={closeSidebar}
-                        >
-                            <Users size={18} />
-                            <span>Movement</span>
-                        </NavLink>
-                    </li>
-
-                    <li>
-                        <NavLink
-                            to="/tic-tac-toe"
-                            className={({ isActive }) =>
-                                `flex gap-2 items-center px-4 py-3 rounded-lg ${
-                                    isActive ? 'bg-primary text-primary-content' : 'hover:bg-base-300'
-                                }`
-                            }
-                            onClick={closeSidebar}
-                        >
-                            <Calendar size={18} />
-                            <span>Tic-Tac-Toe</span>
-                        </NavLink>
-                    </li>
-
-                    <li><hr /></li>
-
-                    {item(`${base}/contacts`, <Users size={18} />, 'Contacts')}
-                    {item(`${base}/events`, <Calendar size={18} />, 'Events')}
+                    {isAdmin ? (
+                        <NavigationItemsGroup items={adminNavItems} onItemClick={closeSidebar} />
+                    ) : (
+                        <NavigationItemsGroup items={userNavItems} onItemClick={closeSidebar} />
+                    )}
                 </ul>
 
                 {/* Logout */}

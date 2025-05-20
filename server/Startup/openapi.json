@@ -357,6 +357,92 @@
         }
       }
     },
+    "/api/GeneratedReports": {
+      "get": {
+        "tags": [
+          "GeneratedReports"
+        ],
+        "operationId": "GeneratedReports_GetAll",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GeneratedReportDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/GeneratedReports/{id}": {
+      "get": {
+        "tags": [
+          "GeneratedReports"
+        ],
+        "operationId": "GeneratedReports_Get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneratedReportDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "GeneratedReports"
+        ],
+        "operationId": "GeneratedReports_Delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/Subscribe": {
       "post": {
         "tags": [
@@ -603,37 +689,6 @@
         }
       }
     },
-    "/api/surveys/GetSurveyResultById/{surveyId}": {
-      "get": {
-        "tags": [
-          "AdminSurveys"
-        ],
-        "operationId": "AdminSurveys_GetSurveyResultById",
-        "parameters": [
-          {
-            "name": "surveyId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SurveyResultsDto"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/surveys/GetSurveysResults": {
       "get": {
         "tags": [
@@ -689,6 +744,29 @@
         }
       }
     },
+    "/api/survey-submission/GetActiveSurveys": {
+      "get": {
+        "tags": [
+          "UserSurveys"
+        ],
+        "operationId": "UserSurveys_GetActiveSurveys",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SurveyResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/auth/Login": {
       "post": {
         "tags": [
@@ -721,18 +799,50 @@
         }
       }
     },
-    "/api/auth/Register": {
+    "/api/auth/RegisterAdmin": {
       "post": {
         "tags": [
           "Auth"
         ],
-        "operationId": "Auth_Register",
+        "operationId": "Auth_RegisterAdmin",
         "requestBody": {
           "x-name": "dto",
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/AuthRequestDto"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/LoginOrRegisterUser": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "operationId": "Auth_LoginOrRegisterUser",
+        "requestBody": {
+          "x-name": "dto",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthUserRequest"
               }
             }
           },
@@ -838,6 +948,26 @@
           }
         }
       },
+      "GeneratedReportDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "surveyId": {
+            "type": "string"
+          },
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reportText": {
+            "type": "string"
+          }
+        }
+      },
       "ChangeSubscriptionDto": {
         "type": "object",
         "additionalProperties": false,
@@ -905,6 +1035,10 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
+          "id": {
+            "type": "string",
+            "nullable": true
+          },
           "questionText": {
             "type": "string"
           },
@@ -1122,6 +1256,29 @@
           "password": {
             "type": "string",
             "minLength": 4
+          }
+        }
+      },
+      "AuthUserRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "username",
+          "email",
+          "role"
+        ],
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 1
+          },
+          "email": {
+            "type": "string",
+            "minLength": 3
+          },
+          "role": {
+            "type": "string",
+            "minLength": 1
           }
         }
       },

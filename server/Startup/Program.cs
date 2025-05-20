@@ -47,7 +47,7 @@ public class Program
         services.RegisterApplicationServices();
         services.AddDataSourceAndRepositories();
         services.AddWebsocketInfrastructure();
-        services.AddSingleton(StorageClient.Create());
+        //services.AddSingleton(StorageClient.Create());
         services.RegisterWebsocketApiServices();
         services.RegisterRestApiServices();
         
@@ -88,7 +88,7 @@ public class Program
         var document = await app.Services.GetRequiredService<IOpenApiDocumentGenerator>().GenerateAsync("v1");
         var json = document.ToJson();
         await File.WriteAllTextAsync("openapi.json", json);
-        app.GenerateTypeScriptClient("/../../control-panel-ui/src/api/generated-socketclient.ts").GetAwaiter().GetResult();
+        app.GenerateTypeScriptClient("/../../control-panel-ui/src/api/generated-client.ts").GetAwaiter().GetResult();
         app.MapScalarApiReference();
     }
 }

@@ -1,6 +1,6 @@
 import { useState, ChangeEvent, FormEvent } from 'react';
 import { ContactsClient, ContactDto, FileParameter } from '../../../api/generated-client';
-import { useAuth }               from '../../auth/AuthContext';
+import { useAuth }               from '../../../helpers/useAuth.ts';
 
 type Props = {
     initial : ContactDto;

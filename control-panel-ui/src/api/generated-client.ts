@@ -1318,7 +1318,6 @@ export enum ClientCommandType {
 
 export interface DistanceWarning {
     warning?: string;
-    direction?: string;
 }
 
 export interface InitializeEnginResponseDto extends BaseDto {

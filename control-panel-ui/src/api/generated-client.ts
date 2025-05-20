@@ -889,42 +889,6 @@ export class AdminSurveysClient {
         return Promise.resolve<SurveyResponseDto>(null as any);
     }
 
-    getSurveyResultById(surveyId: string): Promise<SurveyResultsDto> {
-        let url_ = this.baseUrl + "/api/surveys/GetSurveyResultById/{surveyId}";
-        if (surveyId === undefined || surveyId === null)
-            throw new Error("The parameter 'surveyId' must be defined.");
-        url_ = url_.replace("{surveyId}", encodeURIComponent("" + surveyId));
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-                "Accept": "application/json"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetSurveyResultById(_response);
-        });
-    }
-
-    protected processGetSurveyResultById(response: Response): Promise<SurveyResultsDto> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as SurveyResultsDto;
-            return result200;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<SurveyResultsDto>(null as any);
-    }
-
     getSurveysResults(): Promise<SurveyResultsDto[]> {
         let url_ = this.baseUrl + "/api/surveys/GetSurveysResults";
         url_ = url_.replace(/[?&]$/, "");
@@ -1250,7 +1214,7 @@ export interface SurveyResponseDto {
 }
 
 export interface QuestionDto {
-    id?: string;
+    id?: string | undefined;
     questionText?: string;
     questionType?: string;
     orderNumber?: number;
@@ -1354,7 +1318,6 @@ export enum ClientCommandType {
 
 export interface DistanceWarning {
     warning?: string;
-    direction?: string;
 }
 
 export interface InitializeEnginResponseDto extends BaseDto {

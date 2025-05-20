@@ -1,4 +1,4 @@
-import { UserSurveyCardProps } from '../../../models/surveys-models/UserSurveyCardProps.ts';
+import { UserSurveyCardProps } from '../../../models';
 
 
 export default function SurveyCardUser({ survey, onTakeSurvey }: UserSurveyCardProps) {

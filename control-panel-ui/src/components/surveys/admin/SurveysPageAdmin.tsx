@@ -1,45 +1,21 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '../../../helpers/useAuth.ts';
-import { CreateSurveyRequestDto, AdminSurveysClient, SurveyResponseDto, UpdateSurveyRequestDto } from '../../../api/generated-client.ts';
+import { useState } from 'react';
+import { http } from '../../../helpers';
+import { CreateSurveyRequestDto, SurveyResponseDto, UpdateSurveyRequestDto } from '../../../api';
 import SurveyCardAdmin from './SurveyCardAdmin.tsx';
 import SurveyForm from '../../surveys/admin/SurveyForm';
 import Loading from '../../../shared/Loading.tsx';
+import { useInitializeSurveysAdmin } from '../../../hooks';
+import toast from 'react-hot-toast';
 
 export default function SurveysPageAdmin() {
-    const { jwt } = useAuth();
-    const client = new AdminSurveysClient(import.meta.env.VITE_API_BASE_URL, {
-        fetch: (url, init) => fetch(url, {
-            ...init,
-            headers: {
-                ...init?.headers,
-                'Authorization': `Bearer ${jwt}`
-            }
-        })
-    });
-
-    const [surveys, setSurveys] = useState<SurveyResponseDto[]>([]);
     const [editing, setEditing] = useState<SurveyResponseDto | null>(null);
-    const [loading, setLoading] = useState(true);
     const [filterActive, setFilterActive] = useState('all');
+    const { surveys, loading, setLoading, setSurveys } = useInitializeSurveysAdmin();
 
-    useEffect(() => {
-        refreshSurveys();
-    }, []);
-
-    async function refreshSurveys() {
-        try {
-            setLoading(true);
-            const result = await client.getAllSurveys();
-            setSurveys(Array.isArray(result) ? result : [result]);
-        } catch (error) {
-            console.error("Failed to fetch surveys:", error);
-        } finally {
-            setLoading(false);
-        }
-    }
 
     async function handleSave(survey: SurveyResponseDto) {
         try {
+
             setLoading(true);
             if (survey.id) {
                 const updateDto: UpdateSurveyRequestDto = {
@@ -50,7 +26,13 @@ export default function SurveysPageAdmin() {
                     isActive: survey.isActive,
                     questions: survey.questions
                 };
-                await client.updateSurvey(updateDto, survey.id);
+
+                await http.adminSurveys.updateSurvey(updateDto, survey.id)
+                    .then(r => {
+                        setSurveys((prevState) =>
+                        prevState.map(s => s.id === r.id ? r : s));
+                        toast.success("Survey updated successfully.");
+                    });
             } else {
                 const createDto: CreateSurveyRequestDto = {
                     title: survey.title,
@@ -59,12 +41,15 @@ export default function SurveysPageAdmin() {
                     isActive: survey.isActive,
                     questions: survey.questions
                 };
-                await client.createSurvey(createDto);
+                await http.adminSurveys.createSurvey(createDto)
+                    .then(r => {
+                        setSurveys((prevState) => [...prevState, r]);
+                        toast.success("Survey added successfully.");
+                    });
             }
-            await refreshSurveys();
             setEditing(null);
         } catch (error) {
-            console.error("Failed to save survey:", error);
+            toast.error("Error performing operation for the survey: " + error);
         } finally {
             setLoading(false);
         }
@@ -76,10 +61,13 @@ export default function SurveysPageAdmin() {
         if (confirm("Are you sure you want to delete this survey?")) {
             try {
                 setLoading(true);
-                await client.deleteSurvey(id);
-                await refreshSurveys();
+                const response = await http.adminSurveys.deleteSurvey(id);
+                if(response.status === 200) {
+                    setSurveys((prevState) => prevState.filter(s => s.id !== id));
+                    toast.success("Survey deleted successfully.");
+                }
             } catch (error) {
-                console.error("Failed to delete survey:", error);
+                toast.error("An unexpected error occurred: " + error);
             } finally {
                 setLoading(false);
             }

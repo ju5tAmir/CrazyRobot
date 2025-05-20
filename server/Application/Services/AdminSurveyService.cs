@@ -1,4 +1,3 @@
-using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using Application.Interfaces.Api.Rest;
 using Application.Interfaces.Infrastructure.Postgres;
@@ -18,8 +17,8 @@ public class AdminSurveyService(IAdminSurveyRepository adminSurveyRepository) : 
         if (!dto.Questions.Any())
             throw new ValidationException("Survey must have at least one question");
 
-        //Create survey
-        var survey = await adminSurveyRepository.CreateSurvey(new Survey
+        //Create a survey
+        var survey = new Survey
         {
             Id = Guid.NewGuid().ToString(),
             Title = dto.Title,
@@ -28,42 +27,49 @@ public class AdminSurveyService(IAdminSurveyRepository adminSurveyRepository) : 
             CreatedByUserId = userId,
             IsActive = dto.IsActive,
             CreatedAt = DateTime.UtcNow
-        });
+        };
 
-        //Create questions and options
+        var questions = new List<Question>();
+        var options = new List<QuestionOption>();
+        
         foreach (var questionDto in dto.Questions)
         {
-            var question = await adminSurveyRepository.CreateQuestion(new Question
+            var question = new Question
             {
                 Id = Guid.NewGuid().ToString(),
                 SurveyId = survey.Id,
                 QuestionText = questionDto.QuestionText,
                 QuestionType = questionDto.QuestionType,
                 OrderNumber = questionDto.OrderNumber
-            });
-
-            //Add options
+            };
+            
+            questions.Add(question);
+            
             foreach (var optionDto in questionDto.Options)
             {
-                await adminSurveyRepository.CreateQuestionOption(new QuestionOption
+                var option = new QuestionOption
                 {
                     Id = Guid.NewGuid().ToString(),
                     QuestionId = question.Id,
                     OptionText = optionDto.OptionText,
                     OrderNumber = optionDto.OrderNumber
-                });
+                };
+                
+                options.Add(option);
             }
         }
-
+        
+        var result = await adminSurveyRepository.CreateSurveyWithQuestionsAndOptions(survey, questions, options);
+        
         return new SurveyResponseDto
         {
-            Id = survey.Id,
-            Title = survey.Title,
-            Description = survey.Description,
-            SurveyType = survey.SurveyType,
-            IsActive = survey.IsActive,
-            CreatedByUserId = survey.CreatedByUserId,
-            CreatedAt = survey.CreatedAt,
+            Id = result.Survey.Id,
+            Title = result.Survey.Title,
+            Description = result.Survey.Description,
+            SurveyType = result.Survey.SurveyType,
+            IsActive = result.Survey.IsActive,
+            CreatedByUserId = result.Survey.CreatedByUserId,
+            CreatedAt = result.Survey.CreatedAt,
             Questions = dto.Questions,
         };
     }
@@ -84,41 +90,48 @@ public class AdminSurveyService(IAdminSurveyRepository adminSurveyRepository) : 
             CreatedAt = DateTime.UtcNow,
         };
         
-        var updatedSurvey = await adminSurveyRepository.UpdateSurvey(survey);
-        await adminSurveyRepository.DeleteQuestionsForSurvey(dto.Id);
+        var questions = new List<Question>();
+        var options = new List<QuestionOption>();
 
         foreach (var questionDto in dto.Questions)
         {
-            var question = await adminSurveyRepository.CreateQuestion(new Question
+            var question = new Question
             {
                 Id = Guid.NewGuid().ToString(),
                 SurveyId = survey.Id,
                 QuestionText = questionDto.QuestionText,
                 QuestionType = questionDto.QuestionType,
                 OrderNumber = questionDto.OrderNumber
-            });
+            };
+            
+            questions.Add(question);
 
             foreach (var optionDto in questionDto.Options)
             {
-                await adminSurveyRepository.CreateQuestionOption(new QuestionOption
+                var option = new QuestionOption
                 {
                     Id = Guid.NewGuid().ToString(),
                     QuestionId = question.Id,
                     OptionText = optionDto.OptionText,
                     OrderNumber = optionDto.OrderNumber
-                });
+                };
+                
+                options.Add(option);
             }
         }
         
+        // Save everything in a single transaction
+        var result = await adminSurveyRepository.UpdateSurveyWithQuestionsAndOptions(survey, questions, options);
+        
         return new SurveyResponseDto
         {
-            Id = updatedSurvey.Id,
-            Title = updatedSurvey.Title,
-            Description = updatedSurvey.Description,
-            SurveyType = updatedSurvey.SurveyType,
-            IsActive = updatedSurvey.IsActive,
-            CreatedByUserId = updatedSurvey.CreatedByUserId,
-            CreatedAt = updatedSurvey.CreatedAt,
+            Id = result.Survey.Id,
+            Title = result.Survey.Title,
+            Description = result.Survey.Description,
+            SurveyType = result.Survey.SurveyType,
+            IsActive = result.Survey.IsActive,
+            CreatedByUserId = result.Survey.CreatedByUserId,
+            CreatedAt = result.Survey.CreatedAt,
             Questions = dto.Questions
         };
     }
@@ -160,49 +173,6 @@ public class AdminSurveyService(IAdminSurveyRepository adminSurveyRepository) : 
         }).ToList();
     }
 
-    public async Task<SurveyResultsDto> GetSurveyResults(string surveyId)
-    {
-        var survey = await adminSurveyRepository.GetSurveyWithResponses(surveyId);
-        if (survey == null)
-            throw new KeyNotFoundException("Survey not found");
-
-        var questionResults = survey.Questions.Select(q =>
-        {
-            var questionResponses = survey.SurveyResponses
-                .SelectMany(r => r.Answers)
-                .Where(a => a.QuestionId == q.Id);
-
-            var statistics = q.QuestionOptions
-                .Select(o => new AnswerStatisticDto
-                {
-                    OptionText = o.OptionText,
-                    Count = questionResponses.Count(r => r.AnswerText == o.OptionText),
-                    Percentage = questionResponses.Any()
-                        ? (double)questionResponses.Count(r => r.AnswerText == o.OptionText) /
-                        questionResponses.Count() * 100
-                        : 0
-                })
-                .ToList();
-
-            return new QuestionResultDto
-            {
-                QuestionId = q.Id,
-                QuestionText = q.QuestionText,
-                QuestionType = q.QuestionType,
-                Statistics = statistics
-            };
-        }).ToList();
-
-        return new SurveyResultsDto
-        {
-            SurveyId = survey.Id,
-            Title = survey.Title,
-            TotalResponses = survey.SurveyResponses.Count,
-            QuestionResults = questionResults
-        };
-    }
-
-
     public async Task<List<SurveyResultsDto>> GetAllSurveysResults()
 {
     var surveys = await adminSurveyRepository.GetAllSurveysWithResponses();
@@ -217,7 +187,7 @@ public class AdminSurveyService(IAdminSurveyRepository adminSurveyRepository) : 
                     .SelectMany(r => r.Answers)
                     .Where(a => a.QuestionId == q.Id);
 
-                var statistics = new List<AnswerStatisticDto>();
+                List<AnswerStatisticDto> statistics;
 
                 // For text questions, just list the answers without statistics
                 if (!q.QuestionOptions.Any())
@@ -225,25 +195,32 @@ public class AdminSurveyService(IAdminSurveyRepository adminSurveyRepository) : 
                     statistics = questionResponses
                         .Select(r => new AnswerStatisticDto
                         {
-                            OptionText = r.AnswerText,
-                            Count = 0,  // Not applicable for text answers
-                            Percentage = 0  // Not applicable for text answers
+                            OptionText = r.AnswerText ?? string.Empty,
+                            Count = 0,  
+                            Percentage = 0  
                         })
                         .ToList();
                 }
-                // For multiple choice questions, calculate statistics as before
+                // For multiple choice questions, calculate statistics
                 else
                 {
+                    var responsesList = questionResponses.ToList();
+                    int totalResponses = responsesList.Count();
+                    bool hasAnyResponses = totalResponses > 0;
+                    
                     statistics = q.QuestionOptions
                         .OrderBy(o => o.OrderNumber)
-                        .Select(o => new AnswerStatisticDto
+                        .Select(o => 
                         {
-                            OptionText = o.OptionText,
-                            Count = questionResponses.Count(r => r.AnswerText == o.OptionText),
-                            Percentage = questionResponses.Any()
-                                ? (double)questionResponses.Count(r => r.AnswerText == o.OptionText) /
-                                questionResponses.Count() * 100
-                                : 0
+                            int matchCount = responsesList.Count(r => r.AnswerText == o.OptionText);
+                            return new AnswerStatisticDto
+                            {
+                                OptionText = o.OptionText,
+                                Count = matchCount,
+                                Percentage = hasAnyResponses
+                                    ? (double)matchCount / totalResponses * 100
+                                    : 0
+                            };
                         })
                         .ToList();
                 }

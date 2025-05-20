@@ -1,4 +1,4 @@
-import {SurveyResponseDto} from "../../api/generated-client.ts";
+import {SurveyResponseDto} from "../../api";
 
 export interface SurveyCardProps {
     survey: SurveyResponseDto;

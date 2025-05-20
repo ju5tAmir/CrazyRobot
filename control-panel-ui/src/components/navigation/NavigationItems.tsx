@@ -1,4 +1,4 @@
-import { NavigationItemProps } from "../../models/navigation/NavigationItemProps";
+import { NavigationItemProps } from "../../models";
 import {NavLink} from "react-router-dom";
 
 export default function NavigationItems({ to, icon, text, onClick }: NavigationItemProps) {

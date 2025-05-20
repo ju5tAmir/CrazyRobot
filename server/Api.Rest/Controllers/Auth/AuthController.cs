@@ -23,11 +23,12 @@ public class AuthController(ISecurityService securityService) : ControllerBase
         return Ok(securityService.LoginAdmin(dto));
     }
 
-    [Route(RegisterRoute)]
     [HttpPost]
-    public ActionResult<AuthResponseDto> RegisterAdmin([FromBody] AuthRequestDto dto)
+    [Route(RegisterRoute)]
+    public async Task<ActionResult<AuthResponseDto>> RegisterAdmin([FromBody] AuthRequestDto dto)
     {
-        return Ok(securityService.RegisterAdmin(dto));
+        var response = await securityService.RegisterAdmin(dto);
+        return Ok(response);
     }
     
     [Route(RegisterUserRoute)]

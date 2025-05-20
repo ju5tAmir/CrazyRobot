@@ -11,6 +11,8 @@ export const DangerDisplay = (props:DangerDisplayProps)=>{
  const [engineState,_]=useAtom(EngineStateAtom);
  const warnings= useDistanceWarnings();
  const negativeWarning = useNegativeWarnings();
+
+
     const computeColor = (position: DIRECTION_WARNING) => {
 console.log("engineState" + engineState);
         if(!engineState){

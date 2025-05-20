@@ -4,8 +4,11 @@ using Application.Interfaces.Api.Websocket;
 using Application.Interfaces.Infrastructure.mqtt;
 using Application.Interfaces.Robot;
 using Application.Interfaces.Security;
+using Application.Interfaces.timer;
+using Application.Models;
 using Application.Services;
 using Application.Services.robot;
+using Application.Services.Timer;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Application;
@@ -25,6 +28,7 @@ public static class ServicesExtensions
         services.AddScoped<IContactService, ContactService>();
         services.AddScoped<IEventService,   EventService>();
         services.AddScoped<IRobotEngineService, RobotEngineService>();
+        services.AddScoped<IClientTimerService,ClientWatchdogService>();
         return services;
     }
 }

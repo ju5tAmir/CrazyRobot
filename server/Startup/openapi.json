@@ -1404,6 +1404,38 @@
           }
         ]
       },
+      "ServerSubscribedClientToRobotTopicDto": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseDto"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "subscribed": {
+                "type": "boolean"
+              }
+            }
+          }
+        ]
+      },
+      "ServerUnsubscribedClientFromRobotTopicDto": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseDto"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "unsubscribed": {
+                "type": "boolean"
+              }
+            }
+          }
+        ]
+      },
       "Ping": {
         "allOf": [
           {
@@ -1423,6 +1455,57 @@
           {
             "type": "object",
             "additionalProperties": false
+          }
+        ]
+      },
+      "ClientSendsTimerConfirmationDto": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseDto"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "status": {
+                "type": "boolean"
+              },
+              "clientId": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "ClientSubscribeToRobotTopicDto": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseDto"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "clientId": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "ClientUnsubscribeFromRobotTopicDto": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseDto"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "clientId": {
+                "type": "string"
+              }
+            }
           }
         ]
       },
@@ -1500,6 +1583,25 @@
           }
         ]
       },
+      "ServerSendsTimerDto": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseDto"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "status": {
+                "type": "boolean"
+              },
+              "clientId": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
       "StringConstants": {
         "type": "string",
         "description": "Available eventType and string constants",
@@ -1511,11 +1613,17 @@
           "RobotMovementDto",
           "ExampleServerResponse",
           "ServerSendsErrorMessage",
+          "ServerSubscribedClientToRobotTopicDto",
+          "ServerUnsubscribedClientFromRobotTopicDto",
           "Ping",
           "Pong",
+          "ClientSendsTimerConfirmationDto",
+          "ClientSubscribeToRobotTopicDto",
+          "ClientUnsubscribeFromRobotTopicDto",
           "ExampleClientDto",
           "EngineStateDto",
-          "ServerConfirmsDto"
+          "ServerConfirmsDto",
+          "ServerSendsTimerDto"
         ]
       }
     }

@@ -1,6 +1,6 @@
 import {Button} from "./Button.tsx";
 import {useCallback, useEffect, useRef, useState} from "react";
-import {InfoDisplay} from "./index.ts";
+import {InfoDisplay, subscribeClientToRobot, unsubscribeClientFromRobot} from "./index.ts";
 import {FaPlay, FaStop} from "react-icons/fa";
 import {useWsClient} from "ws-request-hook";
 import {
@@ -17,9 +17,15 @@ import {DangerDisplay} from "../../InfoDisplay/DangerDisplay/DangerDisplay.tsx";
 import {DangerDisplayOrientation} from "../../../../models";
 import {useAtom} from "jotai";
 import {EngineStateAtom} from "../../../../atoms";
+import {ModalComponent} from "../../../timer";
+import {useClientIdState} from "../../../../hooks/Wsclient";
+import {KEYS} from "../../../../hooks/KEYS";
+import {useNavigate} from "react-router-dom";
+
+
 
 export const ControlMotor = () => {
-    const {onMessage, sendRequest, send, readyState} = useWsClient();
+    const {onMessage, sendRequest, readyState} = useWsClient();
     const [_,setEngineAtom] = useAtom(EngineStateAtom);
     const previousPressed = useRef<Set<string>>(new Set());
     const [engine, setEngine] = useState<boolean>(false);
@@ -31,6 +37,71 @@ export const ControlMotor = () => {
     //last movement command that has been pressed
     const [lastPressed,setLastPressed] = useState<string>("");
     const movementKeys = new Set(['w', 'a', 's', 'd',"e"]);
+    const manageClientId = useClientIdState(KEYS.CLIENT_ID);
+    const navigate = useNavigate();
+    const clientId = manageClientId.getClientId() || '';
+    const subscribedRef = useRef(false);
+
+
+
+    useEffect(() => {
+        console.log(readyState + "readystate");
+        if (readyState!==1 || clientId === "") return;
+
+        let isMounted = true;
+
+        const handleSubscription = async () => {
+            const success = await subscribeClientToRobot(clientId, sendRequest);
+            if (success && isMounted) {
+                subscribedRef.current=true;
+            } else if (isMounted) {
+                toast.error("Could not connect to robot");
+                navigate('/');
+            }
+        };
+
+        handleSubscription();
+
+        return () => {
+            console.log("Component unmounted"); // ✅ This should always log
+            isMounted = false;
+            if (subscribedRef.current) {
+                unsubscribeClientFromRobot(clientId, sendRequest)
+                    .then(success => {
+                        if (!success) {
+                            console.warn("Failed to unsubscribe");
+                        }
+                        console.warn(" to unsubscribe");
+                    })
+                    .catch(err => {
+                        console.error("Unsubscribe error", err);
+                    });
+            }
+        };
+    }, [readyState]);
+
+    // useEffect(() => {
+    //     if (!readyState) return;
+    //     if (clientId=="") {
+    //         toast.error('Missing client ID');
+    //         navigate('/');
+    //         return;
+    //     }
+    //
+    //     const handleSubscription = async () => {
+    //         const success = await subscribeClientToRobot(clientId, sendRequest);
+    //         if (!success) {
+    //             toast.error("Could not connect to robot");
+    //             navigate('/');
+    //         }
+    //     };
+    //     handleSubscription();
+    //
+    //     return () => {
+    //         unsubscribeClientFromRobot(clientId, sendRequest);
+    //     };
+    // }, [readyState]);
+
 
     useEffect(() => {
         if (!readyState) return;
@@ -225,7 +296,7 @@ export const ControlMotor = () => {
     }
 
     return (
-        <>
+        <><ModalComponent/>
             <div className={"flex flex-col gap-2 justify-center"}>
                 <InfoDisplay engineState={engine} batteryStatus={0} initializeStatus={engineLocked}></InfoDisplay>
 

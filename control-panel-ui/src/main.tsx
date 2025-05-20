@@ -9,8 +9,7 @@ import  {StrictMode} from "react";
 
 
 createRoot(document.getElementById('root')!).render(
-
-    <StrictMode>
+  <StrictMode>
         <ThemeProvider>
             <AuthProvider>
                 <BrowserRouter>
@@ -18,5 +17,5 @@ createRoot(document.getElementById('root')!).render(
                 </BrowserRouter>
             </AuthProvider>
         </ThemeProvider>
-    </StrictMode>
+   </StrictMode>
 );

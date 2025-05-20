@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text.Json;
 using System.Web;
+using Api.Websocket.EventHandlers;
 using Api.WebSocket.EventHandlers.Robot.DangerControll;
 using Api.Websocket.EventHandlers.Robot.EngineControll;
 using Api.Websocket.EventHandlers.Robot.MovementControll;
@@ -23,6 +24,7 @@ public static class WebsocketStartupExtensions
         services.AddSingleton<IClientNotifier, InitializeEngineResponseHandler>();
         services.AddSingleton<IClientMovementNotifier,MovementResponseHandler>();
         services.AddSingleton<IClientNegativeDistanceNotifier,NegativeSpaceNotifierHandler>();
+        services.AddSingleton<IServiceTimerNotifier, ServerSendsTimerDtoHandler>();
         return services;
     }
 

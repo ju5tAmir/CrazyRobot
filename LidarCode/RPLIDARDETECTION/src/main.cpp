@@ -30,7 +30,7 @@ void setup() {
 void loop() {
   // Process any incoming commands
 handleSerialCommands(TransmitSerial,lidarState);
-
+Serial.println("ahhha");
   // Only process LIDAR data if it's ready
   if(lidarState.lidarReady) {
     // Read data from the LIDAR sensor

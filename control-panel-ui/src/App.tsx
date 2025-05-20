@@ -23,7 +23,6 @@ export default function App() {
       ? 'wss://' + baseUrl + '?id=' + clientId
       : 'ws://' + baseUrl + '?id=' + clientId;
     setServerUrl(finalUrl);
-    console.log(finalUrl);
   }, [prod, baseUrl]);
   return (
     <>

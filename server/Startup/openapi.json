@@ -1368,9 +1368,6 @@
         "properties": {
           "warning": {
             "type": "string"
-          },
-          "direction": {
-            "type": "string"
           }
         }
       },

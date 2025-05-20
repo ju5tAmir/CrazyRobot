@@ -19,20 +19,21 @@ struct RobotData {
     bool isStopping = false;
     char activeMovements[4]={ '_', '_', '_', '_' };  
     bool isStopped = true;
-    bool lidarReady = false;
     bool lidarHealth=true;
     bool negativeDanger=false;
     /// @brief is used to block movements that are not allowed by the sensors, a negative space, obstacles
     ///@brief not allowed movements will be replaced with '_' character
     char allowedMovements[4]={'w','a','s','d'};
-    Obstacle previousObstacles[72] = {};
-    Obstacle obstacles[72] = {}; 
-    int currentObstaclesCount = 0;
-    
-    // const char* moveValue;
-    // bool isTurning;
-    // const char* directionValue;
-    // int speed;
+    String lidarWarnings = "";
+};
+
+// save the time when the message arrived for synchronizing
+struct LidarMessage {
+  String command="";
+  unsigned long timestamp;
+       LidarMessage() {};
+      LidarMessage(String& t, unsigned long ts)
+    : command(t), timestamp(ts) {}
 };
 
 struct Publisher{
@@ -41,6 +42,8 @@ struct Publisher{
          client.publish(topic, payload);
       }
 };
+
+
 struct Point
 {
     float angle;

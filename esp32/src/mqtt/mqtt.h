@@ -2,7 +2,8 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
 #include <esp32-hal-gpio.h>
-#include "../lidar/lidar.h"
+#include "../models/models.h"
+
 
 
 
@@ -28,4 +29,5 @@ void callback(const char* topic, byte* payload, unsigned int length, RobotData* 
 void sendInitializeMessage(bool initialized, String error);
 void sendTurnOffMessage(String error);
 void sendNegativeWarning(String level);
+void sendDistanceWarningNew(String levels);
 #endif

@@ -164,6 +164,7 @@ public class AdminSurveyService(IAdminSurveyRepository adminSurveyRepository) : 
                         .OrderBy(o => o.OrderNumber)
                         .Select(o => new QuestionOptionDto
                         {
+                            Id = o.Id,
                             OptionText = o.OptionText,
                             OrderNumber = o.OrderNumber
                         })

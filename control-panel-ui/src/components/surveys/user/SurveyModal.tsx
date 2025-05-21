@@ -19,6 +19,7 @@ export default function SurveyModal({ survey, onClose, onComplete }: SurveyModal
                     responses: Object.entries(answers).map(([questionId, answer]) => ({
                         questionId,
                         response: answer,
+                        optionId: survey.questions?.find(q => q.id === questionId)?.options?.find(o => o.optionText === answer)?.id
                     }))
                 };
                 await http.userSurveys.submitResponse(response)

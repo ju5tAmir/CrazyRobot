@@ -1061,6 +1061,9 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
+          "id": {
+            "type": "string"
+          },
           "optionText": {
             "type": "string"
           },
@@ -1209,7 +1212,12 @@
             "type": "string"
           },
           "response": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
+          },
+          "optionId": {
+            "type": "string",
+            "nullable": true
           }
         }
       },

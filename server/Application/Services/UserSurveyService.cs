@@ -32,7 +32,8 @@ public class UserSurveyService(IUserSurveyRepository userSurveyRepository) : IUs
                 Id = Guid.NewGuid().ToString(),
                 SurveyResponseId = surveyResponseId,
                 QuestionId = r.QuestionId,
-                AnswerText = r.Response
+                AnswerText = r.Response,
+                SelectedOptionId = r.OptionId
             }).ToList()
         };
 
@@ -45,6 +46,7 @@ public class UserSurveyService(IUserSurveyRepository userSurveyRepository) : IUs
             {
                 QuestionId = r.QuestionId,
                 Response = r.AnswerText,
+                OptionId = r.SelectedOptionId,
             }).ToList()
         };
     }
@@ -72,6 +74,7 @@ public class UserSurveyService(IUserSurveyRepository userSurveyRepository) : IUs
                         .OrderBy(o => o.OrderNumber)
                         .Select(o => new QuestionOptionDto
                         {
+                            Id = o.Id,
                             OptionText = o.OptionText,
                             OrderNumber = o.OrderNumber
                         })

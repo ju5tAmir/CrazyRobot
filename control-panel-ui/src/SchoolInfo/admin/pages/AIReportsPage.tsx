@@ -2,6 +2,10 @@ import { useEffect, useState, useMemo } from 'react';
 import { GeneratedReportsClient, GeneratedReportDto } from '../../../api/generated-client';
 import { useAuth } from '../../../helpers/useAuth.ts';
 import { FileText, BookOpen, Trash2, ChevronDown, Plus } from 'lucide-react';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
+const http = import.meta.env.VITE_API_HTTP_SCHEMA;
+const API_URL =  http+ BASE_URL;
+const AI_API = http + import.meta.env.VITE_API_AI_URL;
 
 interface SurveySummary {
     survey_id: string;
@@ -11,9 +15,10 @@ interface SurveySummary {
 type SortOrder = 'newest' | 'oldest';
 type Action = 'MakeReport' | 'SurveyQA' | 'BatchReports';
 
+
 export default function AIReportsPage() {
     const { jwt } = useAuth();
-    const api = new GeneratedReportsClient(import.meta.env.VITE_API_URL, {
+    const api = new GeneratedReportsClient(API_URL, {
         fetch: (u, i) =>
             fetch(u, {
                 ...i,
@@ -44,7 +49,7 @@ export default function AIReportsPage() {
 
     // Завантаження опитувань
     useEffect(() => {
-        fetch(`${import.meta.env.VITE_API_AI_URL}/reports/summary`, {
+        fetch(`${AI_API}/reports/summary`, {
             headers: { Authorization: `Bearer ${jwt}` },
         })
             .then((res) => res.json())
@@ -54,7 +59,7 @@ export default function AIReportsPage() {
     // Завантаження історії діалогу
     useEffect(() => {
         if (action !== 'SurveyQA' || !selectedSurveyId) return;
-        fetch(`${import.meta.env.VITE_API_AI_URL}/reports/${selectedSurveyId}/conversation`, {
+        fetch(`${AI_API}/reports/${selectedSurveyId}/conversation`, {
             headers: { Authorization: `Bearer ${jwt}` },
         })
             .then((r) => r.json())

@@ -9,10 +9,14 @@ import {useAuth} from "../../../helpers";
 import Loading from "../../../shared/Loading.tsx";
 import {useClientIdState} from "../../../hooks/Wsclient";
 import {Keys} from "../../../hooks/KEYS/keys.ts";
+import {useAtom} from "jotai/index";
+import {CheckUserLogged} from "../../../atoms/UserLogged.ts";
+import {KEYS} from "../../../hooks/KEYS";
 
 export const LoginModalUser = ({isOpen, setIsOpen}: LoginUserProps) => {
-
-    const {saveLoggedUser} = useClientIdState(Keys.USER_LOGGED);
+    const [_,setUserLogged] = useAtom(CheckUserLogged);
+    const {saveLoggedUser} = useClientIdState(KEYS.USER_LOGGED);
+    const {saveRole} = useClientIdState(KEYS.ADMIN);
     const authLogin = useAuth();
     const [modalClass, setModalClass] = useState("");
     const [serverErrors, setServerErrors] = useState<ValidationError | null>(null);
@@ -105,6 +109,8 @@ export const LoginModalUser = ({isOpen, setIsOpen}: LoginUserProps) => {
             .loginOrRegisterUser(modalState.email, modalState.username)
             .then(() => {
                 saveLoggedUser(true);
+                saveRole(KEYS.GUEST);
+                setUserLogged({isLoggedIn:true,role:KEYS.GUEST});
                 setIsOpen();
             })
             .catch((e) => {

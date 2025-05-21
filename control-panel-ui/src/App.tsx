@@ -20,7 +20,7 @@ const prod = import.meta.env.PROD;
 export default function App() {
   const manageClientId = useClientIdState(KEYS.CLIENT_ID);
   const [clientId] = useState(manageClientId.getClientId());
-  const [isLoggedIn,_] = useAtom(CheckUserLogged);
+  const [userLoggedIn,_] = useAtom(CheckUserLogged);
   const [serverUrl, setServerUrl] = useState<string | undefined>(undefined);
   const navigate = useNavigate();
 
@@ -34,11 +34,15 @@ export default function App() {
 
 
   useEffect(() => {
-    console.log(isLoggedIn);
-    if (isLoggedIn) {
-      navigate("/school-info/");
+    console.log(userLoggedIn.isLoggedIn);
+    if(userLoggedIn.isLoggedIn){
+      if (userLoggedIn.role===KEYS.GUEST) {
+        navigate("/school-info/");
+    }else{
+        navigate("/admin/");
+      }
     }
-  }, [isLoggedIn]);
+  }, [userLoggedIn]);
 
   return (
       <>
@@ -47,14 +51,16 @@ export default function App() {
           <Route path="/guest-login" element={<LoginPageUser />} />
           <Route path="/admin-login" element={<LoginPage />} />
         </Routes>
-
         <Toaster position="bottom-center" />
-
-        {isLoggedIn && serverUrl && (
+        {userLoggedIn.isLoggedIn && userLoggedIn.role===KEYS.ADMIN && (
+          <Routes>
+            <Route path="/admin/*" element={<Admin />} />
+          </Routes>)
+        }
+        {userLoggedIn.isLoggedIn && userLoggedIn.role===KEYS.GUEST && serverUrl && (
             <WsClientProvider url={serverUrl}>
               <Routes>
                 <Route path="/school-info/*" element={<SchoolInfo />} />
-                <Route path="/admin/*" element={<Admin />} />
               </Routes>
             </WsClientProvider>
         )}

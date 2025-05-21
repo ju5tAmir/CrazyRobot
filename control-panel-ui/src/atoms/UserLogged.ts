@@ -1,15 +1,21 @@
-import {atom} from "jotai";
-import {KEYS} from "../hooks/KEYS";
+import { atom } from 'jotai';
+import { KEYS } from '../hooks/KEYS';
 
-const getInitialLoggedState = (): boolean => {
-    const stored = sessionStorage.getItem(KEYS.USER_LOGGED);
-    return stored === 'true';
-};
+interface User {
+    isLoggedIn: boolean;
+    role: string;
+}
 
-export const CheckUserLogged = atom(
-    getInitialLoggedState(), // initial value from sessionStorage
-    (get, set, newValue: boolean) => {
-        sessionStorage.setItem(KEYS.USER_LOGGED, String(newValue));
-        set(CheckUserLogged, newValue);
+const internalUserAtom = atom<User>({
+    isLoggedIn: sessionStorage.getItem(KEYS.USER_LOGGED) === 'true',
+    role: sessionStorage.getItem(KEYS.USER_ROLE) || '',
+});
+
+export const CheckUserLogged= atom(
+    (get) => get(internalUserAtom),
+    (get, set, newUser: User) => {
+        sessionStorage.setItem(KEYS.USER_LOGGED, String(newUser.isLoggedIn));
+        sessionStorage.setItem(KEYS.USER_ROLE, newUser.role);
+        set(internalUserAtom, newUser);
     }
 );

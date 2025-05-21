@@ -54,9 +54,13 @@ tools = [
 agent = initialize_agent(
     tools   = tools,
     llm     = llm,
-    agent   = AgentType.ZERO_SHOT_REACT_DESCRIPTION,    
+    agent   = AgentType.ZERO_SHOT_REACT_DESCRIPTION,
     memory  = memory,
     verbose = True,
+
+     
+    max_iterations = 1,
+    early_stopping_method = "generate",
 )
 
 def ask_agent(message: str) -> str:

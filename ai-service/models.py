@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 from dotenv import load_dotenv
 from sqlmodel import SQLModel, Field, create_engine
-
+from typing import Optional
 load_dotenv(".env")
 DB_URL = os.getenv("DATABASE_URL")
 
@@ -12,7 +12,15 @@ engine = create_engine(
     pool_pre_ping=True,
     pool_recycle=240,
 )
+class SurveyChat(SQLModel, table=True):
+    __tablename__  = "survey_chat"
+    __table_args__ = {"schema": "crazyrobot"}
 
+    id: Optional[int] = Field(default=None, primary_key=True)
+    survey_id: str    = Field(index=True)
+    question: str
+    answer: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
 # ──ORM classes ───────────────────────────────────────────────
 class DomSurvey(SQLModel, table=True):
     __tablename__, __table_args__ = "survey", {"schema": "crazyrobot"}

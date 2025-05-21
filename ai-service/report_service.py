@@ -122,17 +122,19 @@ def get_survey_summary(db: Session) -> List[Dict]:
     return summary
 
 def generate_report(survey_id: str) -> str:
-    """
-    Your existing LLM report generation code.
-    """
-    # 1) aggregate...
+    # 1) we collect data from the database
     with Session(engine) as db:
-        responses_cnt = db.exec(
+        # a) count of responses
+        result = db.exec(
             select(func.count())
-            .select_from(DomResponse)
-            .where(DomResponse.survey_id == survey_id)
+                .select_from(DomResponse)
+                .where(DomResponse.survey_id == survey_id)
         ).one()
-        questions = db.exec(
+        # if a tuple is returned, we take [0], otherwise it is immediately int
+        responses_cnt = result[0] if not isinstance(result, int) else result
+
+        # b) list of questions, RowMapping → dict
+        raw_questions = db.exec(
             select(
                 DomQuestion.id,
                 DomQuestion.question_text.label("text"),
@@ -141,6 +143,7 @@ def generate_report(survey_id: str) -> str:
             .where(DomQuestion.survey_id == survey_id)
             .order_by(DomQuestion.order_number)
         ).mappings().all()
+        questions = [dict(row) for row in raw_questions]
 
     summary = {
         "survey_id":       survey_id,
@@ -148,12 +151,12 @@ def generate_report(survey_id: str) -> str:
         "questions":       questions,
     }
 
-    # 2) craft prompt
-    prompt = PROMPT.replace("{data}", json.dumps(summary, ensure_ascii=False))
+    # 2) building a prompt
+    prompt = PROMPT.replace("{data}", json.dumps(summary, ensure_ascii=False, indent=2))
     if ex := _example_reports():
         prompt += f"\n\nExamples of previous reports:\n{ex}"
 
-    # 3) call Ollama
+    # 3) we call Ollama
     resp = requests.post(
         f"{OLLAMA_URL}/v1/chat/completions",
         json={"model": OLLAMA_MODEL, "messages": [{"role": "user", "content": prompt}]},
@@ -162,7 +165,7 @@ def generate_report(survey_id: str) -> str:
     resp.raise_for_status()
     report_text = resp.json()["choices"][0]["message"]["content"]
 
-    # 4) save
+    # 4) save the report to the database
     with Session(engine) as sess:
         sess.add(GeneratedReport(
             survey_id    = survey_id,
@@ -171,6 +174,7 @@ def generate_report(survey_id: str) -> str:
         ))
         sess.commit()
 
+    # optional: write to file
     try:
         with Path("rag_data.txt").open("a", encoding="utf-8") as f:
             f.write(f"\n\n{report_text}")

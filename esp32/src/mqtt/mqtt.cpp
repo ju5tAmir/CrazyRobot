@@ -6,6 +6,7 @@
 #include <esp32-hal-gpio.h>
 #include "models/models.h"
 
+
 WiFiClient espClient;
 PubSubClient client(espClient);
 Publisher publisher = Publisher();
@@ -146,7 +147,7 @@ RobotData parseJson(String jsonString) {
                 if (servos.containsKey("Head")) {
                     int headValue = servos["Head"].as<int>();
                     Serial.println(headValue);
-                    data.servo.head = headValue;
+                    // data.servo.head = headValue;
                 }
             }
         }
@@ -166,7 +167,7 @@ void receiveData(String value ,RobotData * robotData){
     for (int i = 0; i < 4; i++) {
         robotData->activeMovements[i] = data.activeMovements[i];
     }
-    robotData->servo.head=data.servo.head;
+    // robotData->servo.head=data.servo.head;
 }
 
 

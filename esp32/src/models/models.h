@@ -13,9 +13,6 @@ struct Obstacle {
     float distance;
 };
 
-struct ServoData {
-    int head;
-};
 
 struct RobotData {
     bool isMoving=false;
@@ -29,7 +26,7 @@ struct RobotData {
     ///@brief not allowed movements will be replaced with '_' character
     char allowedMovements[4]={'w','a','s','d'};
     String lidarWarnings = "";
-    ServoData servo;
+   // ServoData servo;
 };
 
 // save the time when the message arrived for synchronizing

@@ -57,16 +57,23 @@ static unsigned long lastWarnTime = 0;
 
 
 void setup() {
-  analogReadResolution(12);
-  Serial.begin(115200);
- LidarSerial.begin(115200, SERIAL_8N1, RPLIDAR_RX, RPLIDAR_TX);
-  while (LidarSerial.available()) LidarSerial.read();
-connectWiFi();
-connectMQTT(&robot);
-setupMotors();
+    analogReadResolution(12);
+    Serial.begin(115200);
+    LidarSerial.begin(115200, SERIAL_8N1, RPLIDAR_RX, RPLIDAR_TX);
+    while (LidarSerial.available()) LidarSerial.read();
+    connectWiFi();
+    connectMQTT(&robot);
+    setupMotors();
 
     if (servoManager.setup()) {
         Serial.println("Servo Setup Successfull");
+
+        static bool moved = false;
+        if (!moved) {
+            moved = true;
+        }
+
+
     } else {
         Serial.println("Servo Setup Failed.");
     };
@@ -103,7 +110,6 @@ void loop() {
 void actOnMovements() {
   bool foundW = false, foundS = false, foundA = false, foundD = false;
 
-  Serial.println(robot.servo.head);
   for (int i = 0; i < 4; i++) {
     char movement = robot.activeMovements[i];
     if (movement == '-') continue;

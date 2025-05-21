@@ -2,6 +2,7 @@ Todo:
 
 -> Make TESTS!
 -> Delete column optionID in database?
+NO! Check if we can use it in code.
 
 Missing 15/05/2025:
 

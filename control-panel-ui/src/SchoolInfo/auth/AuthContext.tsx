@@ -71,6 +71,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem('jwt');
         setJwt(null);
         http.resetClients();
+
+        //Clears all session storage keys
+        sessionStorage.clear();
     }
 
     return (

@@ -13,11 +13,12 @@ struct Obstacle {
     float distance;
 };
 
+
 struct RobotData {
     bool isMoving=false;
     bool initializing = false;
     bool isStopping = false;
-    char activeMovements[4]={ '_', '_', '_', '_' };  
+    char activeMovements[4]={ '_', '_', '_', '_' };
     bool isStopped = true;
     bool lidarHealth=true;
     bool negativeDanger=false;
@@ -25,6 +26,7 @@ struct RobotData {
     ///@brief not allowed movements will be replaced with '_' character
     char allowedMovements[4]={'w','a','s','d'};
     String lidarWarnings = "";
+   // ServoData servo;
 };
 
 // save the time when the message arrived for synchronizing
@@ -57,13 +59,12 @@ struct Gap {
     int width;
 };
 
-
-enum DIRECTION { 
+enum DIRECTION {
     FRONT,
     RIGHTR,
     LEFTL,
     BACK,
-    
+
 };
 
 enum Direction {FORWARD, BACKWARD,RIGHT,LEFT, STOP,NONE,FORWARD_LEFT, FORWARD_RIGHT, BACKWARD_LEFT, BACKWARD_RIGHT,BRAKING};

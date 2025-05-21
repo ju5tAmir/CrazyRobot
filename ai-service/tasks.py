@@ -1,34 +1,49 @@
-# tasks.py – report generation every 12 hours for all surveys with responses
-import os, time
+# tasks.py – report generation every hour for all surveys with responses
+import os
+import time
 from datetime import datetime
 from pathlib import Path
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import load_dotenv
-from sqlmodel import create_engine, Session
+from sqlmodel import Session, create_engine
+from sqlalchemy.pool import NullPool
+
 from langchain_community.llms import Ollama
 from langchain_community.utilities import SQLDatabase
 
-from main import GeneratedReport   # crazyrobot.generated_report table
+from models import GeneratedReport, engine as main_engine
 
-# ── config ─────────────────────────────────────────────────────
+# ── config ──────────────────────────────────────────────────────
 load_dotenv()
 DB_URL     = os.getenv("DATABASE_URL")
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://ollama:11434")
 MODEL_NAME = os.getenv("MODEL", "llama3:latest")
 
-# ── init ───────────────────────────────────────────────────────
-engine   = create_engine(DB_URL)
-sql_db   = SQLDatabase.from_uri(DB_URL)              
-llm      = Ollama(base_url=OLLAMA_URL,
-                  model=MODEL_NAME,
-                  temperature=0.3)
+# ── init ────────────────────────────────────────────────────────
+# create an engine without a pool or with a "ping" check when taking from the pool
+engine_for_tasks = create_engine(
+    DB_URL,
+    pool_pre_ping=True,
+    connect_args={"sslmode": "require"},
+    echo=False,
+)
 
-# ── helpers ───────────────────────────────────────────────────
+# initialize SQLDatabase based on this engine
+sql_db = SQLDatabase(engine=engine_for_tasks)
+
+# клиент LLM
+llm = Ollama(
+    base_url=OLLAMA_URL,
+    model=MODEL_NAME,
+    temperature=0.3,
+)
+
+# ── helpers ────────────────────────────────────────────────────
 EXAMPLES = Path("rag_data.txt").read_text("utf-8") if Path("rag_data.txt").exists() else ""
 
 def surveys_with_responses(limit: int = 50) -> list[str]:
-    """List of survey_id (there are answers), most recent first."""
+    """List of survey_id with at least one response, most recent first."""
     rows = sql_db._execute(f"""
         SELECT r.survey_id
         FROM   crazyrobot.survey_response r
@@ -36,13 +51,12 @@ def surveys_with_responses(limit: int = 50) -> list[str]:
         ORDER  BY MAX(r.submitted_at) DESC
         LIMIT  {limit};
     """)
-    return [row["survey_id"] for row in rows]   # ← key by name
+    return [row["survey_id"] for row in rows]
 
 def generate_report_for_survey(survey_id: str) -> None:
-    # Log the start of report generation
-    print("▶ START", survey_id, datetime.utcnow().isoformat(timespec="seconds"), "UTC", flush=True)
+    """Generate and save a report for a single survey."""
+    print("▶ START", survey_id, datetime.utcnow().isoformat(), "UTC", flush=True)
 
-    # SQL query to aggregate answers by question and option
     summary_sql = f"""
         SELECT a.question_id,
                COALESCE(a.selected_option_id, 'text') AS option,
@@ -56,12 +70,10 @@ def generate_report_for_survey(survey_id: str) -> None:
     """
     summary_data = sql_db.run(summary_sql)
 
-    # Skip if there is no data
     if not summary_data.strip():
-        print("ℹ  No data for", survey_id, flush=True)
+        print("ℹ No data for", survey_id, flush=True)
         return
 
-    # Prompt to send to LLM for generating the report
     prompt = (
         "You are an analyst. Below is aggregated survey data (SQL output):\n\n"
         f"{summary_data}\n\n"
@@ -70,22 +82,20 @@ def generate_report_for_survey(survey_id: str) -> None:
         "Please write a concise report with key insights and recommendations."
     )
 
-    # Call the LLM to generate the report
     report_text = llm.invoke(prompt)
 
-    # Save the generated report to the database
-    with Session(engine) as sess:
-        new_report = GeneratedReport(
+    # save in the main application database
+    with Session(main_engine) as sess:
+        sess.add(GeneratedReport(
             survey_id    = survey_id,
             generated_at = datetime.utcnow(),
-            report_text  = report_text
-        )
-        sess.add(new_report)
+            report_text  = report_text,
+        ))
         sess.commit()
 
     print("✓ SAVED report for", survey_id, flush=True)
 
-    # Append the generated report to rag_data.txt (used as few-shot examples for next generations)
+    # we add to the few-shot-file
     try:
         with open("rag_data.txt", "a", encoding="utf-8") as f:
             f.write(f"\n\nReport for survey {survey_id} ({datetime.utcnow().date()}):\n")
@@ -94,35 +104,34 @@ def generate_report_for_survey(survey_id: str) -> None:
     except Exception as e:
         print(f"⚠️ Failed to append to rag_data.txt: {e}", flush=True)
 
-
 def generate_reports_for_all_surveys() -> None:
+    """Run through all recent surveys and generate missing reports."""
     for sid in surveys_with_responses():
-        # skip if there is already a report for the last 12 hours
+        # skip if the report was for the last 15 minutes
         recent = sql_db.run(f"""
             SELECT 1
             FROM   crazyrobot.generated_report
             WHERE  survey_id = '{sid}'
-              AND  generated_at > now() - interval '15 minutes'
+              AND  generated_at > now() - interval '60 minutes'
             LIMIT 1;
         """)
         if recent.strip():
-            print("↷  Skip (fresh report exists)", sid, flush=True)
+            print("↷ Skip (fresh report exists)", sid, flush=True)
             continue
 
         generate_report_for_survey(sid)
 
-# ── scheduler ──────────────────────────────────────────────────
-sched = BackgroundScheduler()
+# ── scheduler ───────────────────────────────────────────────────
+sched = BackgroundScheduler(timezone="UTC")
 sched.add_job(
     func          = generate_reports_for_all_surveys,
-    id            = "15min_reports_all",
+    id            = "60min_reports_all",
     trigger       = "interval",
-    minutes       = 15,
-    next_run_time = datetime.utcnow(),        # immediately the first launch
+    hours         = 1,
+    next_run_time = datetime.utcnow(),  # first launch immediately
 )
-print("JOB ADDED 15min interval for *all* surveys", flush=True)
+print("JOB ADDED: every 60 minutes for all surveys", flush=True)
 
-# running in a container
 if __name__ == "__main__":
     sched.start()
     try:

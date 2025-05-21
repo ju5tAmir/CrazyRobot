@@ -19,6 +19,7 @@ public:
     void headsUp();
     void headsDown();
     void init();
+    void update();
     void move(ServoData &servo);
     void status(ServoData &servo);
     int getStep(int start, int finish, int step);
@@ -30,3 +31,4 @@ public:
     void setTarget(int servoId, int newTarget, bool action);
 };
 
+extern ServoManager servoManager;

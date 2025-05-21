@@ -5,11 +5,14 @@
 #include <ArduinoJson.h>
 #include <esp32-hal-gpio.h>
 #include "models/models.h"
+#include "servo/ServoManager.h"
 
 
 WiFiClient espClient;
 PubSubClient client(espClient);
 Publisher publisher = Publisher();
+
+
 
 const char* engineManagementUserTopic = "engineManagementUser";
 const char* commanduser = "commandsuser";
@@ -143,11 +146,26 @@ RobotData parseJson(String jsonString) {
         if (doc.containsKey("Payload")) {
             JsonObject payload = doc["Payload"];
             if (payload.containsKey("Servos")) {
-                JsonObject servos = payload["Servos"];
-                if (servos.containsKey("Head")) {
-                    int headValue = servos["Head"].as<int>();
-                    Serial.println(headValue);
-                    // data.servo.head = headValue;
+                JsonObject servoj = payload["Servos"]; // servo json object
+                if (servoj.containsKey("head")) {
+                    int v = servoj["head"].as<int>();
+                    servoManager.setTarget(0, v);
+                }
+                if (servoj.containsKey("neckt")) {
+                    int v = servoj["neckt"].as<int>();
+                    servoManager.setTarget(1, v);
+                }
+                if (servoj.containsKey("neckb")) {
+                    int v = servoj["neckb"].as<int>();
+                    servoManager.setTarget(2, v);
+                }
+                if (servoj.containsKey("leye")) {
+                    int v = servoj["leye"].as<int>();
+                    servoManager.setTarget(3, v);
+                }
+                if (servoj.containsKey("reye")) {
+                    int v = servoj["reye"].as<int>();
+                    servoManager.setTarget(4, v);
                 }
             }
         }

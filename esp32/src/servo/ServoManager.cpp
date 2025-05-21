@@ -9,19 +9,12 @@ ServoManager::ServoManager() : pwm(), initialized(false)  {
 bool ServoManager::setup() {
     pwm.begin();
     pwm.setPWMFreq(SERVO_FREQ);
-    // for (int i=0; i < SERVO_COUNT ; i++) {
-    //    // To set the servos to their initial angle
-    //    setTarget(i, servos[i].init, true);
-    //    }
+    for (int i=0; i < SERVO_COUNT ; i++) {
+           // To set the servos to their initial angle
+           setTarget(i, servos[i].init, true);
+           }
     initialized = true;
     return initialized;
-};
-
-
-void ServoManager::setServoAngle(uint8_t channel, int angle) {
-    angle = constrain(angle, 0, 180);
-    int pulse = map(angle, 0, 180, SERVO_MIN, SERVO_MAX);
-    pwm.setPWM(channel, 0, pulse);
 };
 
 
@@ -72,6 +65,16 @@ void ServoManager::init() {
 
   initialized = !initialized;
 }
+
+// Indeed it's a stupid way to do this.
+// Maybe the most stupid way possible.
+//
+// Maybe having a queue system would be better
+void ServoManager::update() {
+    for (int i=0; i<SERVO_COUNT; i++) {
+        move(servos[i]);
+    }
+};
 
 void ServoManager::move(ServoData &servo) {
     if (!servo.isMoving) return;
@@ -197,7 +200,22 @@ void ServoManager::setTarget(int servoId, int newTarget) {
 
 
 
+// To immediate pull
+void ServoManager::setTarget(int servoId, int newTarget, bool action) {
+    ServoData &servo = servos[servoId];
 
+    servo.target = constrain(newTarget, servo.min, servo.max);
+    servo.isMoving = false;
+    setServoAngle(servo.id, servo.target); // Final adjustment
+    servo.angle = servo.target;
+}
+
+
+void ServoManager::setServoAngle(uint8_t channel, int angle) {
+    angle = constrain(angle, 0, 180);
+    int pulse = map(angle, 0, 180, SERVO_MIN, SERVO_MAX);
+    pwm.setPWM(channel, 0, pulse);
+};
 
 
 
@@ -344,3 +362,7 @@ void ServoManager::setTarget(int servoId, int newTarget) {
 //     };
 // };
 //
+//
+
+
+ServoManager servoManager;

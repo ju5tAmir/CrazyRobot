@@ -13,7 +13,7 @@
 
 
 // Create servo manager instance - automatically loads all servo configurations
-ServoManager servoManager;
+// ServoManager servoManager;
 
 Motor rightMotor(IN1, IN2, ENA, pwmChannel1);
 Motor leftMotor(IN4, IN3, ENB, pwmChannel2);
@@ -88,6 +88,7 @@ void loop() {
         connectMQTT(&robot);
     }
     client.loop();
+    servoManager.update();
 
       String msg;
   if (readSerialMessage(LidarSerial, msg)) {

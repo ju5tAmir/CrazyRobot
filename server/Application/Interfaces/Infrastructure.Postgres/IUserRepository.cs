@@ -6,6 +6,9 @@ public interface IUserRepository
 {
     List<User> GetAll();
     User? GetUserByIdOrNull(string email);
-    User AddUser(User user);
+    UserGuest? GetGuestByIdOrNull(string email);
+    Task<User> AddAdmin(User user);
+    UserGuest AddUser(UserGuest user);
+    bool IsUsernameTaken(string username);
     bool DeleteUser(string userId);
 }

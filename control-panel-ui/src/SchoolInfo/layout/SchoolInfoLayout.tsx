@@ -1,16 +1,25 @@
-
-import { PropsWithChildren } from 'react';
+import { PropsWithChildren, useState } from 'react';
 import Sidebar from './Sidebar';
-import Header  from './Header';
+import Header from './Header';
 
 export default function SchoolInfoLayout({ children }: PropsWithChildren) {
+    const [isSidebarOpen, setSidebarOpen] = useState(false);
+
+    const openSidebar = () => setSidebarOpen(true);
+    const closeSidebar = () => setSidebarOpen(false);
+
     return (
         <div className="flex h-screen bg-base-200">
-            <Sidebar />
+
+            <Sidebar isOpen={isSidebarOpen} closeSidebar={closeSidebar} />
+
             <div className="flex-1 flex flex-col overflow-hidden">
-                <Header />
-                <main className="flex-1 overflow-auto p-6">{children}</main>
+                <Header openSidebar={openSidebar} />
+                <main className="flex-1 overflow-auto p-6">
+                    {children}
+                </main>
             </div>
+
         </div>
     );
 }

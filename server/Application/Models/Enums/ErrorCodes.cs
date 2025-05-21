@@ -5,4 +5,5 @@ public enum ErrorCode
     ErrorUserId,
     InvalidUserEmail,
     UnexpectedError,
+    InvalidRole,
 }

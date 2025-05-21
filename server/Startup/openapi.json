@@ -163,6 +163,43 @@
         }
       }
     },
+    "/api/Contacts/upload": {
+      "post": {
+        "tags": [
+          "Contacts"
+        ],
+        "operationId": "Contacts_UploadPhoto",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Events": {
       "get": {
         "tags": [
@@ -320,6 +357,92 @@
         }
       }
     },
+    "/api/GeneratedReports": {
+      "get": {
+        "tags": [
+          "GeneratedReports"
+        ],
+        "operationId": "GeneratedReports_GetAll",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GeneratedReportDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/GeneratedReports/{id}": {
+      "get": {
+        "tags": [
+          "GeneratedReports"
+        ],
+        "operationId": "GeneratedReports_Get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneratedReportDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "GeneratedReports"
+        ],
+        "operationId": "GeneratedReports_Delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/Subscribe": {
       "post": {
         "tags": [
@@ -439,6 +562,211 @@
         }
       }
     },
+    "/api/surveys/CreateSurvey": {
+      "post": {
+        "tags": [
+          "AdminSurveys"
+        ],
+        "operationId": "AdminSurveys_CreateSurvey",
+        "requestBody": {
+          "x-name": "dto",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSurveyRequestDto"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurveyResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/surveys/UpdateSurvey/{surveyId}": {
+      "put": {
+        "tags": [
+          "AdminSurveys"
+        ],
+        "operationId": "AdminSurveys_UpdateSurvey",
+        "parameters": [
+          {
+            "name": "surveyId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 2
+          }
+        ],
+        "requestBody": {
+          "x-name": "dto",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSurveyRequestDto"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurveyResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/surveys/DeleteSurvey/{surveyId}": {
+      "delete": {
+        "tags": [
+          "AdminSurveys"
+        ],
+        "operationId": "AdminSurveys_DeleteSurvey",
+        "parameters": [
+          {
+            "name": "surveyId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/surveys/GetAllSurveys": {
+      "get": {
+        "tags": [
+          "AdminSurveys"
+        ],
+        "operationId": "AdminSurveys_GetAllSurveys",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurveyResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/surveys/GetSurveysResults": {
+      "get": {
+        "tags": [
+          "AdminSurveys"
+        ],
+        "operationId": "AdminSurveys_GetSurveysResults",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SurveyResultsDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/survey-submission/SubmitResponse": {
+      "post": {
+        "tags": [
+          "UserSurveys"
+        ],
+        "operationId": "UserSurveys_SubmitResponse",
+        "requestBody": {
+          "x-name": "requestDto",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SurveySubmissionRequestDto"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurveySubmissionResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/survey-submission/GetActiveSurveys": {
+      "get": {
+        "tags": [
+          "UserSurveys"
+        ],
+        "operationId": "UserSurveys_GetActiveSurveys",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SurveyResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/auth/Login": {
       "post": {
         "tags": [
@@ -471,18 +799,50 @@
         }
       }
     },
-    "/api/auth/Register": {
+    "/api/auth/RegisterAdmin": {
       "post": {
         "tags": [
           "Auth"
         ],
-        "operationId": "Auth_Register",
+        "operationId": "Auth_RegisterAdmin",
         "requestBody": {
           "x-name": "dto",
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/AuthRequestDto"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/LoginOrRegisterUser": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "operationId": "Auth_LoginOrRegisterUser",
+        "requestBody": {
+          "x-name": "dto",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthUserRequest"
               }
             }
           },
@@ -584,23 +944,29 @@
             "type": "string"
           },
           "status": {
-            "$ref": "#/components/schemas/EventStatus"
+            "type": "string"
           }
         }
       },
-      "EventStatus": {
-        "type": "integer",
-        "description": "",
-        "x-enumNames": [
-          "Upcoming",
-          "Ongoing",
-          "Past"
-        ],
-        "enum": [
-          0,
-          1,
-          2
-        ]
+      "GeneratedReportDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "surveyId": {
+            "type": "string"
+          },
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reportText": {
+            "type": "string"
+          }
+        }
       },
       "ChangeSubscriptionDto": {
         "type": "object",
@@ -626,6 +992,239 @@
           },
           "message": {
             "type": "string"
+          }
+        }
+      },
+      "SurveyResponseDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "surveyType": {
+            "type": "string"
+          },
+          "createdByUserId": {
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "questions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuestionDto"
+            }
+          }
+        }
+      },
+      "QuestionDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "nullable": true
+          },
+          "questionText": {
+            "type": "string"
+          },
+          "questionType": {
+            "type": "string"
+          },
+          "orderNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuestionOptionDto"
+            }
+          }
+        }
+      },
+      "QuestionOptionDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "optionText": {
+            "type": "string"
+          },
+          "orderNumber": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "CreateSurveyRequestDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "surveyType": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "questions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuestionDto"
+            }
+          }
+        }
+      },
+      "UpdateSurveyRequestDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "surveyType": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "questions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuestionDto"
+            }
+          }
+        }
+      },
+      "SurveyResultsDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "surveyId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "totalResponses": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "questionResults": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuestionResultDto"
+            }
+          }
+        }
+      },
+      "QuestionResultDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "questionId": {
+            "type": "string"
+          },
+          "questionText": {
+            "type": "string"
+          },
+          "questionType": {
+            "type": "string"
+          },
+          "statistics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AnswerStatisticDto"
+            }
+          }
+        }
+      },
+      "AnswerStatisticDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "optionText": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "percentage": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "SurveySubmissionResponseDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "surveyId": {
+            "type": "string"
+          },
+          "responses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuestionResponseDto"
+            }
+          }
+        }
+      },
+      "QuestionResponseDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "questionId": {
+            "type": "string"
+          },
+          "response": {
+            "type": "string"
+          }
+        }
+      },
+      "SurveySubmissionRequestDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "surveyId": {
+            "type": "string"
+          },
+          "responses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuestionResponseDto"
+            }
           }
         }
       },
@@ -660,6 +1259,29 @@
           }
         }
       },
+      "AuthUserRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "username",
+          "email",
+          "role"
+        ],
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 1
+          },
+          "email": {
+            "type": "string",
+            "minLength": 3
+          },
+          "role": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
       "MemberLeftNotification": {
         "allOf": [
           {
@@ -687,6 +1309,222 @@
             "type": "string"
           },
           "requestId": {
+            "type": "string"
+          }
+        }
+      },
+      "DangerMovementDto": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseDto"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "command": {
+                "$ref": "#/components/schemas/ClientCommandOfDistanceWarning"
+              }
+            }
+          }
+        ]
+      },
+      "ClientCommandOfDistanceWarning": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "commandType": {
+            "$ref": "#/components/schemas/ClientCommandType"
+          },
+          "payload": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/DistanceWarning"
+              }
+            ]
+          }
+        }
+      },
+      "ClientCommandType": {
+        "type": "string",
+        "description": "",
+        "x-enumNames": [
+          "Initialized",
+          "BatteryStatus",
+          "DistanceWarning",
+          "NegativeWarning"
+        ],
+        "enum": [
+          "initialized",
+          "batteryStatus",
+          "distanceWarning",
+          "negativeWarning"
+        ]
+      },
+      "DistanceWarning": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "warning": {
+            "type": "string"
+          }
+        }
+      },
+      "InitializeEnginResponseDto": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseDto"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "command": {
+                "$ref": "#/components/schemas/ClientCommandOfInitializeEngineResponse"
+              }
+            }
+          }
+        ]
+      },
+      "ClientCommandOfInitializeEngineResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "commandType": {
+            "$ref": "#/components/schemas/ClientCommandType"
+          },
+          "payload": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/InitializeEngineResponse"
+              }
+            ]
+          }
+        }
+      },
+      "InitializeEngineResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "initializeEngine": {
+            "type": "boolean"
+          },
+          "errorMessage": {
+            "type": "string"
+          }
+        }
+      },
+      "NegativeDistanceNotifierDto": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseDto"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "command": {
+                "$ref": "#/components/schemas/ClientCommandOfNegativeDistanceWarning"
+              }
+            }
+          }
+        ]
+      },
+      "ClientCommandOfNegativeDistanceWarning": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "commandType": {
+            "$ref": "#/components/schemas/ClientCommandType"
+          },
+          "payload": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/NegativeDistanceWarning"
+              }
+            ]
+          }
+        }
+      },
+      "NegativeDistanceWarning": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "warning": {
+            "type": "string"
+          }
+        }
+      },
+      "RobotMovementDto": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseDto"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "command": {
+                "$ref": "#/components/schemas/CommandOfMovementCommand"
+              }
+            }
+          }
+        ]
+      },
+      "CommandOfMovementCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "commandType": {
+            "$ref": "#/components/schemas/CommandType"
+          },
+          "payload": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/MovementCommand"
+              }
+            ]
+          }
+        }
+      },
+      "CommandType": {
+        "type": "string",
+        "description": "",
+        "x-enumNames": [
+          "Initialize",
+          "Move",
+          "Stop"
+        ],
+        "enum": [
+          "initialize",
+          "move",
+          "stop"
+        ]
+      },
+      "MovementCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "directions": {
+            "$ref": "#/components/schemas/Directions"
+          }
+        }
+      },
+      "Directions": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "activeMovements": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "lastCommand": {
             "type": "string"
           }
         }
@@ -723,6 +1561,38 @@
           }
         ]
       },
+      "ServerSubscribedClientToRobotTopicDto": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseDto"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "subscribed": {
+                "type": "boolean"
+              }
+            }
+          }
+        ]
+      },
+      "ServerUnsubscribedClientFromRobotTopicDto": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseDto"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "unsubscribed": {
+                "type": "boolean"
+              }
+            }
+          }
+        ]
+      },
       "Ping": {
         "allOf": [
           {
@@ -745,7 +1615,7 @@
           }
         ]
       },
-      "EngineStateDto": {
+      "ClientSendsTimerConfirmationDto": {
         "allOf": [
           {
             "$ref": "#/components/schemas/BaseDto"
@@ -754,8 +1624,43 @@
             "type": "object",
             "additionalProperties": false,
             "properties": {
-              "engineState": {
+              "status": {
                 "type": "boolean"
+              },
+              "clientId": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "ClientSubscribeToRobotTopicDto": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseDto"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "clientId": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "ClientUnsubscribeFromRobotTopicDto": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseDto"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "clientId": {
+                "type": "string"
               }
             }
           }
@@ -777,6 +1682,48 @@
           }
         ]
       },
+      "EngineStateDto": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseDto"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "command": {
+                "$ref": "#/components/schemas/CommandOfEngineManagement"
+              }
+            }
+          }
+        ]
+      },
+      "CommandOfEngineManagement": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "commandType": {
+            "$ref": "#/components/schemas/CommandType"
+          },
+          "payload": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/EngineManagement"
+              }
+            ]
+          }
+        }
+      },
+      "EngineManagement": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "engine": {
+            "type": "boolean"
+          }
+        }
+      },
       "ServerConfirmsDto": {
         "allOf": [
           {
@@ -793,18 +1740,47 @@
           }
         ]
       },
+      "ServerSendsTimerDto": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseDto"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "status": {
+                "type": "boolean"
+              },
+              "clientId": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
       "StringConstants": {
         "type": "string",
         "description": "Available eventType and string constants",
         "enum": [
           "MemberLeftNotification",
+          "DangerMovementDto",
+          "InitializeEnginResponseDto",
+          "NegativeDistanceNotifierDto",
+          "RobotMovementDto",
           "ExampleServerResponse",
           "ServerSendsErrorMessage",
+          "ServerSubscribedClientToRobotTopicDto",
+          "ServerUnsubscribedClientFromRobotTopicDto",
           "Ping",
           "Pong",
-          "EngineStateDto",
+          "ClientSendsTimerConfirmationDto",
+          "ClientSubscribeToRobotTopicDto",
+          "ClientUnsubscribeFromRobotTopicDto",
           "ExampleClientDto",
-          "ServerConfirmsDto"
+          "EngineStateDto",
+          "ServerConfirmsDto",
+          "ServerSendsTimerDto"
         ]
       }
     }

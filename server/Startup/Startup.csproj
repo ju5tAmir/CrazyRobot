@@ -3,6 +3,10 @@
   <ItemGroup>
     <ProjectReference Include="..\Application\Application.csproj" />
     <ProjectReference Include="..\Infrastructure.Mqtt\Infrastructure.Mqtt.csproj" />
+
+ 
+    <ProjectReference Include="..\Infrastructure.Mqtt\Infrastructure.Mqtt.csproj" />
+ 
     <ProjectReference Include="..\Infrastructure.Postgres\Infrastructure.Postgres.csproj" />
     <ProjectReference Include="..\Api.Rest\Api.Rest.csproj" />
     <ProjectReference Include="..\Api.WebSocket\Api.WebSocket.csproj" />
@@ -10,12 +14,20 @@
   </ItemGroup>
 
   <ItemGroup>
+ 
+    <PackageReference Include="Google.Cloud.Storage.V1" Version="4.13.0" />
+    <PackageReference Include="JWT" Version="11.0.0" />
+ 
+ 
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.4" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.4" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.9.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.2" />
+
     <PackageReference Include="NSwag.AspNetCore" Version="14.3.0" />
     <PackageReference Include="NSwag.CodeGeneration.TypeScript" Version="14.3.0" />
     <PackageReference Include="NSwag.SwaggerGeneration.AspNetCore" Version="12.3.0" />

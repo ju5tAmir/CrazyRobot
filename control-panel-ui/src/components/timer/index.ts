@@ -1,0 +1,1 @@
+export {ModalComponent as ModalComponent} from "./ModalWindow.tsx"

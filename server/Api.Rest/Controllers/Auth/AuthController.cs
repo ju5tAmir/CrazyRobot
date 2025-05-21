@@ -1,4 +1,5 @@
-using Api.Rest.AuthExtensions;
+using Api.Rest.Extensions;
+using Api.Rest.Extensions.AuthExtension;
 using Application.Interfaces.Security;
 using Application.Models.Dtos.Auth;
 using Microsoft.AspNetCore.Mvc;
@@ -8,29 +9,33 @@ namespace Api.Rest.Controllers.Auth;
 [ApiController]
 public class AuthController(ISecurityService securityService) : ControllerBase
 {
-    public const string ControllerRoute = "api/auth/";
-
-    public const string LoginRoute = ControllerRoute + nameof(Login);
-
-
-    public const string RegisterRoute = ControllerRoute + nameof(Register);
-
-
-    public const string SecuredRoute = ControllerRoute + nameof(Secured);
+    private const string ControllerRoute = "api/auth/";
+    private const string LoginRoute = ControllerRoute + nameof(Login);
+    private const string RegisterRoute = ControllerRoute + nameof(RegisterAdmin);
+    private const string RegisterUserRoute = ControllerRoute + nameof(LoginOrRegisterUser);
+    private const string SecuredRoute = ControllerRoute + nameof(Secured);
 
 
     [HttpPost]
     [Route(LoginRoute)]
     public ActionResult<AuthResponseDto> Login([FromBody] AuthRequestDto dto)
     {
-        return Ok(securityService.Login(dto));
+        return Ok(securityService.LoginAdmin(dto));
     }
 
-    [Route(RegisterRoute)]
     [HttpPost]
-    public ActionResult<AuthResponseDto> Register([FromBody] AuthRequestDto dto)
+    [Route(RegisterRoute)]
+    public async Task<ActionResult<AuthResponseDto>> RegisterAdmin([FromBody] AuthRequestDto dto)
     {
-        return Ok(securityService.Register(dto));
+        var response = await securityService.RegisterAdmin(dto);
+        return Ok(response);
+    }
+    
+    [Route(RegisterUserRoute)]
+    [HttpPost]
+    public ActionResult<AuthResponseDto> LoginOrRegisterUser([FromBody] AuthUserRequest dto)
+    {
+        return Ok(securityService.LoginOrRegisterUser(dto));
     }
 
     [HttpGet]

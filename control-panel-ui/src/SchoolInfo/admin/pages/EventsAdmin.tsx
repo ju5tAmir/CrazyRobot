@@ -2,11 +2,11 @@
 import { useState, useEffect } from 'react';
 import { EventDto, EventsClient } from '../../../api/generated-client';
 import EventForm     from '../../components/forms/EventForm';
-import { useAuth } from '../../auth/AuthContext';
+import {useAuth} from "../../../helpers/useAuth.ts";
 
 export default function EventsAdmin() {
     const { jwt } = useAuth();
-    const client = new EventsClient(import.meta.env.VITE_API_URL, {
+    const client = new EventsClient(import.meta.env.VITE_API_BASE_URL, {
         fetch: (url, init) => fetch(url, {
             ...init,
             headers: {

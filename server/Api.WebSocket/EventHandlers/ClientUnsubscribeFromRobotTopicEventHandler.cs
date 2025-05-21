@@ -19,7 +19,8 @@ public class ClientUnsubscribeFromRobotTopicEventHandler(IConnectionManager conn
 {
     public override Task Handle(ClientUnsubscribeFromRobotTopicDto dto, IWebSocketConnection socket)
     {
-      
+     
+        Console.WriteLine("I am unsubscribing to the robot topic");
         connectionManager.RemoveFromTopic(mqttOptions.CurrentValue.RobotOwner, dto.clientId);
         connectionManager.RemoveFromDefaultTopics(dto.clientId);
         var engineState = new EngineManagement() { Engine = false };

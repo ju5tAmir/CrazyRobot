@@ -20,7 +20,7 @@ export class ApiClient {
 
 
 constructor() {
-        this.baseUrl = import.meta.env.VITE_API_BASE_URL;
+        this.baseUrl = import.meta.env.VITE_API_HTTP_SCHEMA + import.meta.env.VITE_API_BASE_URL;
     }
 
     private createHttpClient() {

@@ -20,6 +20,9 @@ public class ClientSubscribeToRobotTopicEventHandler(
 {
     public override async Task Handle(ClientSubscribeToRobotTopicDto dto, IWebSocketConnection socket)
     {
+        
+        Console.WriteLine("I am subscribing to the robot topic");
+        
         var topicId = mqttOptions.CurrentValue.RobotOwner;
         var topicMembers = await manager.GetMembersFromTopicId(topicId);
 

@@ -1,5 +1,5 @@
 import {useEffect, useState} from "react";
-import {useNavigate} from "react-router-dom";
+
 import {TextInput} from "../shared/TextInput.tsx";
 import toast from "react-hot-toast";
 import {LoginUserProps} from "../../../models"
@@ -7,9 +7,12 @@ import {ErrorMessages} from "../../../helpers";
 import {ValidationError} from "../../../helpers";
 import {useAuth} from "../../../helpers";
 import Loading from "../../../shared/Loading.tsx";
+import {useClientIdState} from "../../../hooks/Wsclient";
+import {Keys} from "../../../hooks/KEYS/keys.ts";
 
 export const LoginModalUser = ({isOpen, setIsOpen}: LoginUserProps) => {
-    const navigate = useNavigate();
+
+    const {saveLoggedUser} = useClientIdState(Keys.USER_LOGGED);
     const authLogin = useAuth();
     const [modalClass, setModalClass] = useState("");
     const [serverErrors, setServerErrors] = useState<ValidationError | null>(null);
@@ -101,7 +104,8 @@ export const LoginModalUser = ({isOpen, setIsOpen}: LoginUserProps) => {
         authLogin
             .loginOrRegisterUser(modalState.email, modalState.username)
             .then(() => {
-                navigate("/school-info/robot-movement");
+                saveLoggedUser(true);
+                setIsOpen();
             })
             .catch((e) => {
                 setModalState((prev) => ({

@@ -12,3 +12,8 @@ pandas==2.2.2
 langchain-core
 langchain-community
 langchain-experimental
+langchain                
+rapidfuzz                
+promptfoo 
+
+langchain-ollama

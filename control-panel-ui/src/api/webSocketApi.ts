@@ -17,7 +17,7 @@ export interface NegativeDistanceNotifierDto extends BaseDto{
     command:ClientCommand<NegativeDistanceWarning>
 }
 export interface ServerConfirmsDto extends BaseDto {
-    Success:boolean
+    success:boolean
 }
 export interface ServerSendsErrorMessageDto extends BaseDto {
     error?: string;

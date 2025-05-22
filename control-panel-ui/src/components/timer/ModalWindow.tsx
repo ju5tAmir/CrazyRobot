@@ -45,11 +45,11 @@ export  function ModalComponent() {
         }
         try{
             const timerSentResult: ServerConfirmsDto = await sendRequest<ClientSendsTimerConfirmationDto,ServerConfirmsDto>(request,StringConstants.ServerConfirmsDto);
-            if (timerSentResult?.Success) {
-                toast.success("Timer restarted");
+            if (timerSentResult?.success) {
+                toast.success("You're still active. Timer successfully confirmed.");
                 setShowModal(false);
             } else {
-                toast.error("Connection has been closed  retry");
+                toast.error("Session ended due to inactivity. Please log in again.");
                 navigate("/");
                 setShowModal(false);
             }

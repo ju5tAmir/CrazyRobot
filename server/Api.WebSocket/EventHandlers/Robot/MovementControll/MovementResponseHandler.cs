@@ -17,7 +17,6 @@ public class MovementResponseHandler(IConnectionManager connectionManager,IOptio
             Payload = new DistanceWarning  
             {
                 Warning = distancewarning.Warning,
-                Direction = distancewarning.Direction
             }
         };
 

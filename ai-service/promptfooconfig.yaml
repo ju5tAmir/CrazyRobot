@@ -1,0 +1,10 @@
+prompts:
+  - name: basic
+    input:
+      question: "What percentage of satisfied students?"
+expected:
+  - contains: "%"
+llm:
+  provider: openai-compatible
+  url: http://localhost:11434/v1
+  model: llama3

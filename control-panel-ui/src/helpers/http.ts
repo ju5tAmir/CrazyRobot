@@ -5,7 +5,7 @@ import {
     AdminSurveysClient,
     UserSurveysClient,
     AuthClient
-} from '../api/generated-client.ts';
+} from '../api';
 
 export class ApiClient {
     private baseUrl: string;
@@ -20,11 +20,13 @@ export class ApiClient {
 
 
 constructor() {
-        this.baseUrl = import.meta.env.VITE_API_BASE_URL;
+        this.baseUrl = import.meta.env.VITE_API_HTTP_SCHEMA + import.meta.env.VITE_API_BASE_URL;
     }
 
     private createHttpClient() {
         const jwt = localStorage.getItem('jwt');
+
+        console.log("JWT: " + jwt);
 
         return {
             fetch: (url: RequestInfo, init?: RequestInit) => {

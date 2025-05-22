@@ -9,7 +9,18 @@ public class UserSurveyService(IUserSurveyRepository userSurveyRepository) : IUs
 {
     public async Task<SurveySubmissionResponseDto> SubmitResponse(SurveySubmissionRequestDto requestDto, string userId)
     {
+        // Validation
+        if (requestDto == null)
+            throw new ArgumentNullException(nameof(requestDto));
+    
+        if (string.IsNullOrEmpty(requestDto.SurveyId))
+            throw new ArgumentException("Survey ID cannot be empty");
+    
+        if (requestDto.Responses == null || !requestDto.Responses.Any())
+            throw new ArgumentException("Survey must have at least one response");
+        
         var surveyResponseId = Guid.NewGuid().ToString();
+        
         var surveyResponse = new SurveyResponse
         {
             Id = surveyResponseId,
@@ -21,7 +32,8 @@ public class UserSurveyService(IUserSurveyRepository userSurveyRepository) : IUs
                 Id = Guid.NewGuid().ToString(),
                 SurveyResponseId = surveyResponseId,
                 QuestionId = r.QuestionId,
-                AnswerText = r.Response
+                AnswerText = r.Response,
+                SelectedOptionId = r.OptionId
             }).ToList()
         };
 
@@ -33,7 +45,8 @@ public class UserSurveyService(IUserSurveyRepository userSurveyRepository) : IUs
             Responses = surveyResponse.Answers.Select(r => new QuestionResponseDto
             {
                 QuestionId = r.QuestionId,
-                Response = r.AnswerText
+                Response = r.AnswerText,
+                OptionId = r.SelectedOptionId,
             }).ToList()
         };
     }
@@ -61,6 +74,7 @@ public class UserSurveyService(IUserSurveyRepository userSurveyRepository) : IUs
                         .OrderBy(o => o.OrderNumber)
                         .Select(o => new QuestionOptionDto
                         {
+                            Id = o.Id,
                             OptionText = o.OptionText,
                             OrderNumber = o.OrderNumber
                         })

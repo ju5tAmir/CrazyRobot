@@ -1,6 +1,10 @@
 import {useState, ReactNode, useEffect} from 'react';
-import { http } from '../../helpers/http.ts';
+import { http } from '../../helpers';
 import { AuthContext } from '../../helpers/useAuthContext.ts';
+import {useAtom} from "jotai/index";
+import {CheckUserLogged} from "../../atoms/UserLogged.ts";
+import {useClientIdState} from "../../hooks/Wsclient";
+import {KEYS} from "../../hooks/KEYS";
 
 interface JwtPayload {
     sub: string;
@@ -27,6 +31,9 @@ function decodeJwt(token: string): JwtPayload | null {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+   const [_,setUserLogged] = useAtom(CheckUserLogged);
+   const {saveLoggedUser} = useClientIdState(KEYS.USER_LOGGED);
+    const {saveRole} = useClientIdState(KEYS.ADMIN);
     const [jwt, setJwt] = useState<string | null>(
         localStorage.getItem('jwt')
     );
@@ -48,6 +55,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { jwt: token } = await http.auth.login({ email, password });
         localStorage.setItem('jwt', token);
         setJwt(token);
+        saveLoggedUser(true);
+        saveRole(KEYS.ADMIN);
+        setUserLogged({isLoggedIn:true,role:KEYS.ADMIN})
     }
 
     async function loginOrRegisterUser(email: string, username: string) {
@@ -61,6 +71,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem('jwt');
         setJwt(null);
         http.resetClients();
+
+        //Clears all session storage keys
+        sessionStorage.clear();
     }
 
     return (

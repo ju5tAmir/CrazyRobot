@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react";
 export const useWebSocket = () => {
     const gateway = `ws://crazyrobot.local/ws`;
     const websocketRef = useRef<WebSocket | null>(null);
-    const clientIdRef = useRef<string>(getOrCreateClientId());
+   const clientIdRef = useRef<string>(getOrCreateClientId());
 
     useEffect(() => {
         initWebSocket();

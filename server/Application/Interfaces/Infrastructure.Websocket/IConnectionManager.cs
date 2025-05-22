@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Application.Models;
 
 namespace Application.Interfaces.Infrastructure.Websocket;
 
@@ -16,4 +17,10 @@ public interface IConnectionManager
     Task<List<string>> GetTopicsFromMemberId(string memberId);
     public string GetClientIdFromSocket(object socket);
     public object GetSocketFromClientId(string clientId);
+    Task SubscribeToDefaultTopics(string clientId);
+    Task RemoveFromDefaultTopics(string clientId);
+    void AddTimerToConnection(string clientId, ClientWatchdogState timerClientWatchdogState);
+    bool RemoveTimerToConnection(string clientId, out ClientWatchdogState timer);
+    Task<ClientWatchdogState?> GetTimerForConnection(string clientId);
+    Task RemoveAndCloseConnection(string clientId);
 }

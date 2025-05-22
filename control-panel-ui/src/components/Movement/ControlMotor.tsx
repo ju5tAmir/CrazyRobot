@@ -75,23 +75,7 @@ export const ControlMotor = () => {
     }, [engine]);
 
 
-    // const handleKeyDown = (e: KeyboardEvent) => {
-    //     const current = e.key.toLowerCase();
-    //
-    //     if(!movementKeys.has(current)){
-    //         return;
-    //     }
-    //     handleInputDown(current);
-    // };
-    //
-    // const handleKeyUp = (e: KeyboardEvent) => {
-    //     const current = e.key.toLowerCase();
-    //
-    //     if(!movementKeys.has(current)){
-    //         return;
-    //     }
-    //     handleInputUp(current);
-    // };
+
 
     const handleKeyDown = useCallback((e: KeyboardEvent) => {
         const current = e.key.toLowerCase();

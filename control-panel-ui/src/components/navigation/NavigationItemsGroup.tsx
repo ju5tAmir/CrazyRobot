@@ -1,4 +1,4 @@
-import {NavigationItemsGroupProps} from "../../models/navigation/NavigationItemsGroupProps.ts";
+import {NavigationItemsGroupProps} from "../../models";
 import NavigationItems from "./NavigationItems.tsx";
 
 

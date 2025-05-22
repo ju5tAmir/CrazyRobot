@@ -4,6 +4,8 @@ export enum CommandType {
     Stop = "stop"
 }
 
+export const TERMINATOR:string  = "#";
+
 export enum ClientCommandType {
     Initialized = "Initialized",
     BatteryStatus = "batteryStatus"
@@ -54,12 +56,11 @@ export interface MovementCommand {
 
 export interface InitializeEngineResponse {
     initializeEngine: boolean;
-    ErrorMessage: string;
+    errorMessage: string;
 }
 
 export interface DistanceWarning {
     warning: WARNING_LEVEL,
-    direction: DIRECTION_WARNING
 }
 
 

@@ -1,40 +1,13 @@
-import { useEffect, useState } from 'react';
-import { UserSurveysClient, SurveyResponseDto} from '../../../api/generated-client';
+import { useState } from 'react';
+import { SurveyResponseDto} from '../../../api';
 import SurveyModal from './SurveyModal';
-import {useAuth} from "../../../helpers/useAuth.ts";
 import SurveyCardUser from './SurveyCardUser.tsx';
 import Loading from "../../../shared/Loading.tsx";
+import {useInitializeActiveSurveys} from "../../../hooks";
 
 export default function SurveysPageUser() {
-    const { jwt } = useAuth();
-    const [surveys, setSurveys] = useState<SurveyResponseDto[]>([]);
     const [selectedSurvey, setSelectedSurvey] = useState<SurveyResponseDto | null>(null);
-    const [loading, setLoading] = useState(true);
-    const client = new UserSurveysClient(import.meta.env.VITE_API_BASE_URL, {
-        fetch: (url, init) => fetch(url, {
-            ...init,
-            headers: {
-                ...init?.headers,
-                'Authorization': `Bearer ${jwt}`
-            }
-        })
-    });
-
-    useEffect(() => {
-        loadSurveys();
-    }, []);
-
-    async function loadSurveys() {
-        try {
-            setLoading(true);
-            const activeSurveys = await client.getActiveSurveys();
-            setSurveys(activeSurveys);
-        } catch (error) {
-            console.error('Failed to load surveys:', error);
-        } finally {
-            setLoading(false);
-        }
-    }
+    const { surveys, loading } = useInitializeActiveSurveys();
 
     return (
         <div className="container mx-auto px-4 py-8">
@@ -60,7 +33,6 @@ export default function SurveysPageUser() {
                     onClose={() => setSelectedSurvey(null)}
                     onComplete={() => {
                         setSelectedSurvey(null);
-                        loadSurveys();
                     }}
                 />
             )}

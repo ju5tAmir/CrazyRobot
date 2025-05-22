@@ -1,61 +1,28 @@
-import { useState, useEffect } from 'react';
-import { AdminSurveysClient, SurveyResultsDto } from '../../../api/generated-client.ts';
-import {useAuth} from "../../../helpers/useAuth.ts";
+import { useState } from 'react';
 import Loading from '../../../shared/Loading.tsx';
 import Pagination from '../../../shared/Pagination.tsx';
+import {useSurveyResults} from "../../../hooks";
+import { QuestionResultDto, AnswerStatisticDto } from '../../../api';
 
 
 export default function SurveyResultsPageAdmin() {
-    const { jwt } = useAuth();
-    const client = new AdminSurveysClient(import.meta.env.VITE_API_BASE_URL, {
-        fetch: (url, init) => fetch(url, {
-            ...init,
-            headers: {
-                ...init?.headers,
-                'Authorization': `Bearer ${jwt}`
-            }
-        })
-    });
-
-    const [surveyResults, setSurveyResults] = useState<SurveyResultsDto[]>([]);
-    const [selectedSurvey, setSelectedSurvey] = useState<SurveyResultsDto | null>(null);
-    const [loading, setLoading] = useState(true);
+    const { surveyResults, loading, selectedSurvey, setSelectedSurvey } = useSurveyResults();
     const [currentPage, setCurrentPage] = useState(1);
     const answersPerPage = 5;
 
 
-
-    useEffect(() => {
-        loadSurveyResults();
-    }, []);
-
-    async function loadSurveyResults() {
-        try {
-            setLoading(true);
-            const results = await client.getSurveysResults();
-            setSurveyResults(results);
-            if (results.length > 0) {
-                setSelectedSurvey(results[0]);
-            }
-        } catch (error) {
-            console.error("Failed to load survey results:", error);
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    function renderBarChart(questionResult: any) {
+    function renderBarChart(questionResult: QuestionResultDto) {
         if (!questionResult.statistics || questionResult.statistics.length === 0) {
             return <p className="text-center text-sm italic">No data available</p>;
         }
 
         return (
             <div className="mt-3">
-                {questionResult.statistics.map((stat: any, index: number) => (
+                {questionResult.statistics.map((stat: AnswerStatisticDto, index: number) => (
                     <div key={index} className="mb-2">
                         <div className="flex justify-between text-sm mb-1">
                             <span>{stat.optionText}</span>
-                            <span>{stat.count} ({Math.round(stat.percentage)}%)</span>
+                            <span>{stat.count} ({Math.round(stat.percentage as number)}%)</span>
                         </div>
                         <div className="w-full bg-base-300 rounded-full h-2.5">
                             <div
@@ -113,7 +80,7 @@ export default function SurveyResultsPageAdmin() {
                                         </div>
                                     </div>
 
-                                    {selectedSurvey.totalResponses > 0 ? (
+                                    {(selectedSurvey.totalResponses ?? 0) > 0 ? (
                                         <div className="space-y-6">
                                             {selectedSurvey.questionResults?.map((question, i) => (
                                                 <div key={i} className="card bg-base-200 p-4">
@@ -124,8 +91,7 @@ export default function SurveyResultsPageAdmin() {
 
                                                     {question.questionType === 'text' ? (
                                                         <div className="mt-2 text-sm italic">
-                                                            {question.statistics
-                                                                .slice((currentPage - 1) * answersPerPage, currentPage * answersPerPage)
+                                                            {question.statistics?.slice((currentPage - 1) * answersPerPage, currentPage * answersPerPage)
                                                                 .map((answer, i) => (
                                                                     <div key={i} className="card bg-base-200 p-4 mb-2">
                                                                         <h1 className="font-medium">
@@ -134,7 +100,7 @@ export default function SurveyResultsPageAdmin() {
                                                                     </div>
                                                                 ))}
                                                             <Pagination
-                                                                total={question.statistics.length}
+                                                                total={(question.statistics?.length ?? 0)}
                                                                 current={currentPage}
                                                                 onPageChange={setCurrentPage}
                                                                 answersPerPage={answersPerPage}

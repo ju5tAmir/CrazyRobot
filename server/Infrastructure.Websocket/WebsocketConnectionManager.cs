@@ -1,7 +1,9 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
 using Application.Interfaces.Infrastructure.Websocket;
+using Application.Models;
 using Application.Services;
+using Application.Services.Timer;
 using Fleck;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -13,16 +15,18 @@ public sealed class WebSocketConnectionManager : IConnectionManager
     private readonly ILogger<WebSocketConnectionManager> _logger;
     private IOptionsMonitor<MqttOptions> _mqttOptionsMonitor;
     private List<string> topics = new List<string>();
-
-
+    
     private readonly ConcurrentDictionary<string /*Connection ID*/, IWebSocketConnection /*Websocket ID*/>
         _connectionIdToSocket = new();
-
+    
+    private readonly ConcurrentDictionary<string,ClientWatchdogState /*Connection IDs*/> _connectionTimers= new();
+    
+    
     private readonly ConcurrentDictionary<string /*Connection ID*/, HashSet<string>> _memberTopics = new();
 
     private readonly ConcurrentDictionary<string /*Websocket ID*/, string /*Connection ID*/> _socketToConnectionId =
         new();
-
+// add the owner off the robot when navigate to the  robot page
     private readonly ConcurrentDictionary<string, HashSet<string> /*Connection IDs*/> _topicMembers = new();
 
     public WebSocketConnectionManager(ILogger<WebSocketConnectionManager> logger,
@@ -34,19 +38,24 @@ public sealed class WebSocketConnectionManager : IConnectionManager
         topics.Add(_mqttOptionsMonitor.CurrentValue.SubscribeCommandsTopic);
         topics.Add(_mqttOptionsMonitor.CurrentValue.DistanceWarningTopic);
         topics.Add(_mqttOptionsMonitor.CurrentValue.NegativeDistanceWarningTopic);
+        topics.Add(_mqttOptionsMonitor.CurrentValue.RobotOwner);
     }
 
 
-    private async  void SubscribeToDefaultTopics( string clientId)
+    public async  Task SubscribeToDefaultTopics( string clientId)
     {
         foreach (var topicId in topics) await AddToTopic(topicId, clientId);  
+    }
+
+    public async Task RemoveFromDefaultTopics(string clientId)
+    {
+        foreach (var topicId in topics) await RemoveFromTopic(topicId, clientId);  
     }
 
     public ConcurrentDictionary<string, object> GetConnectionIdToSocketDictionary()
     {
         var idToSocket = new ConcurrentDictionary<string, object>();
         foreach (var (key, value) in _connectionIdToSocket) idToSocket.TryAdd(key, value);
-      
         return idToSocket;
     }
 
@@ -55,6 +64,7 @@ public sealed class WebSocketConnectionManager : IConnectionManager
         return _socketToConnectionId;
     }
 
+    
     public async Task OnOpen(object socket, string clientId)
     {
         if (socket is not IWebSocketConnection webSocket)
@@ -76,11 +86,17 @@ public sealed class WebSocketConnectionManager : IConnectionManager
 
         // Resubscribe to previous topics if any
         if (_memberTopics.TryGetValue(clientId, out var topics))
+        {
             foreach (var topic in topics)
+            {
+                if (topic == _mqttOptionsMonitor.CurrentValue.RobotOwner)
+                {
+                    _logger.LogInformation("Skipping auto-resubscription to exclusive topic: {Topic}", topic);
+                    continue;
+                }
                 await AddToTopic(topic, clientId);
-        //add to defaoult topic 
-        SubscribeToDefaultTopics(clientId);
-
+            }
+        }
         await LogCurrentState();
     }
 
@@ -97,6 +113,9 @@ public sealed class WebSocketConnectionManager : IConnectionManager
             currentSocket.ConnectionInfo.Id.ToString() == socketId)
             _connectionIdToSocket.TryRemove(clientId, out _);
         _socketToConnectionId.TryRemove(socketId, out _);
+        await RemoveFromTopic(_mqttOptionsMonitor.CurrentValue.RobotOwner,clientId);
+        await RemoveFromDefaultTopics(clientId);
+        
 
         // Note: We don't remove topic subscriptions on disconnect to allow for reconnection
         await LogCurrentState();
@@ -219,6 +238,43 @@ public sealed class WebSocketConnectionManager : IConnectionManager
         throw new Exception("Could not find socket for clientId: " + clientId);
     }
 
+
+
+    public void AddTimerToConnection(string clientId,ClientWatchdogState timerClientWatchdogState)
+    {
+         _connectionTimers[clientId] = timerClientWatchdogState;
+    }
+    
+    public bool RemoveTimerToConnection(string clientId ,out  ClientWatchdogState timer)
+    {
+        return  _connectionTimers.TryRemove(clientId,out timer );
+    }
+
+    public Task<ClientWatchdogState?> GetTimerForConnection(string clientId)
+    {
+        _connectionTimers.TryGetValue(clientId, out var state);
+        return Task.FromResult(state);
+    }
+
+    public async  Task RemoveAndCloseConnection(string clientId)
+    {
+     
+        if (_connectionIdToSocket.TryGetValue(clientId, out var currentSocket))
+        {
+            Console.WriteLine($"Closing socket for client {clientId}...");
+            currentSocket.Close();
+            _connectionIdToSocket.TryRemove(clientId, out _);
+            _socketToConnectionId.TryRemove(currentSocket.ConnectionInfo.Id.ToString(), out _);
+        }
+        else
+        {
+            Console.WriteLine($"No active socket found for client {clientId}.");
+        }
+        await RemoveFromTopic(_mqttOptionsMonitor.CurrentValue.RobotOwner,clientId);
+        await RemoveFromDefaultTopics(clientId);
+    }
+
+
     private async Task LogCurrentState()
     {
         try
@@ -238,4 +294,53 @@ public sealed class WebSocketConnectionManager : IConnectionManager
             _logger.LogError(ex, "Error logging current state");
         }
     }
+    
+    
+    // private void StartClientWatchdogTimer(string clientId, TimeSpan interval)
+    // {
+    //    StopClientWatchdog(clientId);
+    //
+    //     var timer = new Timer(_ => TriggerClientConfirmation(clientId), null, interval, Timeout.InfiniteTimeSpan);
+    //     _connectionTimers[clientId] = new ClientWatchdogState
+    //     {
+    //         ActiveTimer = timer
+    //     };
+    // }
+    //
+    // private async void TriggerClientConfirmation(string clientId)
+    // {
+    //     if (!_connectionIdToSocket.TryGetValue(clientId, out var socket))
+    //         return;
+    //
+    //     _logger.LogInformation($"Triggering watchdog check for {clientId}");
+    //
+    //    // await socket.SendDtoAsync(new TimerRequestEvent()); // Send ping/confirmation request
+    //
+    //     var cts = new CancellationTokenSource();
+    //     _connectionTimers[clientId].ConfirmationTimeoutCts = cts;
+    //
+    //     _ = Task.Delay(TimeSpan.FromMinutes(1), cts.Token).ContinueWith(async task =>
+    //     {
+    //         if (!cts.Token.IsCancellationRequested)
+    //         {
+    //             _logger.LogWarning($"Client {clientId} did not respond in time. Disconnecting...");
+    //
+    //             socket.Close(); // Disconnect
+    //             _connectionIdToSocket.TryRemove(clientId, out _);
+    //
+    //             // Send MQTT command to stop robot here, implement a new application uinterface that will call the mqtt infra to stop the robot,  
+    //            // await SendMqttStopCommand(clientId);
+    //         }
+    //     });
+    // } 
+    //
+    // private void StopClientWatchdog(string clientId)
+    // {
+    //     if (_connectionTimers.TryRemove(clientId, out var state))
+    //     {
+    //         state.ActiveTimer?.Dispose();
+    //         state.ConfirmationTimeoutCts?.Cancel();
+    //     }
+    // }
+
 }

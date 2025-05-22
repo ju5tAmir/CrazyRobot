@@ -1,15 +1,20 @@
 import {useEffect, useState} from "react";
-import {useNavigate} from "react-router-dom";
-import {LoginUserProps} from "../../../models/login-models/user/LoginUserProps.ts"
-import {useAuth} from "../../../helpers/useAuth.ts";
 import {TextInput} from "../shared/TextInput.tsx";
-import {ValidationError} from "../../../helpers/ServerErrors.tsx";
 import toast from "react-hot-toast";
-import {ErrorMessages} from "../../../helpers/ErrorTypes.ts";
+import {LoginUserProps} from "../../../models"
+import {ErrorMessages} from "../../../helpers";
+import {ValidationError} from "../../../helpers";
+import {useAuth} from "../../../helpers";
 import Loading from "../../../shared/Loading.tsx";
+import {useClientIdState} from "../../../hooks/Wsclient";
+import {useAtom} from "jotai/index";
+import {CheckUserLogged} from "../../../atoms/UserLogged.ts";
+import {KEYS} from "../../../hooks/KEYS";
 
 export const LoginModalUser = ({isOpen, setIsOpen}: LoginUserProps) => {
-    const navigate = useNavigate();
+    const [, setUserLogged] = useAtom(CheckUserLogged);
+    const {saveLoggedUser} = useClientIdState(KEYS.USER_LOGGED);
+    const {saveRole} = useClientIdState(KEYS.ADMIN);
     const authLogin = useAuth();
     const [modalClass, setModalClass] = useState("");
     const [serverErrors, setServerErrors] = useState<ValidationError | null>(null);
@@ -101,7 +106,10 @@ export const LoginModalUser = ({isOpen, setIsOpen}: LoginUserProps) => {
         authLogin
             .loginOrRegisterUser(modalState.email, modalState.username)
             .then(() => {
-                navigate("/school-info/robot-movement");
+                saveLoggedUser(true);
+                saveRole(KEYS.GUEST);
+                setUserLogged({isLoggedIn:true,role:KEYS.GUEST});
+                setIsOpen();
             })
             .catch((e) => {
                 setModalState((prev) => ({

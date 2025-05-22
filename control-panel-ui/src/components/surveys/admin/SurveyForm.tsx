@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { QuestionDto, CreateSurveyRequestDto } from '../../../api/generated-client';
-import {SurveyFormProps} from "../../../models/surveys-models/SurveyFormProps.ts"
+import { QuestionDto, CreateSurveyRequestDto } from '../../../api';
+import {QuestionType, SurveyFormProps} from "../../../models"
 import {Trash2} from "lucide-react";
 
 export default function SurveyForm({ initial, onSubmit, onCancel }: SurveyFormProps) {
@@ -13,19 +13,22 @@ export default function SurveyForm({ initial, onSubmit, onCancel }: SurveyFormPr
     });
     const [newQuestion, setNewQuestion] = useState<QuestionDto>({
         questionText: '',
-        questionType: 'Text',
+        questionType: QuestionType.TEXT,
         orderNumber: (survey.questions?.length || 0) + 1,
         options: []
     });
     const [newOption, setNewOption] = useState('');
 
-    function updateSurvey<K extends keyof CreateSurveyRequestDto>(key: K, value: any) {
+    function updateSurvey<K extends keyof CreateSurveyRequestDto>(
+        key: K,
+        value: CreateSurveyRequestDto[K]
+    ){
         setSurvey({ ...survey, [key]: value });
     }
 
     function addQuestion() {
         if (!newQuestion.questionText) return;
-        if (newQuestion.questionType === 'MultipleChoice' && !newQuestion.options?.length) return;
+        if (newQuestion.questionType === QuestionType.MULTIPLE_CHOICE && !newQuestion.options?.length) return;
 
         const nextOrderNumber = (survey.questions?.length || 0) + 1;
 
@@ -36,7 +39,7 @@ export default function SurveyForm({ initial, onSubmit, onCancel }: SurveyFormPr
 
         setNewQuestion({
             questionText: '',
-            questionType: 'Text',
+            questionType: QuestionType.TEXT,
             orderNumber: (nextOrderNumber + 1),
             options: []
         });
@@ -116,7 +119,7 @@ export default function SurveyForm({ initial, onSubmit, onCancel }: SurveyFormPr
 
             <div className="divider">Questions</div>
 
-            {/* Questions section with fixed height and scroll */}
+            {/* Questions section  */}
             <div className="max-h-[250px] overflow-y-auto pr-2">
                 {survey.questions?.map((question, i) => (
                     <div key={i} className="card bg-base-200 p-4 mb-3">
@@ -131,11 +134,11 @@ export default function SurveyForm({ initial, onSubmit, onCancel }: SurveyFormPr
                             </button>
                         </div>
                         <p className="text-sm opacity-70">Type: {question.questionType}</p>
-                        {question.options?.length > 0 && (
+                        {(question.options?.length ?? 0) > 0 && (
                             <div className="mt-2">
                                 <p className="text-sm font-medium">Options:</p>
                                 <ul className="ml-4 list-disc">
-                                    {question.options.map((opt, j) => (
+                                    {question.options?.map((opt, j) => (
                                         <li key={j} className="text-sm">{opt.optionText}</li>
                                     ))}
                                 </ul>
@@ -160,11 +163,11 @@ export default function SurveyForm({ initial, onSubmit, onCancel }: SurveyFormPr
                     className="select select-bordered w-full mb-2"
                 >
                     <option value="Text">Text</option>
-                    <option value="MultipleChoice">Multiple Choice</option>
+                    <option value="multiple_choice">Multiple Choice</option>
                     <option value="Rating">Rating</option>
                 </select>
 
-                {newQuestion.questionType === 'MultipleChoice' && (
+                {newQuestion.questionType === QuestionType.MULTIPLE_CHOICE && (
                     <div className="mt-2">
                         <div className="flex gap-2 mb-2">
                             <input
@@ -210,7 +213,7 @@ export default function SurveyForm({ initial, onSubmit, onCancel }: SurveyFormPr
                     onClick={() => onSubmit(survey)}
                     disabled={!survey.title || !survey.questions?.length}
                 >
-                    {initial?.id ? 'Update Survey' : 'Create Survey'}
+                    {initial?.title ? 'Update Survey' : 'Create Survey'}
                 </button>
             </div>
         </div>

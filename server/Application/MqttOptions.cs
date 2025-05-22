@@ -12,5 +12,6 @@ public sealed class MqttOptions
     public string DistanceWarningTopic { get; set; } = "";
 
     public string NegativeDistanceWarningTopic { get; set; } = "";
+    public string RobotOwner { get; set; } = "";
 
 }

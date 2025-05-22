@@ -9,11 +9,11 @@ namespace Api.Rest.Controllers.Auth;
 [ApiController]
 public class AuthController(ISecurityService securityService) : ControllerBase
 {
-    private const string ControllerRoute = "api/auth/";
-    private const string LoginRoute = ControllerRoute + nameof(Login);
-    private const string RegisterRoute = ControllerRoute + nameof(RegisterAdmin);
-    private const string RegisterUserRoute = ControllerRoute + nameof(LoginOrRegisterUser);
-    private const string SecuredRoute = ControllerRoute + nameof(Secured);
+    public const string ControllerRoute = "api/auth/";
+    public const string LoginRoute = ControllerRoute + nameof(Login);
+    public const string RegisterRoute = ControllerRoute + nameof(RegisterAdmin);
+    public const string RegisterUserRoute = ControllerRoute + nameof(LoginOrRegisterUser);
+    public const string SecuredRoute = ControllerRoute + nameof(Secured);
 
 
     [HttpPost]
@@ -23,11 +23,12 @@ public class AuthController(ISecurityService securityService) : ControllerBase
         return Ok(securityService.LoginAdmin(dto));
     }
 
-    [Route(RegisterRoute)]
     [HttpPost]
-    public ActionResult<AuthResponseDto> RegisterAdmin([FromBody] AuthRequestDto dto)
+    [Route(RegisterRoute)]
+    public async Task<ActionResult<AuthResponseDto>> RegisterAdmin([FromBody] AuthRequestDto dto)
     {
-        return Ok(securityService.RegisterAdmin(dto));
+        var response = await securityService.RegisterAdmin(dto);
+        return Ok(response);
     }
     
     [Route(RegisterUserRoute)]

@@ -5,12 +5,11 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { ThemeProvider } from './SchoolInfo/ThemeContext.tsx';
 import {AuthProvider} from "./SchoolInfo/auth/AuthContext.tsx";
-import  {StrictMode} from "react";
+// import  {StrictMode} from "react";
 
 
 createRoot(document.getElementById('root')!).render(
-
-    <StrictMode>
+  //<StrictMode>
         <ThemeProvider>
             <AuthProvider>
                 <BrowserRouter>
@@ -18,5 +17,5 @@ createRoot(document.getElementById('root')!).render(
                 </BrowserRouter>
             </AuthProvider>
         </ThemeProvider>
-    </StrictMode>
+   //</StrictMode>
 );

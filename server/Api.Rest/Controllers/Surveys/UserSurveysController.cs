@@ -1,5 +1,4 @@
 using Api.Rest.ErrorHandling;
-using Api.Rest.Extensions;
 using Api.Rest.Extensions.AuthExtension;
 using Application.Interfaces.Api.Rest;
 using Application.Interfaces.Security;

@@ -88,7 +88,7 @@ public class Program
         var document = await app.Services.GetRequiredService<IOpenApiDocumentGenerator>().GenerateAsync("v1");
         var json = document.ToJson();
         await File.WriteAllTextAsync("openapi.json", json);
-        app.GenerateTypeScriptClient("/../../control-panel-ui/src/api/generated-client.ts").GetAwaiter().GetResult();
+        app.GenerateTypeScriptClient("/../../control-panel-ui/src/api/generated-client_TEST.ts").GetAwaiter().GetResult();
         app.MapScalarApiReference();
     }
 }

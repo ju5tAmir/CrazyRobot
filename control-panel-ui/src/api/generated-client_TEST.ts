@@ -1,0 +1,1 @@
+import { BaseDto } from 'ws-request-hook';

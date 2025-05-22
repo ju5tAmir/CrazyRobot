@@ -37,13 +37,8 @@ void  sendLidarCommands(String message,HardwareSerial &serial);
 //Timing for the ir sensor
 unsigned long lastDangerTime = 0;
 unsigned long startedMesurement = 0;
-<<<<<<< HEAD
 unsigned long lastLidarMesurement =0; 
-const unsigned long negativeHoldDelay = 1000;
-=======
-unsigned long lastLidarMesurement =0;
 const unsigned long negativeHoldDelay = 500;
->>>>>>> 7ea425020162b7f63fbddecbc3a2a95a293398f1
 const unsigned long holdDelay = 1000;
 //lidar readings and processing
 const unsigned long  measureLidar = 200;
@@ -61,7 +56,6 @@ static unsigned long lastWarnTime = 0;
 
 
 void setup() {
-<<<<<<< HEAD
   analogReadResolution(12);
   Serial.begin(115200); 
  LidarSerial.begin(115200, SERIAL_8N1, RPLIDAR_RX, RPLIDAR_TX);
@@ -70,15 +64,6 @@ connectWiFi();
 connectMQTT(&robot);
 setupMotors();
 setBatteryMeter();
-=======
-    analogReadResolution(12);
-    Serial.begin(115200);
-    LidarSerial.begin(115200, SERIAL_8N1, RPLIDAR_RX, RPLIDAR_TX);
-    while (LidarSerial.available()) LidarSerial.read();
-    connectWiFi();
-    connectMQTT(&robot);
-    setupMotors();
-
     if (servoManager.setup()) {
         Serial.println("Servo Setup Successfull");
 
@@ -91,7 +76,6 @@ setBatteryMeter();
     } else {
         Serial.println("Servo Setup Failed.");
     };
->>>>>>> 7ea425020162b7f63fbddecbc3a2a95a293398f1
 }
 
 void loop() {
@@ -275,13 +259,7 @@ Serial.println("Received from the lidar");
     startedMesurement = millis();
   }
   if (!robot.negativeDanger && millis()-startedMesurement>=negativeHoldDelay) {
-<<<<<<< HEAD
       lastDangerTime = millis(); 
-
-      Serial.println("luhase;flhw;eh;wjhn;ehwn;efjhn");
-=======
-      lastDangerTime = millis();
->>>>>>> 7ea425020162b7f63fbddecbc3a2a95a293398f1
       removeAllowedMovement(robot.allowedMovements, 'w');
       sendNegativeWarning(SEVERE);
       robot.negativeDanger = true;

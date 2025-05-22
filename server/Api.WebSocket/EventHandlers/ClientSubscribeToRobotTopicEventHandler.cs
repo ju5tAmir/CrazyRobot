@@ -22,6 +22,8 @@ public class ClientSubscribeToRobotTopicEventHandler(
     {
         
         Console.WriteLine("I am subscribing to the robot topic");
+              
+        Console.WriteLine(",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,?>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
         
         var topicId = mqttOptions.CurrentValue.RobotOwner;
         var topicMembers = await manager.GetMembersFromTopicId(topicId);

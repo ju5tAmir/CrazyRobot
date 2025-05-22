@@ -1,7 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
 import { KEYS } from "../KEYS";
-import {CheckUserLogged} from "../../atoms/UserLogged.ts";
-import {useAtom} from "jotai";
 
 interface ClientIdHook {
     getClientId: () => string | null;

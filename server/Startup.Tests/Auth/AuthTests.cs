@@ -5,6 +5,7 @@ using Application.Models.Dtos.Auth;
 using Infrastructure.Postgres.Scaffolding;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Startup.Tests.TestUtils;
@@ -33,7 +34,12 @@ public class AuthTests : WebApplicationFactory<Program>
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.ConfigureServices(services => { services.DefaultTestConfig(); });
+        ApiTestSetupUtilities.ConfigureTestHost(builder);
+        
+        builder.ConfigureServices(services =>
+        {
+            services.DefaultTestConfig();
+        });
     }
 
 
@@ -53,7 +59,7 @@ public class AuthTests : WebApplicationFactory<Program>
     {
         var response = await CreateClient().GetAsync(AuthController.SecuredRoute);
         if (HttpStatusCode.Unauthorized != response.StatusCode)
-            throw new Exception("Expected Unauthorized status code");
+            throw new Exception("Expected Unauthorized status code. " + response.StatusCode);
     }
 
     [Test]

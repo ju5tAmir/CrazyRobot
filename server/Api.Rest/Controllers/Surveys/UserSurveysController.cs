@@ -20,14 +20,6 @@ public class UserSurveysController(ISecurityService securityService, IUserSurvey
     {
         try
         {
-            var list = requestDto.Responses.Select(r => r.Response).ToList();
-            Console.WriteLine("HEREEEEEEEEEEEEEEEEEEE: " + list.First());
-            
-            foreach (var response in requestDto.Responses)
-            {
-                Console.WriteLine($"QuestionId: {response.QuestionId}, Response: '{response.Response}'");
-            }
-            
             var user = securityService.VerifyJwtOrThrow(HttpContext.GetJwt());
             var result = await userSurveyService.SubmitResponse(requestDto, user.Id);
             return Ok(result);

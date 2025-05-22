@@ -1,5 +1,4 @@
 import {useEffect, useState} from "react";
-
 import {TextInput} from "../shared/TextInput.tsx";
 import toast from "react-hot-toast";
 import {LoginUserProps} from "../../../models"
@@ -8,13 +7,12 @@ import {ValidationError} from "../../../helpers";
 import {useAuth} from "../../../helpers";
 import Loading from "../../../shared/Loading.tsx";
 import {useClientIdState} from "../../../hooks/Wsclient";
-import {Keys} from "../../../hooks/KEYS/keys.ts";
 import {useAtom} from "jotai/index";
 import {CheckUserLogged} from "../../../atoms/UserLogged.ts";
 import {KEYS} from "../../../hooks/KEYS";
 
 export const LoginModalUser = ({isOpen, setIsOpen}: LoginUserProps) => {
-    const [_,setUserLogged] = useAtom(CheckUserLogged);
+    const [, setUserLogged] = useAtom(CheckUserLogged);
     const {saveLoggedUser} = useClientIdState(KEYS.USER_LOGGED);
     const {saveRole} = useClientIdState(KEYS.ADMIN);
     const authLogin = useAuth();

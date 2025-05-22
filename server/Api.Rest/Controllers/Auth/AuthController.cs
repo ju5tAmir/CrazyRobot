@@ -9,11 +9,11 @@ namespace Api.Rest.Controllers.Auth;
 [ApiController]
 public class AuthController(ISecurityService securityService) : ControllerBase
 {
-    private const string ControllerRoute = "api/auth/";
-    private const string LoginRoute = ControllerRoute + nameof(Login);
-    private const string RegisterRoute = ControllerRoute + nameof(RegisterAdmin);
-    private const string RegisterUserRoute = ControllerRoute + nameof(LoginOrRegisterUser);
-    private const string SecuredRoute = ControllerRoute + nameof(Secured);
+    public const string ControllerRoute = "api/auth/";
+    public const string LoginRoute = ControllerRoute + nameof(Login);
+    public const string RegisterRoute = ControllerRoute + nameof(RegisterAdmin);
+    public const string RegisterUserRoute = ControllerRoute + nameof(LoginOrRegisterUser);
+    public const string SecuredRoute = ControllerRoute + nameof(Secured);
 
 
     [HttpPost]

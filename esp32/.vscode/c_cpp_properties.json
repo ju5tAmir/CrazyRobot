@@ -10,6 +10,7 @@
             "includePath": [
                 "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/include",
                 "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/src",
+                "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/.pio/libdeps/dfrobot_firebeetle2_esp32e/INA226",
                 "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/.pio/libdeps/dfrobot_firebeetle2_esp32e/ServoEasing/src",
                 "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/Wire/src",
                 "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/Ticker/src",
@@ -253,6 +254,7 @@
                 "path": [
                     "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/include",
                     "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/src",
+                    "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/.pio/libdeps/dfrobot_firebeetle2_esp32e/INA226",
                     "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/.pio/libdeps/dfrobot_firebeetle2_esp32e/ServoEasing/src",
                     "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/Wire/src",
                     "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/Ticker/src",

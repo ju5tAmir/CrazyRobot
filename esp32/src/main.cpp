@@ -9,6 +9,7 @@
 #include  "obstacles/obstacles.h"
 #include "ir/ir.h"
 #include "serialRead/uartSer.h"
+#include "battery/battery.h"
 
 
 // Create servo manager instance - automatically loads all servo configurations
@@ -33,12 +34,10 @@ void  sendLidarCommands(String message,HardwareSerial &serial);
 unsigned long lastDangerTime = 0;
 unsigned long startedMesurement = 0;
 unsigned long lastLidarMesurement =0; 
-const unsigned long negativeHoldDelay = 500;
+const unsigned long negativeHoldDelay = 1000;
 const unsigned long holdDelay = 1000;
 //lidar readings and processing
 const unsigned long  measureLidar = 200;
-
-
 //wait for the second esp to respond back for maximum 6 seconds
 const unsigned long timeoutMs = 6000;
 const unsigned long timeoutStopResponse =1000;
@@ -46,9 +45,6 @@ unsigned long startTimeToWaitForResponse = 0;
 bool requestToLidarSent = false;
 bool requestToLidarSentStop = false;
 unsigned long startTimeStop = 0;
-
-
-
 int initializeRetries= 3;
 int countRetries=0;
 unsigned long lastCheckTime = 0;
@@ -63,6 +59,7 @@ void setup() {
 connectWiFi();
 connectMQTT(&robot);
 setupMotors();
+setBatteryMeter();
 }
 
 void loop() {
@@ -151,6 +148,13 @@ void stopEngines(){
 }
 
 void checkRobotState(RobotData& robot,HardwareSerial &serial){
+  readVoltage(previousMillis,robot.batteryVoltage);
+  if(robot.batteryVoltage<voltageCutoff){
+    sendTurnOffMessage(BatteryError);
+    sendLidarCommands(LidarOff,serial);
+    stopEngines();
+    return;
+  }
   if (robot.initializing) {
   sendLidarCommands(LidarOn, serial); 
   unsigned long startTime = millis();
@@ -182,6 +186,8 @@ Serial.println("Received from the lidar");
     sendInitializeMessage(false, InitializeError);
     Serial.println("Error occurred while starting");
   }
+  const long currentmillis = millis(); 
+  previousMillis=currentmillis;
   return;
 }
   
@@ -217,6 +223,7 @@ Serial.println("Received from the lidar");
       sendTurnOffMessage(StopError);
       stopEngines();
     }
+    previousMillis=0;
     return;
   }
 
@@ -236,6 +243,8 @@ Serial.println("Received from the lidar");
   }
   if (!robot.negativeDanger && millis()-startedMesurement>=negativeHoldDelay) {
       lastDangerTime = millis(); 
+
+      Serial.println("luhase;flhw;eh;wjhn;ehwn;efjhn");
       removeAllowedMovement(robot.allowedMovements, 'w');
       sendNegativeWarning(SEVERE);
       robot.negativeDanger = true;  

@@ -25,6 +25,7 @@ struct RobotData {
     ///@brief not allowed movements will be replaced with '_' character
     char allowedMovements[4]={'w','a','s','d'};
     String lidarWarnings = "";
+    float batteryVoltage=12.6;
 };
 
 // save the time when the message arrived for synchronizing

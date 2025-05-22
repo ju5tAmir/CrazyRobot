@@ -30,4 +30,5 @@ void sendInitializeMessage(bool initialized, String error);
 void sendTurnOffMessage(String error);
 void sendNegativeWarning(String level);
 void sendDistanceWarningNew(String levels);
+void sendBatteryInfo(float batteryVoltage);
 #endif

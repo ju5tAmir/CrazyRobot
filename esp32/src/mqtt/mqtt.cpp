@@ -153,6 +153,8 @@ void receiveData(String value ,RobotData * robotData){
     robotData->isMoving=data.isMoving;
     robotData->isStopping=data.isStopping;
     for (int i = 0; i < 4; i++) {
+        Serial.println("I receive moving");
+            Serial.println(data.activeMovements[i]);
         robotData->activeMovements[i] = data.activeMovements[i];
     }
 }
@@ -207,6 +209,17 @@ void sendDistanceWarningNew(String levels){
     String out;
     serializeJson(doc, out);
     publisher.publish(distanceWarningTopic, out.c_str());
+}
+
+void sendBatteryInfo(float batteryVoltage)
+{
+ DynamicJsonDocument doc(256);
+    doc["CommandType"] = "BatteryInfo";
+    JsonObject pl = doc.createNestedObject("Payload");
+    pl["Level"] = batteryVoltage;
+    String out;
+    serializeJson(doc, out);
+    publisher.publish(negativeDistanceWarningTopic, out.c_str());
 }
 
 // send negative space information

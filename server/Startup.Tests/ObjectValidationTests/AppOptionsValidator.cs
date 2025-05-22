@@ -47,6 +47,7 @@ public class AppOptionsValidator
         var opts = new AppOptions
         {
             DbConnectionString = "abc",
+            GcsBucket = "abcd",
             JwtSecret = "abc",
             Seed = true
         };

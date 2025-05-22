@@ -1,10 +1,13 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 using Api.Rest.Controllers.Auth;
+using Application;
 using Application.Models.Dtos.Auth;
 using Infrastructure.Postgres;
 using Infrastructure.Postgres.Scaffolding;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using PgCtx;
@@ -33,6 +36,7 @@ public static class ApiTestSetupUtilities
                 opt.EnableSensitiveDataLogging();
                 opt.LogTo(_ => { });
             });
+            
         }
 
         if (mockProxyConfig)
@@ -60,6 +64,27 @@ public static class ApiTestSetupUtilities
         }*/
 
         return services;
+    }
+    
+    public static void ConfigureTestHost(IWebHostBuilder builder)
+    {
+        // Set required environment variables for tests
+        Environment.SetEnvironmentVariable("AppOptions__JwtSecret", "test-jwt-secret-for-testing-purposes-only");
+        Environment.SetEnvironmentVariable("AppOptions__GcsBucket", "test-bucket");
+        Environment.SetEnvironmentVariable("AppOptions__DbConnectionString", "test-connection-string");
+
+        // Add test configuration
+        builder.ConfigureAppConfiguration((context, config) =>
+        {
+            // Add test configuration values directly
+            var configValues = new Dictionary<string, string>
+            {
+                {"AppOptions:JwtSecret", "test-jwt-secret-for-testing-purposes-only"},
+                {"AppOptions:DbConnectionString", "test-connection-string"},
+                {"AppOptions:GcsBucket", "test-bucket"}
+            };
+            config.AddInMemoryCollection(configValues);
+        });
     }
 
     private static void RemoveExistingService<T>(IServiceCollection services)

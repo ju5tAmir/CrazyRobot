@@ -6,9 +6,7 @@ namespace Application.Services;
 public class InitializeEngineHandler(IClientNotifier clientNotifier) 
 {
     public async Task HandleCommand(string topic, ClientCommand<InitializeEngineResponse> command)
-    
     {
-        Console.WriteLine(command.Payload.ErrorMessage + "from engine handler");
         await clientNotifier.SendEngineStatusToClient(command.Payload.InitializeEngine,command.Payload.ErrorMessage);
     }
 }

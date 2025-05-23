@@ -20,6 +20,7 @@ public static class ServicesExtensions
         services.AddTransient<InitializeEngineHandler> ();
         services.AddTransient<NegativeDistanceHandler>();
         services.AddTransient<DistanceWarningHandler>();
+        services.AddTransient<BatteryLevelHandler>();
         services.AddSingleton<IMqttMessageHandler, MqttMessageHandler>();
         services.AddScoped<ISecurityService, SecurityService>();
         services.AddScoped<IAdminSurveyService, AdminSurveyService>();

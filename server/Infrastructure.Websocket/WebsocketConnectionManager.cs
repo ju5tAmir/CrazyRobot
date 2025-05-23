@@ -39,6 +39,7 @@ public sealed class WebSocketConnectionManager : IConnectionManager
         topics.Add(_mqttOptionsMonitor.CurrentValue.DistanceWarningTopic);
         topics.Add(_mqttOptionsMonitor.CurrentValue.NegativeDistanceWarningTopic);
         topics.Add(_mqttOptionsMonitor.CurrentValue.RobotOwner);
+        topics.Add(_mqttOptionsMonitor.CurrentValue.BatteryLevelInfo);
     }
 
 

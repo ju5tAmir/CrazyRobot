@@ -25,7 +25,7 @@ jobs:
         id: deploy
         uses: google-github-actions/deploy-cloudrun@v2
         with:
-          service: crazy-robot1
+          service: CrazyRobot
           region: europe-west1
           source: .
           flags: --allow-unauthenticated

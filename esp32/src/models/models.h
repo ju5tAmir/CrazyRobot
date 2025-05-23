@@ -26,6 +26,7 @@ struct RobotData {
     ///@brief not allowed movements will be replaced with '_' character
     char allowedMovements[4]={'w','a','s','d'};
     String lidarWarnings = "";
+    float batteryVoltage=12.6;
    // ServoData servo;
 };
 

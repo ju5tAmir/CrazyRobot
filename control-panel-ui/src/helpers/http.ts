@@ -7,6 +7,8 @@ import {
     AuthClient
 } from '../api';
 
+const httpSchema= import.meta.env.VITE_API_HTTP_SCHEMA;
+const domain=import.meta.env.VITE_API_BASE_URL;
 export class ApiClient {
     private baseUrl: string;
 
@@ -20,7 +22,7 @@ export class ApiClient {
 
 
 constructor() {
-        this.baseUrl = import.meta.env.VITE_API_HTTP_SCHEMA + import.meta.env.VITE_API_BASE_URL;
+        this.baseUrl = httpSchema +domain ;
     }
 
     private createHttpClient() {

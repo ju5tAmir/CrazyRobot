@@ -68,14 +68,8 @@ public class MqttClientService
 
                 await SubscribeAsync(_mqttOptions.CurrentValue.SubscribeEngineTopic);
                 await SubscribeAsync(_mqttOptions.CurrentValue.SubscribeCommandsTopic); 
-                // await SubscribeAsync(_mqttOptions.CurrentValue.DistanceWarningTopic);
-                // await SubscribeAsync(_mqttOptions.CurrentValue.NegativeDistanceWarningTopic);
-                // await SubscribeAsync("test"); 
-                await SubscribeAsync("andrii"); 
-
-                await PublishAsync("andrii", "banditossss");
-                await PublishAsync("test", "From server");
-
+                await SubscribeAsync(_mqttOptions.CurrentValue.DistanceWarningTopic);
+                await SubscribeAsync(_mqttOptions.CurrentValue.NegativeDistanceWarningTopic);
                 return true;
             }
             else

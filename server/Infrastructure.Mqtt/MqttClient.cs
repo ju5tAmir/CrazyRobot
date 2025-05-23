@@ -70,6 +70,7 @@ public class MqttClientService
                 await SubscribeAsync(_mqttOptions.CurrentValue.SubscribeCommandsTopic); 
                 await SubscribeAsync(_mqttOptions.CurrentValue.DistanceWarningTopic);
                 await SubscribeAsync(_mqttOptions.CurrentValue.NegativeDistanceWarningTopic);
+                await SubscribeAsync(_mqttOptions.CurrentValue.BatteryLevelInfo);
                 return true;
             }
             else

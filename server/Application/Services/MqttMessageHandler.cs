@@ -10,13 +10,15 @@ public class MqttMessageHandler:IMqttMessageHandler
     private InitializeEngineHandler _initializeHandler;
     private DistanceWarningHandler _distanceWarningHandler;
     private NegativeDistanceHandler _negativeDistanceHandler;
+    private BatteryLevelHandler _batteryLevelHandler;
 
 
-    public MqttMessageHandler(InitializeEngineHandler initializeHandler,DistanceWarningHandler distanceWarningHandler,NegativeDistanceHandler negativeDistanceHandler)
+    public MqttMessageHandler(InitializeEngineHandler initializeHandler,DistanceWarningHandler distanceWarningHandler,NegativeDistanceHandler negativeDistanceHandler,BatteryLevelHandler batteryLevelHandler)
     {
       _initializeHandler = initializeHandler;
       _distanceWarningHandler = distanceWarningHandler;
       _negativeDistanceHandler = negativeDistanceHandler;
+      _batteryLevelHandler = batteryLevelHandler;
     }
 
     public async Task HandleAsync(string topic, ClientCommandDto payload)
@@ -117,6 +119,33 @@ public class MqttMessageHandler:IMqttMessageHandler
                     }
 
                     break;
+                case ClientCommandType.BatteryStatus:
+                    try
+                    {
+                        var batteryLevel = payload.Payload.Deserialize<BatteryLevel>();
+
+                        if (batteryLevel == null)
+                        {
+                            Console.WriteLine("Deserialization to  DistanceWarning  returned null!");
+                            throw new InvalidOperationException("Payload could not be deserialized into InitializeEngineResponse.");
+                        }
+
+                        var command = new ClientCommand<BatteryLevel>
+                        {
+                            CommandType = payload.CommandType,
+                            Payload = batteryLevel,
+                        };
+
+                        Console.WriteLine("Successfully created command: " + JsonSerializer.Serialize(command));
+                        await _batteryLevelHandler.HandleCommand(topic, command);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Error during deserialization or handling off battery level info: " + ex.Message);
+                    }
+
+                    break;
+                
                     
                     
                 default:

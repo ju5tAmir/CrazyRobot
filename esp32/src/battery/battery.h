@@ -8,5 +8,5 @@ extern const float voltageCutoff;
 extern unsigned long previousMillis;
 extern const unsigned long sampleInterval; 
 void setBatteryMeter();
-void readVoltage(long previousMillis,float &currentVoltage);
+void readVoltage(unsigned long  &previousMillis,float &currentVoltage);
 #endif

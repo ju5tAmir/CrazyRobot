@@ -9,11 +9,8 @@
 #include  "obstacles/obstacles.h"
 #include "ir/ir.h"
 #include "serialRead/uartSer.h"
-<<<<<<< HEAD
 #include "battery/battery.h"
-=======
 #include "servo/ServoManager.h"
->>>>>>> 7ea425020162b7f63fbddecbc3a2a95a293398f1
 
 
 // Create servo manager instance - automatically loads all servo configurations
@@ -103,7 +100,7 @@ void loop() {
   }
 
     checkRobotState(robot,LidarSerial);
-
+moveRobotTwo(FORWARD, 0, 0, leftMotor, rightMotor);
 
 }
 

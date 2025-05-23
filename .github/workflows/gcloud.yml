@@ -1,8 +1,9 @@
 ﻿name: Deploy to Google Cloud Run
 
 on:
-  workflow_dispatch:
   push:
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -13,13 +14,16 @@ jobs:
       id-token: 'write'
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      - name: Set GCP project
+        run: gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
 
       - name: Deploy to Cloud Run
         id: deploy
@@ -28,8 +32,10 @@ jobs:
           service: crazyrobot
           region: europe-west1
           source: .
-          flags: --allow-unauthenticated
+          allow_unauthenticated: true
           env_vars: |
             APPOPTIONS__DbConnectionString=${{ secrets.DBCONNECTIONSTRING }}
 
-      - run: echo "${{ steps.deploy.outputs.url }}"
+      - name: Output URL
+        run: echo "Service URL: ${{ steps.deploy.outputs.url }}"
+

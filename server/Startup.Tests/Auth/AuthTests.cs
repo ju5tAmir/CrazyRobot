@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using Api.Rest.Controllers.Auth;
-using Application.Models.Dtos.Auth;
+using Generated;
 using Infrastructure.Postgres.Scaffolding;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -9,6 +9,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Startup.Tests.TestUtils;
+using AuthRequestDto = Application.Models.Dtos.Auth.AuthRequestDto;
+using AuthResponseDto = Application.Models.Dtos.Auth.AuthResponseDto;
 
 namespace Startup.Tests.Auth;
 

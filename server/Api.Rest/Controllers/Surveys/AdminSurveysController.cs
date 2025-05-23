@@ -89,6 +89,9 @@ public class AdminSurveysController(ISecurityService securityService, IAdminSurv
     {
         try
         {
+            var admin = securityService.VerifyJwtOrThrow(HttpContext.GetJwt());
+            if (!Roles.All.Any(role => string.Equals(role, admin.Role, StringComparison.OrdinalIgnoreCase)))
+                return BadRequestErrorMessage(ErrorMessages.GetMessage(ErrorCode.InvalidRole));
             var surveys = await adminSurveyService.GetAllSurveys();
             return Ok(surveys);
         }

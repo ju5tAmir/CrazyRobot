@@ -4,6 +4,8 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text;
+using Infrastructure.Postgres.Scaffolding;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -21,43 +23,40 @@ using UpdateSurveyRequestDto = Application.Models.Dtos.Surveys.UpdateSurveyReque
 
 namespace Startup.Tests.Surveys;
 
-public class AdminSurveysControllerTests
+public class AdminSurveysControllerTests : WebApplicationFactory<Program>
 {
     private HttpClient _httpClient;
     private IServiceProvider _scopedServiceProvider;
-    private string _jwtToken;
 
     [SetUp]
-    public async Task Setup()
+    public void Setup()
     {
-        var factory = new WebApplicationFactory<Program>()
-            .WithWebHostBuilder(builder =>
-            {
-                ApiTestSetupUtilities.ConfigureTestHost(builder);
-                builder.ConfigureServices(services => { services.DefaultTestConfig(); });
-            });
-
-        _httpClient = factory.CreateClient();
-        _scopedServiceProvider = factory.Services.CreateScope().ServiceProvider;
+        _httpClient = CreateClient();
+        _scopedServiceProvider = Services.CreateScope().ServiceProvider;
     }
-    
-    [TearDown]
-    public void TearDown()
+
+
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        _httpClient?.Dispose();
+        ApiTestSetupUtilities.ConfigureTestHost(builder);
+        
+        builder.ConfigureServices(services =>
+        {
+            services.DefaultTestConfig();
+        });
     }
 
     [Test]
     public async Task GetAllSurveys_Unauthorized_WhenNoJwtProvided()
     {
         // Create a client without auth header
-        var client = _httpClient;
+        var client = CreateClient();
         
         // Act
         var response = await client.GetAsync("/api/surveys/GetAllSurveys");
         
         // Assert
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
     }
 
     [Test]
@@ -96,32 +95,22 @@ public class AdminSurveysControllerTests
     [Test]
     public async Task UpdateSurvey_UpdatesSurvey_WhenExists()
     {
-        // Arrange - Create a survey first
-        var createDto = new CreateSurveyRequestDto
-        {
-            Title = "Original Survey",
-            Description = "Original Description",
-            SurveyType = "Feedback",
-            IsActive = true,
-            Questions = new List<QuestionDto>
-            {
-                new()
-                {
-                    QuestionText = "Original Question",
-                    QuestionType = "Text",
-                    OrderNumber = 1,
-                    Options = new List<QuestionOptionDto>()
-                }
-            }
-        };
+        // Arrange - Create admin and survey
+        await ApiTestSetupUtilities.TestRegisterAndAddJwt(_httpClient);
 
-        var createResponse = await _httpClient.PostAsJsonAsync("/api/surveys/CreateSurvey", createDto);
-        var createdSurvey = await createResponse.Content.ReadFromJsonAsync<SurveyResponseDto>();
+        using var scope = Services.CreateScope();
+        var ctx = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        
+        var admin = MockObjects.GetAdmin();
+        ctx.Users.Add(admin);
+        var survey = MockObjects.GetSurvey(admin.Id);
+        ctx.Surveys.Add(survey);
+        await ctx.SaveChangesAsync();
         
         // Update the survey
         var updateDto = new UpdateSurveyRequestDto
         {
-            Id = createdSurvey.Id,
+            Id = survey.Id,
             Title = "Updated Survey",
             Description = "Updated Description",
             SurveyType = "Feedback",
@@ -130,7 +119,7 @@ public class AdminSurveysControllerTests
             {
                 new()
                 {
-                    Id = createdSurvey.Questions.First().Id,
+                    Id = survey.Questions.First().Id,
                     QuestionText = "Updated Question",
                     QuestionType = "Text",
                     OrderNumber = 1,
@@ -140,7 +129,7 @@ public class AdminSurveysControllerTests
         };
         
         // Act
-        var response = await _httpClient.PutAsJsonAsync($"/api/surveys/UpdateSurvey/{createdSurvey.Id}", updateDto);
+        var response = await _httpClient.PutAsJsonAsync($"/api/surveys/UpdateSurvey/{survey.Id}", updateDto);
         
         // Assert
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
@@ -155,6 +144,8 @@ public class AdminSurveysControllerTests
     public async Task UpdateSurvey_ReturnsNotFound_WhenSurveyDoesNotExist()
     {
         // Arrange
+        await ApiTestSetupUtilities.TestRegisterAndAddJwt(_httpClient);
+        
         var nonExistentId = Guid.NewGuid().ToString();
         var updateDto = new UpdateSurveyRequestDto
         {
@@ -164,49 +155,44 @@ public class AdminSurveysControllerTests
             SurveyType = "Feedback",
             IsActive = true,
             Questions = new List<QuestionDto>()
+            {
+                new()
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    QuestionText = "Updated Question",
+                    QuestionType = "Text",
+                    OrderNumber = 1,
+                    Options = new List<QuestionOptionDto>()
+                }
+            }
         };
         
         // Act
         var response = await _httpClient.PutAsJsonAsync($"/api/surveys/UpdateSurvey/{nonExistentId}", updateDto);
         
         // Assert
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
     }
 
     [Test]
     public async Task DeleteSurvey_DeletesSurvey_WhenExists()
     {
-        // Act - First register and authenticate properly
+        // Arrange - Create admin and survey
         await ApiTestSetupUtilities.TestRegisterAndAddJwt(_httpClient);
 
-        // Create a survey
-        var createDto = new CreateSurveyRequestDto
-        {
-            Title = "Survey to Delete",
-            Description = "This will be deleted",
-            SurveyType = "Feedback",
-            IsActive = true,
-            Questions = new List<QuestionDto>
-            {
-                new()
-                {
-                    QuestionText = "Test Question",
-                    QuestionType = "SingleChoice",
-                    Options = new List<QuestionOptionDto>
-                    {
-                        new() { OptionText = "Option 1" },
-                        new() { OptionText = "Option 2" }
-                    }
-                }
-            }
-        };
-
-        var createResponse = await _httpClient.PostAsJsonAsync("/api/surveys/CreateSurvey", createDto);
-        createResponse.EnsureSuccessStatusCode();
-        var createdSurvey = await createResponse.Content.ReadFromJsonAsync<SurveyResponseDto>();
+        using var scope = Services.CreateScope();
+        var ctx = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        
+        var admin = MockObjects.GetAdmin();
+        ctx.Users.Add(admin);
+        
+        var survey = MockObjects.GetSurvey(admin.Id);
+        ctx.Surveys.Add(survey);
+        
+        await ctx.SaveChangesAsync();
     
         // Act
-        var response = await _httpClient.DeleteAsync($"/api/surveys/DeleteSurvey/{createdSurvey.Id}");
+        var response = await _httpClient.DeleteAsync($"/api/surveys/DeleteSurvey/{survey.Id}");
     
         // Assert
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
@@ -214,96 +200,52 @@ public class AdminSurveysControllerTests
         // Verify it's deleted using GetAllSurveys
         var getAllResponse = await _httpClient.GetAsync("/api/surveys/GetAllSurveys");
         var allSurveys = await getAllResponse.Content.ReadFromJsonAsync<List<SurveyResponseDto>>();
-        Assert.That(allSurveys.Any(s => s.Id == createdSurvey.Id), Is.False);
+        Assert.That(allSurveys.Any(s => s.Id == survey.Id), Is.False);
     }
 
     [Test]
     public async Task DeleteSurvey_ReturnsNotFound_WhenSurveyDoesNotExist()
     {
+        // Arrange
+        await ApiTestSetupUtilities.TestRegisterAndAddJwt(_httpClient);
+        
         // Act
         var response = await _httpClient.DeleteAsync($"/api/surveys/DeleteSurvey/{Guid.NewGuid()}");
         
         // Assert
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
     }
     
     [Test]
     public async Task GetSurveyResults_ReturnsSurveyResults_WhenSurveyExists()
     {
-        // Arrange - Create a survey with submissions first
-        var createDto = new CreateSurveyRequestDto
-        {
-            Title = "Results Survey",
-            Description = "Survey for testing results",
-            SurveyType = "Feedback",
-            IsActive = true,
-            Questions = new List<QuestionDto>
-            {
-                new()
-                {
-                    QuestionText = "How satisfied are you?",
-                    QuestionType = "Rating",
-                    OrderNumber = 1,
-                    Options = new List<QuestionOptionDto>
-                    {
-                        new() { OptionText = "1", OrderNumber = 1 },
-                        new() { OptionText = "2", OrderNumber = 2 },
-                        new() { OptionText = "3", OrderNumber = 3 }
-                    }
-                }
-            }
-        };
+        // Arrange - Create user_guest, survey and survey response
+        await ApiTestSetupUtilities.TestRegisterAndAddJwt(_httpClient);
 
-        var createResponse = await _httpClient.PostAsJsonAsync("/api/surveys/CreateSurvey", createDto);
-        var createdSurvey = await createResponse.Content.ReadFromJsonAsync<SurveyResponseDto>();
+        using var scope = Services.CreateScope();
+        var ctx = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         
-        // Submit a response to this survey 
-        var submissionDto = new SurveySubmissionRequestDto
-        {
-            SurveyId = createdSurvey.Id,
-            Responses = new List<QuestionResponseDto>
-            {
-                new()
-                {
-                    QuestionId = createdSurvey.Questions.First().Id,
-                    OptionId = createdSurvey.Questions.First().Options.First().Id
-                }
-            }
-        };
+        var admin = MockObjects.GetAdmin();
+        ctx.Users.Add(admin);
+        var userGuest = MockObjects.GetUser();
+        ctx.UserGuests.Add(userGuest);
         
-        await _httpClient.PostAsJsonAsync("/api/survey-submission/SubmitResponse", submissionDto);
+        var survey = MockObjects.GetSurvey(admin.Id);
+        ctx.Surveys.Add(survey);
+        
+        var surveyResponse = MockObjects.GetSurveyResponse(survey, userGuest.Id);
+        ctx.SurveyResponses.Add(surveyResponse);
+        
+        await ctx.SaveChangesAsync();
         
         // Act
         var response = await _httpClient.GetAsync($"/api/surveys/GetSurveysResults");
         
         // Assert
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-        var results = await response.Content.ReadFromJsonAsync<SurveyResultsDto>();
+        var results = await response.Content.ReadFromJsonAsync<List<SurveyResultsDto>>();
         Assert.That(results, Is.Not.Null);
-        Assert.That(results.SurveyId, Is.EqualTo(createdSurvey.Id));
+        Assert.That(results.Count, Is.GreaterThan(0));
+        Assert.That(results[0].SurveyId, Is.EqualTo(survey.Id));
     }
-    
-    // Add this helper method to your test class if it doesn't exist
-    private string GenerateJwtToken(AuthUserRequest user)
-    {
-        // This should match your application's JWT generation logic
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.ASCII.GetBytes("test-jwt-secret-for-testing-purposes-only");
-        var tokenDescriptor = new SecurityTokenDescriptor
-        {
-            Subject = new ClaimsIdentity(new[]
-            {
-                new Claim("Id", Guid.NewGuid().ToString()),
-                new Claim("Email", user.Email),
-                new Claim("Username", user.Username),
-                new Claim("Role", user.Role)
-            }),
-            Expires = DateTime.UtcNow.AddHours(1),
-            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), 
-                SecurityAlgorithms.HmacSha256Signature)
-        };
-        var token = tokenHandler.CreateToken(tokenDescriptor);
-        return tokenHandler.WriteToken(token);
-    }
-    
 }

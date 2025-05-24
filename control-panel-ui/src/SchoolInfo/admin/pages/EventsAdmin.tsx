@@ -4,9 +4,15 @@ import { EventDto, EventsClient } from '../../../api/generated-client';
 import EventForm     from '../../components/forms/EventForm';
 import {useAuth} from "../../../helpers/useAuth.ts";
 
+
+
+const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
+const http = import.meta.env.VITE_API_HTTP_SCHEMA;
+const API_URL =  http+ BASE_URL;
+
 export default function EventsAdmin() {
     const { jwt } = useAuth();
-    const client = new EventsClient(import.meta.env.VITE_API_BASE_URL, {
+    const client = new EventsClient(API_URL, {
         fetch: (url, init) => fetch(url, {
             ...init,
             headers: {

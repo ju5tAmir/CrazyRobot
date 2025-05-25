@@ -63,6 +63,10 @@ export interface ServerSubscribedClientToRobotTopicDto extends BaseDto {
     subscribed:boolean
 }
 
+export interface BatteryLevelDto extends BaseDto {
+    batteryLevel:number
+}
+
 
 
 export interface ServerSendsErrorMessageDto {
@@ -86,5 +90,6 @@ export enum StringConstants {
     ClientSubscribeToRobotTopicDto = "ClientSubscribeToRobotTopicDto",
     ServerSubscribedClientToRobotTopicDto="ServerSubscribedClientToRobotTopicDto",
     ClientUnsubscribeFromRobotTopicDto ="ClientUnsubscribeFromRobotTopicDto",
-    ServerUnsubscribedClientFromRobotTopicDto = "ServerUnsubscribedClientFromRobotTopicDto"
+    ServerUnsubscribedClientFromRobotTopicDto = "ServerUnsubscribedClientFromRobotTopicDto",
+    BatteryLevelDto="BatteryLevelDto"
 }

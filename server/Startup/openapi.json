@@ -1321,6 +1321,23 @@
           }
         }
       },
+      "BatteryLevelDto": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseDto"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "batteryLevel": {
+                "type": "integer",
+                "format": "int32"
+              }
+            }
+          }
+        ]
+      },
       "DangerMovementDto": {
         "allOf": [
           {
@@ -1359,13 +1376,13 @@
         "description": "",
         "x-enumNames": [
           "Initialized",
-          "BatteryStatus",
+          "BatteryInfo",
           "DistanceWarning",
           "NegativeWarning"
         ],
         "enum": [
           "initialized",
-          "batteryStatus",
+          "batteryInfo",
           "distanceWarning",
           "negativeWarning"
         ]
@@ -1505,12 +1522,14 @@
         "x-enumNames": [
           "Initialize",
           "Move",
-          "Stop"
+          "Stop",
+          "Servo"
         ],
         "enum": [
           "initialize",
           "move",
-          "stop"
+          "stop",
+          "servo"
         ]
       },
       "MovementCommand": {
@@ -1534,6 +1553,65 @@
           },
           "lastCommand": {
             "type": "string"
+          }
+        }
+      },
+      "ServoDto": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseDto"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "command": {
+                "$ref": "#/components/schemas/CommandOfServoCommand"
+              }
+            }
+          }
+        ]
+      },
+      "CommandOfServoCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "commandType": {
+            "$ref": "#/components/schemas/CommandType"
+          },
+          "payload": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ServoCommand"
+              }
+            ]
+          }
+        }
+      },
+      "ServoCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "head": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "neckt": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "neckb": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "leye": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reye": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -1772,10 +1850,12 @@
         "description": "Available eventType and string constants",
         "enum": [
           "MemberLeftNotification",
+          "BatteryLevelDto",
           "DangerMovementDto",
           "InitializeEnginResponseDto",
           "NegativeDistanceNotifierDto",
           "RobotMovementDto",
+          "ServoDto",
           "ExampleServerResponse",
           "ServerSendsErrorMessage",
           "ServerSubscribedClientToRobotTopicDto",

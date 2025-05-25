@@ -1,5 +1,6 @@
 import {InfoDisplayProps} from "../../../models";
 import {Loading} from "../index.ts";
+import {BatteryLevel} from "./BatteryLevel.tsx";
 
 
 export const InfoDisplay =(props:InfoDisplayProps)=> {
@@ -8,6 +9,6 @@ export const InfoDisplay =(props:InfoDisplayProps)=> {
         <div className={"flex flex-row justify-center items-center p-2"}>
             {props.initializeStatus ? (<Loading/>) : <p>Engine : {`${props.engineState ? "ON" : "OFF"}`} </p>}
         </div>
-        <p>Battery Status: {props.batteryStatus + ""}</p>
+        <p><BatteryLevel level={0.7} charging={false}/></p>
     </div>)
 }

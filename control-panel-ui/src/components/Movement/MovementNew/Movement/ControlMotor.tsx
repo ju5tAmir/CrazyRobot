@@ -1,8 +1,9 @@
 import {Button} from "./Button.tsx";
 import {useCallback, useEffect, useRef, useState} from "react";
-import {InfoDisplay, subscribeClientToRobot, unsubscribeClientFromRobot} from "./index.ts";
+import { subscribeClientToRobot, unsubscribeClientFromRobot} from "./index.ts";
 import {FaPlay, FaStop} from "react-icons/fa";
 import {useWsClient} from "ws-request-hook";
+import {InfoDisplay} from "../../index.ts";
 import {
     EngineStateDto,
     InitializeEnginResponseDto,
@@ -13,7 +14,7 @@ import {
 } from "../../../../api";
 import toast from "react-hot-toast";
 import {CommandType, DIRECTION_WARNING, MovementCommand} from "../../../../models/mqttModels/MqttModels.ts";
-import {DangerDisplay} from "../../InfoDisplay/DangerDisplay/DangerDisplay.tsx";
+import {DangerDisplay} from "../../InfoDisplay";
 import {DangerDisplayOrientation} from "../../../../models";
 import {useAtom} from "jotai";
 import {EngineStateAtom} from "../../../../atoms";
@@ -47,9 +48,7 @@ export const ControlMotor = () => {
     useEffect(() => {
         console.log(readyState + "readystate");
         if (readyState!==1 || clientId === "") return;
-
         let isMounted = true;
-
         const handleSubscription = async () => {
             const success = await subscribeClientToRobot(clientId, sendRequest);
             if (success && isMounted) {
@@ -80,49 +79,16 @@ export const ControlMotor = () => {
         };
     }, [readyState]);
 
-    // useEffect(() => {
-    //     if (!readyState) return;
-    //     if (clientId=="") {
-    //         toast.error('Missing client ID');
-    //         navigate('/');
-    //         return;
-    //     }
-    //
-    //     const handleSubscription = async () => {
-    //         const success = await subscribeClientToRobot(clientId, sendRequest);
-    //         if (!success) {
-    //             toast.error("Could not connect to robot");
-    //             navigate('/');
-    //         }
-    //     };
-    //     handleSubscription();
-    //
-    //     return () => {
-    //         unsubscribeClientFromRobot(clientId, sendRequest);
-    //     };
-    // }, [readyState]);
-
-
     useEffect(() => {
         if (!readyState) return;
-
-        console.log("✅ WebSocket is ready! Subscribing to messages...");
-
         const unsubscribe = onMessage<InitializeEnginResponseDto>(
             StringConstants.InitializeEnginResponseDto,
             (message) => {
                 const payload = message.command.payload;
                 const error = payload?.errorMessage ?? "";
                 const status = payload?.initializeEngine;
-
-                console.log("Message Payload:", payload);
-                console.warn("Message Error:", error);
-                console.log("Pressed E:", pressedKeys.has("e"));
-                console.log("Engine Status Flag:", status);
-
                 setStartProcedure(false);
                 setEngineLocked(false);
-
                 if (error.length > 0) {
                     toast.error (`${error}`)
                 }
@@ -225,7 +191,7 @@ export const ControlMotor = () => {
             const signInResult: ServerConfirmsDto = await sendRequest<EngineStateDto
                 , ServerConfirmsDto>(request,StringConstants.ServerConfirmsDto).finally(()=>console.log("er"));
             console.log(signInResult);
-            if (signInResult?.Success) {
+            if (signInResult?.success) {
                 toast.success("Engine send")
             } else {
                 toast.error("Retry")
@@ -252,7 +218,7 @@ export const ControlMotor = () => {
             const sentCommandResult: ServerConfirmsDto = await sendRequest<RobotMovementDto,
                 ServerConfirmsDto>(request,StringConstants.ServerConfirmsDto).finally(()=>console.log("er"));
 
-            if (sentCommandResult?.Success) {
+            if (sentCommandResult?.success) {
                 toast.success("Engine send")
             } else {
                 toast.error("Retry")

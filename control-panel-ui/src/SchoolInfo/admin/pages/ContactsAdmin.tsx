@@ -2,12 +2,14 @@ import { useEffect, useState }   from 'react';
 import { ContactDto, ContactsClient } from '../../../api/generated-client';
 import ContactForm               from '../../components/forms/ContactForm';
 import { useAuth }               from '../../../helpers/useAuth.ts';
-
+const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
+const http = import.meta.env.VITE_API_HTTP_SCHEMA;
+const API_URL =  http+ BASE_URL;
 export default function ContactsAdmin() {
     const { jwt } = useAuth();
 
 
-    const client = new ContactsClient(import.meta.env.VITE_API_BASE_URL, {
+    const client = new ContactsClient(API_URL, {
         fetch: (url, init) =>
             fetch(url, {
                 ...init,

@@ -14,7 +14,9 @@ public enum CommandType
     Move,
 
     [EnumMember(Value = "stop")]
-    Stop
+    Stop,
+    [EnumMember(Value = "servo")]
+    Servo
 }
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum ClientCommandType
@@ -23,8 +25,8 @@ public enum ClientCommandType
     [EnumMember(Value = "initialized")]
     Initialized,
     // [JsonPropertyName("batteryStatus")]
-    [EnumMember(Value = "batteryLevelInfo")]
-    BatteryStatus,
+    [EnumMember(Value = "batteryInfo")]
+    BatteryInfo,
     [EnumMember(Value ="distanceWarning")]
     DistanceWarning,
     [EnumMember(Value ="negativeWarning")]

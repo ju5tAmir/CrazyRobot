@@ -11,23 +11,25 @@ namespace Api.Websocket.EventHandlers.Robot.EngineControll;
 
 public class InitializeEngineResponseHandler(IConnectionManager connectionManager,IOptionsMonitor<MqttOptions> mqttOptions):IClientNotifier
 {
-    // public override Task Handle(InitializeEnginResponseDto dto, IWebSocketConnection socket)
-    // // {
-    // //     connectionManager.BroadcastToTopic(mqttOptions.CurrentValue.PublishCommandsTopic,"ana are mere");
-    // //     return Task.CompletedTask;
-    // // }
-
-    public Task SendEngineStatusToClient(bool status,string errorMessage)
+    public Task SendEngineStatusToClient(bool status, string errorMessage)
     {
+        string parsedErrorMessage = string.Empty;
+
+        if (InitErrorInfo.TryParse(errorMessage, out InitErrorCode code))
+        {
+            parsedErrorMessage = InitErrorInfo.GetMessage(code);
+        }
+
         var clientCommand = new ClientCommand<InitializeEngineResponse>()
         {
             CommandType = ClientCommandType.Initialized,
             Payload = new InitializeEngineResponse()
             {
                 InitializeEngine = status,
-                ErrorMessage = errorMessage
+                ErrorMessage = parsedErrorMessage
             }
         };
+
         var response = new InitializeEnginResponseDto
         {
             command = clientCommand,
@@ -35,13 +37,12 @@ public class InitializeEngineResponseHandler(IConnectionManager connectionManage
             requestId = Guid.NewGuid().ToString()
         };
 
-         
         connectionManager.BroadcastToTopic(
             mqttOptions.CurrentValue.SubscribeEngineTopic,
             response
         );
-     
 
         return Task.CompletedTask;
     }
+
 }

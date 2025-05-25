@@ -135,7 +135,6 @@ public class MqttClientService
             Console.WriteLine("Deserialization error: " + ex.Message);
         }
         
-        Console.WriteLine(command + "command is wrong");
         if (command == null)
         {
             throw new InvalidOperationException("Failed to deserialize ClientCommand.");

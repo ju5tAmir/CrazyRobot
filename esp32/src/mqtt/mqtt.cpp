@@ -20,6 +20,7 @@ const char* driveTopic = "drive";
 const char* engineManagementTopic = "engineManagementEsp";
 const char* distanceWarningTopic = "distanceWarningTopic";
 const char* negativeDistanceWarningTopic = "negativeDistanceWarningTopic";
+const char* batteryLevelInfo = "batteryLevelInfo";
 
 
 
@@ -47,12 +48,6 @@ void connectWiFi() {
         retryCount++;
     }
 
-    // if (WiFi.status() == WL_CONNECTED) {
-    //     Serial.println(" Connected to WiFi!");
-    //     Serial.println(WiFi.localIP());
-    // } else {
-    //     Serial.println(" Failed to connect to WiFi.");
-    // }
 }
 
 
@@ -66,24 +61,18 @@ void connectWiFi() {
   digitalWrite(LED_BUILTIN,HIGH);
   int attempts = 0;
   while (!client.connected() && attempts < 5) {
-     // digitalWrite(LED_BUILTIN,HIGH);
-    //  Serial.println("Connecting to MQTT...");
       if (client.connect("ESP32Client", MQTT_TOKEN, "")) {
-        //   Serial.println("Connected to MQTT");
           client.subscribe(engineManagementUserTopic);
           client.subscribe(commanduser);
           publisher.client=client;
           return;
       } else {
-        //   Serial.print("MQTT connection failed. State: ");
-        //   Serial.println(client.state());
           attempts++;
           delay(2000);
       }
   }
 
   if (!client.connected()) {
-    //   Serial.println("Failed to connect to MQTT after multiple attempts, rebooting...");
       ESP.restart();
   }
  };
@@ -96,8 +85,7 @@ RobotData parseJson(String jsonString) {
     DeserializationError error = deserializeJson(doc, jsonString);
 
     if (error) {
-        // Serial.print("Deserialization failed: ");
-        // Serial.println(error.f_str());
+
         return RobotData();
     }
 
@@ -187,7 +175,6 @@ void receiveData(String value ,RobotData * robotData){
             Serial.println(data.activeMovements[i]);
         robotData->activeMovements[i] = data.activeMovements[i];
     }
-    // robotData->servo.head=data.servo.head;
 }
 
 
@@ -250,7 +237,7 @@ void sendBatteryInfo(float batteryVoltage)
     pl["Level"] = batteryVoltage;
     String out;
     serializeJson(doc, out);
-    publisher.publish(negativeDistanceWarningTopic, out.c_str());
+    publisher.publish(batteryLevelInfo, out.c_str());
 }
 
 // send negative space information

@@ -12,6 +12,7 @@ public class BatteryLevelHandler(IBatteryNotifier batteryNotifier):IMessageToCli
     
     public  Task HandleCommand(string topic, ClientCommand<BatteryLevel> command)
     {
+        Console.WriteLine("From the service of battery");
         var computedBatteryPercentage = ComputePercentage(command.Payload.BatteryLevelValue);
         batteryNotifier.SendBatteryInfoToClient(new BatteryPercentage(){BatteryPercentageLevel = computedBatteryPercentage});
         return Task.CompletedTask;

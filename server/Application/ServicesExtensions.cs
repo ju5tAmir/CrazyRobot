@@ -8,7 +8,9 @@ using Application.Interfaces.timer;
 using Application.Models;
 using Application.Services;
 using Application.Services.robot;
+using Application.Services.robot.servos;
 using Application.Services.Timer;
+using Core.Domain.Entities.Robot;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Application;
@@ -20,7 +22,7 @@ public static class ServicesExtensions
         services.AddTransient<InitializeEngineHandler> ();
         services.AddTransient<NegativeDistanceHandler>();
         services.AddTransient<DistanceWarningHandler>();
-        services.AddTransient<BatteryLevelHandler>();
+        services.AddTransient<IMessageToClientHandler<BatteryLevel>,BatteryLevelHandler>();
         services.AddSingleton<IMqttMessageHandler, MqttMessageHandler>();
         services.AddScoped<ISecurityService, SecurityService>();
         services.AddScoped<IAdminSurveyService, AdminSurveyService>();
@@ -31,6 +33,7 @@ public static class ServicesExtensions
         services.AddScoped<IReportService,ReportService>();
         services.AddScoped<IRobotEngineService, RobotEngineService>();
         services.AddScoped<IClientTimerService,ClientWatchdogService>();
+        services.AddScoped<IServoService, ServoManagerService>();
         return services;
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using Application.Interfaces.Infrastructure.mqtt;
+using Application.Interfaces.Robot;
 using Application.Services.robot;
 using Core.Domain.Entities.Robot;
 
@@ -10,10 +11,10 @@ public class MqttMessageHandler:IMqttMessageHandler
     private InitializeEngineHandler _initializeHandler;
     private DistanceWarningHandler _distanceWarningHandler;
     private NegativeDistanceHandler _negativeDistanceHandler;
-    private BatteryLevelHandler _batteryLevelHandler;
+    private IMessageToClientHandler<BatteryLevel> _batteryLevelHandler;
 
 
-    public MqttMessageHandler(InitializeEngineHandler initializeHandler,DistanceWarningHandler distanceWarningHandler,NegativeDistanceHandler negativeDistanceHandler,BatteryLevelHandler batteryLevelHandler)
+    public MqttMessageHandler(InitializeEngineHandler initializeHandler,DistanceWarningHandler distanceWarningHandler,NegativeDistanceHandler negativeDistanceHandler,IMessageToClientHandler<BatteryLevel> batteryLevelHandler)
     {
       _initializeHandler = initializeHandler;
       _distanceWarningHandler = distanceWarningHandler;
@@ -119,14 +120,14 @@ public class MqttMessageHandler:IMqttMessageHandler
                     }
 
                     break;
-                case ClientCommandType.BatteryStatus:
+                case ClientCommandType.BatteryInfo:
                     try
                     {
                         var batteryLevel = payload.Payload.Deserialize<BatteryLevel>();
 
                         if (batteryLevel == null)
                         {
-                            Console.WriteLine("Deserialization to  DistanceWarning  returned null!");
+                            Console.WriteLine("Deserialization to  batteryLevel  returned null!");
                             throw new InvalidOperationException("Payload could not be deserialized into InitializeEngineResponse.");
                         }
 

@@ -9,7 +9,7 @@ namespace Api.Websocket.EventHandlers.Robot.BatteryLevel;
 
 public class BatteryLevelNotifier(IConnectionManager connectionManager,IOptionsMonitor<MqttOptions> mqttOptions):IBatteryNotifier
 {
-    public Task SendBatteryInfoToClient(BatteryPercentage batteryPercentage)
+    public void SendBatteryInfoToClient(BatteryPercentage batteryPercentage)
     {
         var response = new BatteryLevelDto()
         {
@@ -18,6 +18,6 @@ public class BatteryLevelNotifier(IConnectionManager connectionManager,IOptionsM
             requestId = Guid.NewGuid().ToString()
         };
         connectionManager.BroadcastToTopic(mqttOptions.CurrentValue.BatteryLevelInfo,response);
-      return Task.CompletedTask;
+      
     }
 }

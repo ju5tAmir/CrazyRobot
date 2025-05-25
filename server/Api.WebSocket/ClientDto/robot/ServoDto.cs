@@ -1,6 +1,9 @@
-﻿namespace Api.WebSocket.ClientDto.robot;
+﻿using Core.Domain.Entities.Robot;
+using WebSocketBoilerplate;
 
-public class ServoDto
+namespace Api.WebSocket.ClientDto.robot;
+
+public class ServoDto:BaseDto
 {
-    
+    public Command<ServoCommand> command { get; set; }
 }

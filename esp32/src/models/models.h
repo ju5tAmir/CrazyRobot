@@ -27,6 +27,8 @@ struct RobotData {
     char allowedMovements[4]={'w','a','s','d'};
     String lidarWarnings = "";
     float batteryVoltage=12.6;
+    bool emptyBattery = false;
+    float voltageCutOff=10;
    // ServoData servo;
 };
 

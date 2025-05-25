@@ -1,12 +1,6 @@
 #include "battery.h"
 #include "../mqtt/mqtt.h"
 
-
-
-
-const float voltageCutoff = 10.0;
-
-
 unsigned long previousMillis = 0;
 const unsigned long sampleInterval = 10000;
 INA226 INA(0x40);
@@ -34,8 +28,14 @@ void readVoltage(unsigned long &previousMillis,float &currentVoltage)
           float measureVoltage = INA.getBusVoltage();
           float measureC = INA.getCurrent();
           Serial.println(measureC);
-               Serial.println(measureVoltage);
+          Serial.println(measureVoltage);
         currentVoltage=measureVoltage;
         sendBatteryInfo(measureVoltage);
     }
+}
+
+
+float readVoltageLive(){
+   float measureVoltage = INA.getBusVoltage();
+     return measureVoltage;
 }

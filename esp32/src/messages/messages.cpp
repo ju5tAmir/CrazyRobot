@@ -1,8 +1,8 @@
 #include "messages.h"
 const char Terminator = '#';
-const String InitializeError =  "Initializing lidar failure!Distance warning disabled";
+const String InitializeError =  "LIDAR";
+const String BatteryLevelLow = "BATTERY";
 const String StopError = "Lidar error occured,Please try again or verrify lidar conection wires!";
-const String BatteryError = "Battery low,please recharge";
 const String MILD = "m"; //mild warning
 const String SEVERE="s";//severe warning
 const String FREE = "f";//no obstacles detected

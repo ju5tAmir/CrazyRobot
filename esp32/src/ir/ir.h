@@ -7,6 +7,8 @@ extern const int threshold;
 extern float smoothedIr;
 extern const float alpha ;
 void checkForNegativeSpace();
-
-
+void negativeSpaceDetection(RobotData &robot);
+extern unsigned long startedMesurement;
+extern const unsigned long negativeHoldDelay ;
+extern const unsigned long holdDelay;
 #endif

@@ -4,9 +4,9 @@
 
 
 extern  INA226 INA;
-extern const float voltageCutoff;
 extern unsigned long previousMillis;
 extern const unsigned long sampleInterval; 
 void setBatteryMeter();
 void readVoltage(unsigned long  &previousMillis,float &currentVoltage);
+float readVoltageLive();
 #endif

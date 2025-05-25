@@ -234,7 +234,7 @@ void sendBatteryInfo(float batteryVoltage)
  DynamicJsonDocument doc(256);
     doc["CommandType"] = "BatteryInfo";
     JsonObject pl = doc.createNestedObject("Payload");
-    pl["Level"] = batteryVoltage;
+    pl["BatteryLevelValue"] = batteryVoltage;
     String out;
     serializeJson(doc, out);
     publisher.publish(batteryLevelInfo, out.c_str());

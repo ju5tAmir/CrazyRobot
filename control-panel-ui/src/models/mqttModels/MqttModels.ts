@@ -1,7 +1,8 @@
 export enum CommandType {
     Initialize = "Initialize",
     Move = "move",
-    Stop = "stop"
+    Stop = "stop",
+    Servo = "Servo"
 }
 
 export const TERMINATOR:string  = "#";

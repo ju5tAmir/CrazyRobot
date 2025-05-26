@@ -15,7 +15,7 @@ public enum CommandType
 
     [EnumMember(Value = "stop")]
     Stop,
-    [EnumMember(Value = "servo")]
+    [EnumMember(Value = "Servo")]
     Servo
 }
 [JsonConverter(typeof(JsonStringEnumConverter))]

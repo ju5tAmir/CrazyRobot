@@ -1,4 +1,5 @@
 import {Button} from "./Button.tsx";
+import { Leva } from 'leva';
 import {useCallback, useEffect, useRef, useState} from "react";
 import { subscribeClientToRobot, unsubscribeClientFromRobot} from "./index.ts";
 import {FaPlay, FaStop} from "react-icons/fa";
@@ -22,6 +23,7 @@ import {ModalComponent} from "../../../timer";
 import {useClientIdState} from "../../../../hooks/Wsclient";
 import {KEYS} from "../../../../hooks/KEYS";
 import {useNavigate} from "react-router-dom";
+import ThreeDView from "../../../ThreeD/ThreeDView.tsx";
 
 
 
@@ -219,9 +221,9 @@ export const ControlMotor = () => {
                 ServerConfirmsDto>(request,StringConstants.ServerConfirmsDto).finally(()=>console.log("er"));
 
             if (sentCommandResult?.success) {
-                toast.success("Engine send")
+                toast.success("Sent successfully.")
             } else {
-                toast.error("Retry")
+                toast.error("Error")
             }
         }catch (error){
             const errorDto = error as unknown as ServerSendsErrorMessageDto;
@@ -268,60 +270,64 @@ export const ControlMotor = () => {
 
                 <div className="grid grid-cols-[1fr_2fr_2fr_2fr_1fr] grid-rows-4  place-items-center  w-screen">
                     <div className="col-span-1  col-start-3 row-start-1 row-end-2 ">
-                        <DangerDisplay position={DIRECTION_WARNING.FRONT} orientation={DangerDisplayOrientation.HORIZONTAL}></DangerDisplay>
+                        <DangerDisplay position={DIRECTION_WARNING.FRONT}
+                                       orientation={DangerDisplayOrientation.HORIZONTAL}></DangerDisplay>
                     </div>
                     <div className="col-span-3 col-start-2 row-start-2 row-span-1  w-full ">
                         <div className={"flex flex-row justify-center items-center mb-2 gap-2 flex-grow"}>
                             <button disabled={true} className={"btn btn-neutral w-1/6 invisible"}>
                             </button>
                             <Button value={"w"} color={""}
-                                    handlePressed={() => handleInputDown("w")}
-                                    handleReleased={() => handleInputUp("w")}
+                                    handlePressed={() => handleInputDown ("w")}
+                                    handleReleased={() => handleInputUp ("w")}
                                     handleEngineState={engine}
-                                    isPressed={pressedKeys.has("w")}/>
-                            <button className={`btn btn-neutral w-1/6 ${engineStartedColor()}`}
-                                    onClick={() => handleInputDown('e')}>
+                                    isPressed={pressedKeys.has ("w")}/>
+                            <button className={`btn btn-neutral w-1/6 ${engineStartedColor ()}`}
+                                    onClick={() => handleInputDown ('e')}>
                                 {engine ? <FaStop/> : <FaPlay/>}
                             </button>
                         </div>
                     </div>
 
 
-
-
                     <div className="col-span-3 col-start-2 row-start-3 row-span-1  w-full ">
                         <div className={"flex flex-row justify-center gap-2 items-center "}>
-                            <DangerDisplay position={DIRECTION_WARNING.LEFT} orientation={DangerDisplayOrientation.VERTICAL}></DangerDisplay>
+                            <DangerDisplay position={DIRECTION_WARNING.LEFT}
+                                           orientation={DangerDisplayOrientation.VERTICAL}></DangerDisplay>
                             <Button value={"a"}
-                                    handlePressed={() => handleInputDown("a")}
-                                    handleReleased={() => handleInputUp("a")}
+                                    handlePressed={() => handleInputDown ("a")}
+                                    handleReleased={() => handleInputUp ("a")}
                                     color={""}
                                     handleEngineState={engine}
-                                    isPressed={pressedKeys.has("a")}
+                                    isPressed={pressedKeys.has ("a")}
                             />
                             <Button value={"s"}
-                                    handlePressed={() => handleInputDown("s")}
-                                    handleReleased={() => handleInputUp("s")}
+                                    handlePressed={() => handleInputDown ("s")}
+                                    handleReleased={() => handleInputUp ("s")}
                                     color={""}
                                     handleEngineState={engine}
-                                    isPressed={pressedKeys.has("s")}
+                                    isPressed={pressedKeys.has ("s")}
                             />
                             <Button value={"d"}
-                                    handlePressed={() => handleInputDown("d")}
-                                    handleReleased={() => handleInputUp("d")}
+                                    handlePressed={() => handleInputDown ("d")}
+                                    handleReleased={() => handleInputUp ("d")}
                                     color={""}
                                     handleEngineState={engine}
-                                    isPressed={pressedKeys.has("d")}
+                                    isPressed={pressedKeys.has ("d")}
                             />
-                            <DangerDisplay position={DIRECTION_WARNING.RIGHT} orientation={DangerDisplayOrientation.VERTICAL}></DangerDisplay>
+                            <DangerDisplay position={DIRECTION_WARNING.RIGHT}
+                                           orientation={DangerDisplayOrientation.VERTICAL}></DangerDisplay>
                         </div>
                     </div>
 
 
                     <div className="col-span-1 col-start-3 row-start-4 row-span-1  justify-self-start w-full ">
-                        <DangerDisplay position={DIRECTION_WARNING.BACK}  orientation={DangerDisplayOrientation.HORIZONTAL}></DangerDisplay>
+                        <DangerDisplay position={DIRECTION_WARNING.BACK}
+                                       orientation={DangerDisplayOrientation.HORIZONTAL}></DangerDisplay>
                     </div>
                 </div>
+                <Leva collapsed />
+                <ThreeDView/>
             </div>
         </>
     );

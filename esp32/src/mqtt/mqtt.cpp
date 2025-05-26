@@ -21,6 +21,7 @@ const char* engineManagementTopic = "engineManagementEsp";
 const char* distanceWarningTopic = "distanceWarningTopic";
 const char* negativeDistanceWarningTopic = "negativeDistanceWarningTopic";
 const char* batteryLevelInfo = "batteryLevelInfo";
+const char* servoTopic = "servoCommandUser";
 
 
 
@@ -64,6 +65,7 @@ void connectWiFi() {
       if (client.connect("ESP32Client", MQTT_TOKEN, "")) {
           client.subscribe(engineManagementUserTopic);
           client.subscribe(commanduser);
+          client.subscribe(servoTopic);
           publisher.client=client;
           return;
       } else {
@@ -91,6 +93,7 @@ RobotData parseJson(String jsonString) {
 
     RobotData data;
 
+    Serial.println("Command Type");
     if(doc.containsKey("CommandType")){
         if(doc["CommandType"] == "Initialize"){
             if (doc.containsKey("Payload")) {
@@ -131,33 +134,35 @@ RobotData parseJson(String jsonString) {
             }
         }
 
-        if (doc.containsKey("Payload")) {
-            JsonObject payload = doc["Payload"];
-            if (payload.containsKey("Servos")) {
-                JsonObject servoj = payload["Servos"]; // servo json object
-                if (servoj.containsKey("head")) {
-                    int v = servoj["head"].as<int>();
-                    servoManager.setTarget(0, v);
-                }
-                if (servoj.containsKey("neckt")) {
-                    int v = servoj["neckt"].as<int>();
-                    servoManager.setTarget(1, v);
-                }
-                if (servoj.containsKey("neckb")) {
-                    int v = servoj["neckb"].as<int>();
-                    servoManager.setTarget(2, v);
-                }
-                if (servoj.containsKey("leye")) {
-                    int v = servoj["leye"].as<int>();
-                    servoManager.setTarget(3, v);
-                }
-                if (servoj.containsKey("reye")) {
-                    int v = servoj["reye"].as<int>();
-                    servoManager.setTarget(4, v);
+
+        if(doc["CommandType"] == "Servo"){
+            Serial.println("Servo Command");
+             if (doc.containsKey("Payload")) {
+                 JsonObject payload = doc["Payload"];
+            Serial.println("Servo Command");
+                     if (payload.containsKey("head")) {
+                         int v = payload["head"].as<int>();
+                         servoManager.setTarget(0, v);
+                     }
+                     if (payload.containsKey("neckt")) {
+                         int v = payload["neckt"].as<int>();
+                         servoManager.setTarget(1, v);
+                     }
+                     if (payload.containsKey("neckb")) {
+                         int v = payload["neckb"].as<int>();
+                         servoManager.setTarget(2, v);
+                     }
+                     if (payload.containsKey("leye")) {
+                         int v = payload["leye"].as<int>();
+                         servoManager.setTarget(3, v);
+                     }
+                     if (payload.containsKey("reye")) {
+                         int v = payload["reye"].as<int>();
+                         servoManager.setTarget(4, v);
+                     }
                 }
             }
         }
-    }
 
     return data;
 }
@@ -171,7 +176,7 @@ void receiveData(String value ,RobotData * robotData){
     robotData->isMoving=data.isMoving;
     robotData->isStopping=data.isStopping;
     for (int i = 0; i < 4; i++) {
-        Serial.println("I receive moving");
+        // Serial.println("I receive moving");
             Serial.println(data.activeMovements[i]);
         robotData->activeMovements[i] = data.activeMovements[i];
     }

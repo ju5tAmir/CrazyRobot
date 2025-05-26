@@ -222,7 +222,7 @@ void initializeRobot(RobotData &robot, HardwareSerial &serial, bool &retFlag)
       robot.emptyBattery = true;
   return;
   }
-
+    sendBatteryInfo(currentvoltage);
     sendLidarCommands(LidarOn, serial);
     unsigned long startTime = millis();
     String response = "";

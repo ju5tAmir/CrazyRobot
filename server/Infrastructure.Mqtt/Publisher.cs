@@ -14,6 +14,5 @@ public class Publisher:IMqttPublisher
     public async Task Publish(string topic,object dto)
     { 
         await _mqttClient.PublishAsync(topic,dto);
-        
     }
 }

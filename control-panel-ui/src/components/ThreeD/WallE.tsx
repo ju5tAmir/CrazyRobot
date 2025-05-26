@@ -67,7 +67,7 @@ const WallE: React.FC = () => {
       },
     },
     handLDeg: {
-      value: 125,
+      value: 80,
       min: 0,
       max: 180,
       step: 1,

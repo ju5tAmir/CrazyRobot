@@ -15,7 +15,8 @@ public class MqttClientService
     private readonly IOptionsMonitor<MqttOptions> _mqttOptions;
     private readonly ILogger<MqttClientService> _logger;
     private readonly IMqttMessageHandler _messageHandler;
-
+    private int _reconnectAttempts = 0;
+    private const int MaxReconnectAttempts = 5;
 
     
     public MqttClientService(IOptionsMonitor<MqttOptions> mqttOptions, ILogger<MqttClientService> logger,
@@ -26,20 +27,31 @@ public class MqttClientService
         _messageHandler = messageHandler;
         var factory = new MqttClientFactory();
         _client = factory.CreateMqttClient();
-        _client.DisconnectedAsync += async e =>
+_client.DisconnectedAsync += async e =>
+{
+    _logger.LogWarning("MQTT client disconnected. Reason: " + e.Reason);
+
+    if (_reconnectAttempts >= MaxReconnectAttempts)
+    {
+        _logger.LogError("Maximum reconnect attempts reached. Giving up.");
+        return;
+    }
+
+    _reconnectAttempts++;
+    await Task.Delay(TimeSpan.FromSeconds(5 * _reconnectAttempts)); 
+
+    try
+    {
+        if (await ConnectAsync())
         {
-            _logger.LogWarning("MQTT client disconnected. Reason: " + e.Reason);
+            _reconnectAttempts = 0; // reset on success
+        }
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Reconnection attempt failed.");
+    }
 
-            await Task.Delay(TimeSpan.FromSeconds(5));
-
-            try
-            {
-                await ConnectAsync(); 
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Reconnection attempt failed.");
-            }
         };
     }
     
@@ -65,7 +77,6 @@ public class MqttClientService
             if (result.ResultCode == MqttClientConnectResultCode.Success)
             {
                 _logger.LogInformation("Connected successfully to MQTT broker.");
-
                 await SubscribeAsync(_mqttOptions.CurrentValue.SubscribeEngineTopic);
                 await SubscribeAsync(_mqttOptions.CurrentValue.SubscribeCommandsTopic); 
                 await SubscribeAsync(_mqttOptions.CurrentValue.DistanceWarningTopic);

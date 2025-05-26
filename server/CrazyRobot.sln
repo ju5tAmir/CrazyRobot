@@ -13,7 +13,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure.Websocket", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Api.Rest", "Api.Rest\Api.Rest.csproj", "{55AD014C-E3C8-4F2E-9A26-EB9763C24D8A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebSockets", "Api.WebSocket\Api.WebSocket.csproj", "{E3487741-FCC3-43F3-868D-8A6FFF7D3EE5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebSockets", "Api.WebSocket\Api.Websocket.csproj", "{E3487741-FCC3-43F3-868D-8A6FFF7D3EE5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Startup", "Startup\Startup.csproj", "{4163419D-DBEF-4FEF-A7C5-05CA3354D57E}"
 EndProject

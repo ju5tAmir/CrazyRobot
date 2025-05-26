@@ -4,7 +4,7 @@
 #define MESSAGES_h
 #define MAX_QUEUE_SIZE 5
 extern const char Terminator;
-extern const String  BatteryError;
+extern const String  BatteryLevelLow;
 extern const String InitializeError;  
 extern const String StopError;
 extern const String MILD;

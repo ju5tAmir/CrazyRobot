@@ -23,9 +23,11 @@ RobotData robot = RobotData();
 HardwareSerial LidarSerial(2);
 MessageQueue lidarResponseQueue = MessageQueue();
 void actOnMovements();
-void checkRobotState(RobotData& robot,HardwareSerial &serial);
+void checkRobotState(RobotData &robot, HardwareSerial &serial);
+void initializeRobot(RobotData &robot, HardwareSerial &serial, bool &retFlag);
+void shutDownRobot(RobotData &robot, HardwareSerial &serial, bool &retFlag);
 void stopEngines();
-
+void negativeSpaceDetection(RobotData &robot);
 void  sendLidarCommands(String message,HardwareSerial &serial);
 
 
@@ -33,10 +35,8 @@ void  sendLidarCommands(String message,HardwareSerial &serial);
 
 //Timing for the ir sensor
 unsigned long lastDangerTime = 0;
-unsigned long startedMesurement = 0;
 unsigned long lastLidarMesurement =0; 
-const unsigned long negativeHoldDelay = 500;
-const unsigned long holdDelay = 1000;
+
 //lidar readings and processing
 const unsigned long  measureLidar = 200;
 //wait for the second esp to respond back for maximum 6 seconds
@@ -87,6 +87,7 @@ void loop() {
     servoManager.update();
 
       String msg;
+
   if (readSerialMessage(LidarSerial, msg)) {
     msg.trim();
     if (msg.startsWith("L:")) {
@@ -99,8 +100,7 @@ void loop() {
     }
   }
 
-    checkRobotState(robot,LidarSerial);
-moveRobotTwo(FORWARD, 0, 0, leftMotor, rightMotor);
+checkRobotState(robot,LidarSerial);
 
 }
 
@@ -143,7 +143,7 @@ void actOnMovements() {
   }
 
   if (foundS) {
-        if (isMovementAllowed(robot.allowedMovements, frontCommand, 4)) {
+        if (isMovementAllowed(robot.allowedMovements, backCommand, 4)) {
       moveRobotTwo(BACKWARD, MOVE_SPEED, MOVE_SPEED, leftMotor, rightMotor);
     } else {
       moveRobotTwo(STOP, 0, 0, leftMotor, rightMotor);
@@ -162,121 +162,195 @@ void stopEngines(){
 }
 
 void checkRobotState(RobotData& robot,HardwareSerial &serial){
-  readVoltage(previousMillis,robot.batteryVoltage);
-  if(robot.batteryVoltage<voltageCutoff){
-    sendTurnOffMessage(BatteryError);
+ 
+  if(robot.batteryVoltage<=robot.voltageCutOff&&!robot.emptyBattery){
+    robot.emptyBattery=true;
+    sendBatteryInfo(0.00);
     sendLidarCommands(LidarOff,serial);
+    robot.isStopped=true;
+    robot.initializing=false;
     stopEngines();
     return;
   }
-  if (robot.initializing) {
-  sendLidarCommands(LidarOn, serial);
-  unsigned long startTime = millis();
-  String response = "";
-  while ((millis() - startTime) < timeoutMs) {
-    if (serial.available()) {
-      String temp = serial.readStringUntil(Terminator);
-      temp.trim();
-      temp+=Terminator;
-      if (temp == LidarOn || temp == LidarOff) {
-        response = temp;
-        break;
-      } else {
-        Serial.println("Ignored invalid response: " + temp);
-      }
-    }
-    delay(10);
-  }
-Serial.println(response);
-Serial.println("Received from the lidar");
-  if (response == LidarOn) {
-    robot.initializing = false;
-    robot.isStopped = false;
-    sendInitializeMessage(false, "");
-  } else {
-    robot.initializing = false;
-    robot.isStopped = false;
-    sendLidarCommands(LidarOff, serial);
-    sendInitializeMessage(false, InitializeError);
-    Serial.println("Error occurred while starting");
-  }
-  const long currentmillis = millis(); 
-  previousMillis=currentmillis;
-  return;
-}
+
+   if(robot.batteryVoltage>robot.voltageCutOff && robot.emptyBattery ){
+          robot.emptyBattery=false;
+   }
+
+   //initialize robot
+  bool initializeFlag;
+  initializeRobot(robot, serial, initializeFlag);
+  if (initializeFlag)
+    return;
+
+     bool shutDownFlag;
+ shutDownRobot(robot, serial, shutDownFlag);
+ if (shutDownFlag)
+   return;
 
   if(robot.isStopped ){
     return;
  }
+ 
 
-  //Add retry to stop if stop fails
-  if(robot.isStopping){
+ //shut down robot
+
+
+
+ // check for negative space an act accordingly, removing the front movement command from allowed movements
+ negativeSpaceDetection(robot);
+ // move robot bassed on the received commands
+ actOnMovements();
+ // read the battery status
+ readVoltage(previousMillis, robot.batteryVoltage);
+}
+
+
+// initialize robot and lidar 
+void initializeRobot(RobotData &robot, HardwareSerial &serial, bool &retFlag)
+{
+  retFlag = true;
+ 
+  
+  if (robot.initializing)
+  {
+       float currentvoltage = readVoltageLive();
+  if(currentvoltage<robot.voltageCutOff){
+      sendInitializeMessage(true, BatteryLevelLow);
+      robot.initializing = false;
+      robot.isStopped=true;
+      robot.emptyBattery = true;
+  return;
+  }
+
+    sendLidarCommands(LidarOn, serial);
+    unsigned long startTime = millis();
+    String response = "";
+    while ((millis() - startTime) < timeoutMs)
+    {
+      if (serial.available())
+      {
+        String temp = serial.readStringUntil(Terminator);
+        temp.trim();
+        temp += Terminator;
+        if (temp == LidarOn || temp == LidarOff)
+        {
+          response = temp;
+          break;
+        }
+        else
+        {
+          Serial.println("Ignored invalid response: " + temp);
+        }
+      }
+      delay(10);
+    }
+    Serial.println(response);
+    Serial.println("Received from the lidar");
+    if (response == LidarOn)
+    {
+      robot.initializing = false;
+      robot.isStopped = false;
+      sendInitializeMessage(false, "");
+    }
+    else
+    {
+      robot.initializing = false;
+      robot.isStopped = false;
+      sendLidarCommands(LidarOff, serial);
+      sendInitializeMessage(false, InitializeError);
+      Serial.println("Error occurred while starting");
+    }
+    previousMillis = millis();
+    return;
+  }
+  retFlag = false;
+}
+
+// shut down the robot if the stop command is sent trough mqtt, and shut down the lidar also
+void shutDownRobot(RobotData &robot, HardwareSerial &serial, bool &retFlag)
+{
+  retFlag = true;
+  if (robot.isStopping)
+  {
     Serial.println("Stopping");
-     sendLidarCommands(LidarOff,serial);
-  unsigned long startTime = millis();
-  String response = "";
-  while ((millis() - startTime) < 1000) {
-    if (serial.available()) {
-      String temp = serial.readStringUntil(Terminator);
-      temp.trim();
-      temp+=Terminator;
-      if (temp ==LidarOff) {
-        response =temp;
-        break;
-      } else {
-        Serial.println("Ignored invalid response: " + temp);
+    sendLidarCommands(LidarOff, serial);
+    unsigned long startTime = millis();
+    String response = "";
+    while ((millis() - startTime) < 1000)
+    {
+      if (serial.available())
+      {
+        String temp = serial.readStringUntil(Terminator);
+        temp.trim();
+        temp += Terminator;
+        if (temp == LidarOff)
+        {
+          response = temp;
+          break;
+        }
+        else
+        {
+          Serial.println("Ignored invalid response: " + temp);
+        }
       }
     }
-  }
-    if(response==LidarOff){
-      robot.isStopped=true;
+    if (response == LidarOff)
+    {
+      robot.isStopped = true;
       sendTurnOffMessage("");
       stopEngines();
-    }else{
-      robot.isStopped=true;
+    }
+    else
+    {
+      robot.isStopped = true;
       sendTurnOffMessage(StopError);
       stopEngines();
     }
-    previousMillis=0;
+    previousMillis = 0;
     return;
   }
-
-
-
-
-// check if the sensor reads an negative space and waits for half second for the sensor to read positive space until will reset back
-  checkForNegativeSpace();
-
-  if(smoothedIr>=threshold){
-
-  if(!isMovementAllowed(robot.activeMovements,'w',4)){
-   return;
-  }
-     if (startedMesurement == 0) {
-    startedMesurement = millis();
-  }
-  if (!robot.negativeDanger && millis()-startedMesurement>=negativeHoldDelay) {
-      lastDangerTime = millis(); 
-      removeAllowedMovement(robot.allowedMovements, 'w');
-      sendNegativeWarning(SEVERE);
-      robot.negativeDanger = true;
-  }
-} else {
-  if (robot.negativeDanger && millis() - lastDangerTime >= holdDelay) {
-    startedMesurement=0;
-    addAllowedMovement(robot.allowedMovements, 'w');
-    sendNegativeWarning(FREE);
-    robot.negativeDanger = false;
-  }
-  }
-  actOnMovements();
+  retFlag = false;
 }
 
 
 
+// check for a negative space, remove the front movement, and send warning messages to the client 
+void negativeSpaceDetection(RobotData &robot)
+{
 
+  checkForNegativeSpace();
 
+  if (smoothedIr >= threshold)
+  {
 
+    if (!isMovementAllowed(robot.activeMovements, 'w', 4))
+    {
+      return;
+    }
+    if (startedMesurement == 0)
+    {
+      startedMesurement = millis();
+    }
+    if (!robot.negativeDanger && millis() - startedMesurement >= negativeHoldDelay)
+    {
+      lastDangerTime = millis();
+      removeAllowedMovement(robot.allowedMovements, 'w');
+      sendNegativeWarning(SEVERE);
+      robot.negativeDanger = true;
+    }
+  }
+  else
+  {
+    if (robot.negativeDanger && millis() - lastDangerTime >= holdDelay)
+    {
+      startedMesurement = 0;
+      addAllowedMovement(robot.allowedMovements, 'w');
+      sendNegativeWarning(FREE);
+      robot.negativeDanger = false;
+    }
+  }
+}
 
 // send uart commands to the second esp32 after is tested needs to be moved in a separate file
 /**

@@ -1529,7 +1529,7 @@
           "initialize",
           "move",
           "stop",
-          "servo"
+          "Servo"
         ]
       },
       "MovementCommand": {

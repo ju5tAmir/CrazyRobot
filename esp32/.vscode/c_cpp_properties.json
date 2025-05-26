@@ -10,6 +10,10 @@
             "includePath": [
                 "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/include",
                 "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/src",
+                "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/.pio/libdeps/dfrobot_firebeetle2_esp32e/St7789Esp32/include",
+                "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/.pio/libdeps/dfrobot_firebeetle2_esp32e/St7789Esp32/src",
+                "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/.pio/libdeps/dfrobot_firebeetle2_esp32e/St7789-by-sporniket/include",
+                "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/.pio/libdeps/dfrobot_firebeetle2_esp32e/St7789-by-sporniket",
                 "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/.pio/libdeps/dfrobot_firebeetle2_esp32e/Adafruit PWM Servo Driver Library",
                 "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/.pio/libdeps/dfrobot_firebeetle2_esp32e/Adafruit BusIO",
                 "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/SPI/src",
@@ -256,6 +260,10 @@
                 "path": [
                     "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/include",
                     "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/src",
+                    "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/.pio/libdeps/dfrobot_firebeetle2_esp32e/St7789Esp32/include",
+                    "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/.pio/libdeps/dfrobot_firebeetle2_esp32e/St7789Esp32/src",
+                    "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/.pio/libdeps/dfrobot_firebeetle2_esp32e/St7789-by-sporniket/include",
+                    "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/.pio/libdeps/dfrobot_firebeetle2_esp32e/St7789-by-sporniket",
                     "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/.pio/libdeps/dfrobot_firebeetle2_esp32e/Adafruit PWM Servo Driver Library",
                     "D:/FourthSemester/IoT/robot projecct/CrazyRobot/esp32/.pio/libdeps/dfrobot_firebeetle2_esp32e/Adafruit BusIO",
                     "C:/Users/ionut/.platformio/packages/framework-arduinoespressif32/libraries/SPI/src",

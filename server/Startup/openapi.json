@@ -1845,6 +1845,22 @@
           }
         ]
       },
+      "ForceDisconnectedDto": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseDto"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "reason": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
       "StringConstants": {
         "type": "string",
         "description": "Available eventType and string constants",
@@ -1868,7 +1884,8 @@
           "ExampleClientDto",
           "EngineStateDto",
           "ServerConfirmsDto",
-          "ServerSendsTimerDto"
+          "ServerSendsTimerDto",
+          "ForceDisconnectedDto"
         ]
       }
     }

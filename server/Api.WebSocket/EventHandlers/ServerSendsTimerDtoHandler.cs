@@ -10,15 +10,24 @@ public class ServerSendsTimerDtoHandler(IConnectionManager connectionManager) : 
 {
     public void SendTimerNotification(string clientId)
     {
-        IWebSocketConnection webSocket = (IWebSocketConnection)connectionManager.GetSocketFromClientId(clientId);
-
-        var request = new ServerSendsTimerDto()
+        try
         {
-            status = true,
-            clientId = clientId,
-            eventType = nameof(ServerSendsTimerDto),
-            requestId = Guid.NewGuid().ToString()
-        };
-        webSocket.SendDto(request);
+            IWebSocketConnection webSocket = (IWebSocketConnection)connectionManager.GetSocketFromClientId(clientId);
+
+            var request = new ServerSendsTimerDto()
+            {
+                status = true,
+                clientId = clientId,
+                eventType = nameof(ServerSendsTimerDto),
+                requestId = Guid.NewGuid().ToString()
+            };
+            webSocket.SendDto(request);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"[ServerSendsTimerDtoHandler] Client {clientId} not found or already disconnected.");  
+        }
+
+
     }
 }

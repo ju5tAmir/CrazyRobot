@@ -19,11 +19,11 @@ import {DangerDisplay} from "../../InfoDisplay";
 import {DangerDisplayOrientation} from "../../../../models";
 import {useAtom} from "jotai";
 import {EngineStateAtom} from "../../../../atoms";
-import {ModalComponent} from "../../../timer";
 import {useClientIdState} from "../../../../hooks/Wsclient";
 import {KEYS} from "../../../../hooks/KEYS";
 import {useNavigate} from "react-router-dom";
 import ThreeDView from "../../../ThreeD/ThreeDView.tsx";
+import {useForceDisconnected} from "../../../../hooks";
 
 
 
@@ -44,12 +44,15 @@ export const ControlMotor = () => {
     const navigate = useNavigate();
     const clientId = manageClientId.getClientId() || '';
     const subscribedRef = useRef(false);
+    const disconnected = useForceDisconnected();
+
 
 
 
     useEffect(() => {
-        console.log(readyState + "readystate");
+
         if (readyState!==1 || clientId === "") return;
+        if(disconnected.disconnected)return ;
         let isMounted = true;
         const handleSubscription = async () => {
             const success = await subscribeClientToRobot(clientId, sendRequest);
@@ -57,14 +60,13 @@ export const ControlMotor = () => {
                 subscribedRef.current=true;
             } else if (isMounted) {
                 toast.error("Could not connect to robot");
-                navigate('/');
+                navigate("/school-info");
             }
         };
 
         handleSubscription();
 
         return () => {
-            console.log("Component unmounted"); // ✅ This should always log
             isMounted = false;
             if (subscribedRef.current) {
                 unsubscribeClientFromRobot(clientId, sendRequest)
@@ -115,6 +117,10 @@ export const ControlMotor = () => {
     }, [pressedKeys]);
 
 
+    if(disconnected.disconnected){
+        navigate("/school-info");
+        return ;
+    }
 
 
     const handleInputDown = useCallback((value: string) => {
@@ -191,16 +197,16 @@ export const ControlMotor = () => {
          }
          try{
             const signInResult: ServerConfirmsDto = await sendRequest<EngineStateDto
-                , ServerConfirmsDto>(request,StringConstants.ServerConfirmsDto).finally(()=>console.log("er"));
-            console.log(signInResult);
+                , ServerConfirmsDto>(request,StringConstants.ServerConfirmsDto)
             if (signInResult?.success) {
                 toast.success("Engine send")
             } else {
                 toast.error("Retry")
             }
         }catch (error){
-            const errorDto = error as unknown as ServerSendsErrorMessageDto;
-            toast.error(errorDto.error!.toString);
+             const errorDto = error as unknown as ServerSendsErrorMessageDto;
+             toast.error("ErrorReceivedEngine");
+             toast.error(errorDto.message!);
         }
     }
 
@@ -264,7 +270,7 @@ export const ControlMotor = () => {
     }
 
     return (
-        <><ModalComponent/>
+        <>
             <div className={"flex flex-col gap-2 justify-center"}>
                 <InfoDisplay engineState={engine} batteryStatus={0} initializeStatus={engineLocked}></InfoDisplay>
 

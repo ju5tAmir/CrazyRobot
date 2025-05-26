@@ -5,13 +5,11 @@ export const BatteryLevel = () => {
     const batteryLevel = useBatteryLevel();
    const [levelColor,setLevelColor] = useState<string>();
     useEffect(() => {
-
         if(batteryLevel<20){
             setLevelColor('bg-red-500');
             return;
         }
         setLevelColor(batteryLevel > 50 ?'bg-green-500':'bg-blue-500');
-
     }, [batteryLevel]);
 
 

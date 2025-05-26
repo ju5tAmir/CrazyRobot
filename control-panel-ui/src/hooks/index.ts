@@ -6,4 +6,4 @@ export {useTimerHook as useTimerHook} from "./TimerHoock/TimerHoock.ts";
 export {useSurveyResults as useSurveyResults} from "./surveys/useSurveyResults.ts";
 export {useInitializeSurveysAdmin as useInitializeSurveysAdmin} from "./surveys/useInitializeSurveysAdmin.ts";
 export {useInitializeActiveSurveys as useInitializeActiveSurveys} from "./surveys/useInitializeActiveSurveys.ts";
-
+export {useForceDisconnected as useForceDisconnected} from "./forcedDisconnecting/useForceDisconnected.ts"

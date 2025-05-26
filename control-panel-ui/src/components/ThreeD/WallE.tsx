@@ -17,11 +17,15 @@ import {
   ServoCommand as ApiServoCommand,
   CommandType,
 } from '../../api/generated-client_TEST';
+import {ServerConfirmsDto, ServerSendsErrorMessageDto} from "../../api";
+
 
 const WallE: React.FC = () => {
   const group = useRef<Group>(null);
   const { scene } = useGLTF('/models/wall-e-updated.glb');
   const { sendRequest, readyState} = useWsClient();
+
+  // Modify this to be null, so the servo command will ot be sent when the component is first mounted
   const [servoCommand, setServoCommand] = useState<ApiServoCommand>({
     head:   90,
     neckt: 40,
@@ -134,32 +138,35 @@ const WallE: React.FC = () => {
 
     useEffect(() => {
         console.log(servoCommand);
-        if (readyState != 1) return;
-
-
-        const request: ServoDto = {
-          eventType: StringConstants.ServoDto,
-          command: {
-            commandType: CommandType.Servo,
-            payload: servoCommand,
-          },
-        };
-
-         try{
-            const signInResult =  sendRequest<ServoDto
-                , ServoDto>(request,StringConstants.ServoDto).finally(()=>console.log("er"));
-            console.log(signInResult);
-            if (signInResult?.success) {
-                toast.success("Engine send")
-            } else {
-                toast.error("Retry")
-            }
-        }catch (error){
-            const errorDto = error as unknown as ServerSendsErrorMessageDto;
-            toast.error(errorDto.error!.toString);
-        }
-
+        if (readyState !== 1) return;
+      sendServoCommand();
     }, [servoCommand, readyState]);
+
+
+  const sendServoCommand=async ()=>{
+    const request: ServoDto = {
+      eventType: StringConstants.ServoDto,
+      command: {
+        commandType: CommandType.Servo,
+        payload: servoCommand,
+      },
+    };
+
+    try{
+      const signInResult:ServerConfirmsDto = await sendRequest<ServoDto
+          ,ServerConfirmsDto>(request,StringConstants.ServerConfirmsDto).finally(()=>console.log("er"));
+      console.log(signInResult);
+      if (signInResult.success) {
+        toast.success("Engine send")
+      } else {
+        toast.error("Retry")
+      }
+    }catch (error){
+      const errorDto = error as unknown as ServerSendsErrorMessageDto;
+      toast.error("ErrorReceivedSeervo");
+      toast.error(errorDto.message!);
+    }
+  }
 
   return (
     <primitive

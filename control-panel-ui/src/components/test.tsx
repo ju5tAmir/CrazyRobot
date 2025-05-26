@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState } from "react";
 
 // Types for bot and obstacle
 type Vector2 = { x: number; y: number };

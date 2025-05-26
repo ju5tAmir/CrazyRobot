@@ -9,8 +9,6 @@ public class ServoManagerService (IMqttPublisher mqttPublisher,IOptionsMonitor<M
 {
     public async Task ManageServos(Command<ServoCommand> command)
     {
-        Console.WriteLine(command.Payload);
-        Console.WriteLine("In Servo Publis");
         await mqttPublisher.Publish(optionsMonitor.CurrentValue.ServoCommandTopic,command);
     }
 }

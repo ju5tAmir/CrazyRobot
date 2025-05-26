@@ -1,5 +1,4 @@
 import {Button} from "./Button.tsx";
-import { Leva } from 'leva';
 import {useCallback, useEffect, useRef, useState} from "react";
 import { subscribeClientToRobot, unsubscribeClientFromRobot} from "./index.ts";
 import {FaPlay, FaStop} from "react-icons/fa";
@@ -265,7 +264,7 @@ export const ControlMotor = () => {
 
     return (
         <><ModalComponent/>
-            <div className={"flex flex-col gap-2 justify-center"}>
+            <div className={"flex flex-col gap-2 justify-center w-full overflow-hidden"}>
                 <InfoDisplay engineState={engine} batteryStatus={0} initializeStatus={engineLocked}></InfoDisplay>
 
                 <div className="grid grid-cols-[1fr_2fr_2fr_2fr_1fr] grid-rows-4  place-items-center  w-screen">
@@ -326,8 +325,9 @@ export const ControlMotor = () => {
                                        orientation={DangerDisplayOrientation.HORIZONTAL}></DangerDisplay>
                     </div>
                 </div>
-                <Leva collapsed />
+                <div className="overflow-hidden">
                 <ThreeDView/>
+                </div>
             </div>
         </>
     );

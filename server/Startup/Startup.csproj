@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <ProjectReference Include="..\Api.WebSocket\Api.Websocket.csproj" />
     <ProjectReference Include="..\Application\Application.csproj" />
     <ProjectReference Include="..\Infrastructure.Mqtt\Infrastructure.Mqtt.csproj" />
 
@@ -9,8 +10,7 @@
  
     <ProjectReference Include="..\Infrastructure.Postgres\Infrastructure.Postgres.csproj" />
     <ProjectReference Include="..\Api.Rest\Api.Rest.csproj" />
-    <ProjectReference Include="..\Api.WebSocket\Api.WebSocket.csproj" />
-    <ProjectReference Include="..\Infrastructure.WebSocket\Infrastructure.WebSocket.csproj" />
+    <ProjectReference Include="..\Infrastructure.Websocket\Infrastructure.Websocket.csproj" />
   </ItemGroup>
 
   <ItemGroup>

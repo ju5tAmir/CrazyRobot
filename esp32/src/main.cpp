@@ -143,7 +143,7 @@ void actOnMovements() {
   }
 
   if (foundS) {
-        if (isMovementAllowed(robot.allowedMovements, frontCommand, 4)) {
+        if (isMovementAllowed(robot.allowedMovements, backCommand, 4)) {
       moveRobotTwo(BACKWARD, MOVE_SPEED, MOVE_SPEED, leftMotor, rightMotor);
     } else {
       moveRobotTwo(STOP, 0, 0, leftMotor, rightMotor);

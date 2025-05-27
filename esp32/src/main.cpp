@@ -215,6 +215,7 @@ void initializeRobot(RobotData &robot, HardwareSerial &serial, bool &retFlag)
   if (robot.initializing)
   {
        float currentvoltage = readVoltageLive();
+       Serial.println(currentvoltage);
   if(currentvoltage<robot.voltageCutOff){
       sendInitializeMessage(true, BatteryLevelLow);
       robot.initializing = false;

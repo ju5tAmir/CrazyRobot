@@ -139,7 +139,6 @@ RobotData parseJson(String jsonString) {
             Serial.println("Servo Command");
              if (doc.containsKey("Payload")) {
                  JsonObject payload = doc["Payload"];
-            Serial.println("Servo Command");
                      if (payload.containsKey("head")) {
                          int v = payload["head"].as<int>();
                          servoManager.setTarget(0, v);
@@ -159,6 +158,16 @@ RobotData parseJson(String jsonString) {
                      if (payload.containsKey("reye")) {
                          int v = payload["reye"].as<int>();
                          servoManager.setTarget(4, v);
+                     }
+                     if (payload.containsKey("lhand")) {
+                         int v = payload["lhand"].as<int>();
+                         Serial.println("Left hand");
+                         servoManager.setTarget(5, v);
+                     }
+                     if (payload.containsKey("rhand")) {
+                         int v = payload["rhand"].as<int>();
+                         Serial.println("Right hand");
+                         servoManager.setTarget(6, v);
                      }
                 }
             }

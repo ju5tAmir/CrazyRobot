@@ -22,7 +22,7 @@ export  function ModalComponent() {
     const {sendRequest}= useWsClient();
     const modalRef = useRef<HTMLDialogElement>(null);
     const navigate = useNavigate();
-    const [disconnected,setDisconnected] = useAtom(ModalStateAtom);
+    const [disconnected,] = useAtom(ModalStateAtom);
 
     useEffect(() => {
         const dialog = modalRef.current;

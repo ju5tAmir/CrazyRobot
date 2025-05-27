@@ -29,7 +29,7 @@ import {useForceDisconnected} from "../../../../hooks";
 
 export const ControlMotor = () => {
     const {onMessage, sendRequest, readyState} = useWsClient();
-    const [_,setEngineAtom] = useAtom(EngineStateAtom);
+    const [,setEngineAtom] = useAtom(EngineStateAtom);
     const previousPressed = useRef<Set<string>>(new Set());
     const [engine, setEngine] = useState<boolean>(false);
     const [startProcedure,setStartProcedure] = useState(false);
@@ -117,10 +117,6 @@ export const ControlMotor = () => {
     }, [pressedKeys]);
 
 
-    if(disconnected.disconnected){
-        navigate("/school-info");
-        return ;
-    }
 
 
     const handleInputDown = useCallback((value: string) => {
@@ -176,6 +172,12 @@ export const ControlMotor = () => {
             return newSet;
         });
     }, [engine]);
+
+
+    if(disconnected.disconnected){
+        navigate("/school-info");
+        return ;
+    }
 
     /**
      * send start stop commands

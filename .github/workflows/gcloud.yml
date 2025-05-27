@@ -31,19 +31,5 @@ jobs:
           flags: --allow-unauthenticated
           env_vars: |
             APPOPTIONS__DbConnectionString=${{ secrets.DBCONNECTIONSTRING }}
-            APPOPTIONS__GcsBucket=${{ secrets.GCS_BUCKET }}
-            APPOPTIONS__JwtSecret=${{ secrets.JWTSECRET }}
-            Mqtt__Broker=${{ secrets.MQTT_BROKER }}
-            Mqtt__HOST=${{ secrets.MQTT_HOST }}
-            Mqtt__Username=${{ secrets.MQTT_TOKEN }}
-            Mqtt__PublishEngineTopic=${{ secrets.PUBLISHENGINETOPIC }}
-            Mqtt__SubscribeEngineTopic=${{ secrets.SUBSCRIBEENGINETOPIC }}
-            Mqtt__PublishCommandsTopic=${{ secrets.PUBLISHCOMMANDSTOPIC }}
-            Mqtt__SubscribeCommandsTopic=${{ secrets.SUBSCRIBECOMMANDSTOPIC }}
-            Mqtt__DistanceWarningTopic=${{ secrets.DISTANCEWARNINGTOPIC }}
-            Mqtt__NegativeDistanceWarningTopic=${{ secrets.NEGATIVEDISTANCEWARNINGTOPIC }}
-            Mqtt__RobotOwner=${{ secrets.ROBOTOWNER }}
-            Mqtt__BatteryLevelInfo=${{ secrets.BATTERYLEVELINFO }}
-            Mqtt__ServoCommandTopic=${{ secrets.SERVOCOMMANDTOPIC }}
 
       - run: echo "${{ steps.deploy.outputs.url }}"

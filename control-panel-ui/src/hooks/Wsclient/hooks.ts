@@ -20,6 +20,8 @@ export const useClientIdState = (key: string): ClientIdHook => {
           sessionStorage.setItem(key,value+"");
           // setLoggedUser(value);
     }
+
+
     const saveRole = (value:string)=>{
         sessionStorage.setItem(key,value);
     }

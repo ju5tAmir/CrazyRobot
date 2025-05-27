@@ -27,6 +27,8 @@ public static class WebsocketStartupExtensions
         services.AddSingleton<IClientNegativeDistanceNotifier,NegativeSpaceNotifierHandler>();
         services.AddSingleton<IServiceTimerNotifier, ServerSendsTimerDtoHandler>();
         services.AddSingleton<IBatteryNotifier, BatteryLevelNotifier>();
+        services.AddSingleton<IForcedDisconnectedNotifier, ForcedDisconnectNotifier>();
+        
         return services;
     }
 

@@ -111,24 +111,4 @@ public static class ApiTestSetupUtilities
         httpClient.DefaultRequestHeaders.Add("Authorization", authResponseDto.Jwt);
         return authResponseDto;
     }
-    
-    public static async Task<AuthResponseDto> TestUserRegisterAndAddJwt(HttpClient httpClient)
-    {
-        var registerDto = new AuthUserRequest
-        {
-            Email = new Random().NextDouble() * 123 + "@gmail.com",
-            Role = "user",
-            Username = "JustAUser"
-        };
-        var signIn = await httpClient.PostAsJsonAsync(
-            AuthController.RegisterUserRoute, registerDto);
-        var authResponseDto = await signIn.Content
-                                  .ReadFromJsonAsync<AuthResponseDto>(new JsonSerializerOptions
-                                      { PropertyNameCaseInsensitive = true }) ??
-                              throw new Exception("Failed to deserialize " + await signIn.Content.ReadAsStringAsync() +
-                                                  " to " + nameof(AuthResponseDto));
-        httpClient.DefaultRequestHeaders.Add("Authorization", authResponseDto.Jwt);
-        return authResponseDto;
-    }
-    
 }

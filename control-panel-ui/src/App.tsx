@@ -11,6 +11,7 @@ import LoginPageUser from "./components/login/user/LoginPageUser.tsx";
 import LoginPage from "./SchoolInfo/auth/LoginPage.tsx";
 import {useAtom} from "jotai/index";
 import {CheckUserLogged} from "./atoms/UserLogged.ts";
+import {ModalComponent} from "./components/timer";
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
 const ws = import.meta.env.VITE_API_WS_SCHEMA;
 const wss =import.meta.env.VITE_API_WSS_SCHEMA;
@@ -34,7 +35,6 @@ export default function App() {
 
 
   useEffect(() => {
-    console.log(userLoggedIn.isLoggedIn);
     if(userLoggedIn.isLoggedIn){
       if (userLoggedIn.role===KEYS.GUEST) {
         navigate("/school-info/");
@@ -59,6 +59,7 @@ export default function App() {
         }
         {userLoggedIn.isLoggedIn && userLoggedIn.role===KEYS.GUEST && serverUrl && (
             <WsClientProvider url={serverUrl}>
+              <ModalComponent />
               <Routes>
                 <Route path="/school-info/*" element={<SchoolInfo />} />
               </Routes>

@@ -32,6 +32,8 @@ const WallE: React.FC = () => {
     neckb:  30,
     leye:   125,
     reye:   80,
+    lhand:   160,
+    rhand:   80,
   });
 
 
@@ -77,7 +79,7 @@ const WallE: React.FC = () => {
       step: 1,
       label: 'Left Hand',
       onEditEnd: (v) => {
-        console.log('Released handL:', v);
+        setServoCommand((prev) => ({ ...prev, lhand: v }));
       },
     },
     handRDeg: {
@@ -87,7 +89,7 @@ const WallE: React.FC = () => {
       step: 1,
       label: 'Right Hand',
       onEditEnd: (v) => {
-        console.log('Released handR:', v);
+        setServoCommand((prev) => ({ ...prev, rhand: v }));
       },
     },
     neckDeg: {

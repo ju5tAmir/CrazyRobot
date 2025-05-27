@@ -7,4 +7,6 @@ public class ServoCommand
     public int neckb { get; set; }
     public int leye { get; set; }
     public int reye { get; set; }
+    public int lhand { get; set; }
+    public int rhand { get; set; }
 }

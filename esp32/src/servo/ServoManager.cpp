@@ -1,7 +1,7 @@
 #include "ServoManager.h"
 
 
-ServoManager::ServoManager() : pwm(), initialized(false)  {
+ServoManager::ServoManager() : pwm(0x41), initialized(false)  {
 
 };
 

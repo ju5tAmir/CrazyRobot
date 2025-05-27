@@ -1,53 +1,69 @@
-/*using System.Collections.Concurrent;
-using System.Text.Encodings.Web;
+using System;
+using System.Collections.Concurrent;
+using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Application.Services;
-using HiveMQtt.Client;
-using Infrastructure.Mqtt;
-using Microsoft.Extensions.Logging;
-using WebSocketProxy;
+using Microsoft.Extensions.Options;
+using MQTTnet;
+ 
+using MQTTnet.Protocol;
 
-namespace Startup.Tests;
-
-public class TestMqttClient
+namespace Startup.Tests
 {
-    public TestMqttClient(string host, string username, string password)
+    public class TestMqttClient
     {
-        var options = new MqttOptions()
-            .WithWebSocketServer(
-                $"wss://{host}:8884/mqtt") // Using WSS (secure WebSocket)
-            .WithClientId($"myClientId_{Guid.NewGuid()}")
-            .WithCleanStart(true)
-            .WithKeepAlive(30)
-            .WithAutomaticReconnect(true)
-            .WithMaximumPacketSize(1024)
-            .WithReceiveMaximum(100)
-            .WithSessionExpiryInterval(3600)
-            .WithUserName(username)
-            .WithPassword(password)
-            .WithRequestProblemInformation(true)
-            .WithRequestResponseInformation(true)
-            .WithAllowInvalidBrokerCertificates(true)
-            .Build();
-        MqttClient = new MqttClientService(options);
-        MqttClient.OnMessageReceived += (_, args) =>
+        private readonly IMqttClient _client;
+
+        public string DeviceId { get; } = Guid.NewGuid().ToString();
+        public ConcurrentQueue<string> ReceivedMessages { get; } = new();
+
+        public TestMqttClient(IOptionsMonitor<MqttOptions> mqttOptionsMonitor)
         {
-            var jsonSerializerOptions = new JsonSerializerOptions
+            var mqttOpts = mqttOptionsMonitor.CurrentValue;
+            var options = new MqttClientOptionsBuilder()
+                .WithWebSocketServer(o => o.WithUri(mqttOpts.broker))
+                .WithKeepAlivePeriod(TimeSpan.FromSeconds(15))
+                .WithClientId($"testClient_{Guid.NewGuid()}")
+                .WithCredentials("FlespiToken " + mqttOpts.Username, "")
+                .WithCleanSession()
+                .Build();
+
+            var factory = new MqttClientFactory();
+            _client = factory.CreateMqttClient();
+
+            _client.ApplicationMessageReceivedAsync += HandleReceivedMessageAsync;
+            _client.ConnectAsync(options).GetAwaiter().GetResult();
+        }
+
+        private Task HandleReceivedMessageAsync(MqttApplicationMessageReceivedEventArgs args)
+        {
+            try
             {
-                WriteIndented = true,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-            };
+                var payloadString = Encoding.UTF8.GetString(args.ApplicationMessage.Payload);
+                var jsonElement = JsonSerializer.Deserialize<JsonElement>(payloadString);
+                var stringRepresentation = JsonSerializer.Serialize(jsonElement, new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                });
+                ReceivedMessages.Enqueue(stringRepresentation);
+            }
+            catch
+            {
+                var payloadString = Encoding.UTF8.GetString(args.ApplicationMessage.Payload);
+                ReceivedMessages.Enqueue(payloadString);
+            }
+            return Task.CompletedTask;
+        }
 
-            var jsonElement = JsonSerializer.Deserialize<JsonElement>(args.PublishMessage.PayloadAsString);
-            var stringRepresentation = JsonSerializer.Serialize(jsonElement, jsonSerializerOptions);
-            ReceivedMessages.Enqueue(stringRepresentation);
-            Console.WriteLine($"Received message: {stringRepresentation}");
-        };
-        MqttClient.ConnectAsync().GetAwaiter().GetResult();
+        public Task SubscribeAsync(string topic, MqttQualityOfServiceLevel qos = MqttQualityOfServiceLevel.AtLeastOnce)
+        {
+            return _client.SubscribeAsync(new MqttTopicFilterBuilder()
+                .WithTopic(topic)
+                .WithQualityOfServiceLevel(qos)
+                .Build());
+        }
+
+        public Task DisconnectAsync() => _client.DisconnectAsync();
     }
-
-    public string DeviceId { get; } = Guid.NewGuid().ToString();
-    public HiveMQClient MqttClient { get; }
-    public ConcurrentQueue<string> ReceivedMessages { get; } = new();
-}*/
+}

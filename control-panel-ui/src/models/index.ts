@@ -21,5 +21,6 @@ export type { SurveyCardProps as SurveyCardProps} from './surveys-models/SurveyC
 export type {SurveyFormProps as SurveyFormProps} from "./surveys-models/SurveyFormProps.ts"
 export type { UserSurveyCardProps as UserSurveyCardProps } from './surveys-models/UserSurveyCardProps.ts';
 export type { SurveyModalProps as SurveyModalProps } from './surveys-models/SurveyModalProps.ts';
+export type {Disconnected as Disconnected} from "./Disconnected.ts";
 export { QuestionType as QuestionType } from './surveys-models/enums/QuestionType.ts';
 

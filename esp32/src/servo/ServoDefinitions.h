@@ -6,7 +6,7 @@
 #define SERVO_MIN  100
 #define SERVO_MAX  580
 #define SERVO_FREQ 60
-#define SERVO_COUNT 5
+#define SERVO_COUNT 7
 #define INTERVAL 3000 // takes 3 seconds to a full 180
 
 

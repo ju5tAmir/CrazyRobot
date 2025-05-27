@@ -22,12 +22,19 @@ public class ClientSubscribeToRobotTopicEventHandler(
     {
         
         Console.WriteLine("I am subscribing to the robot topic");
+        Console.WriteLine("with" + dto.clientId);
               
         Console.WriteLine(",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,?>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
         
         var topicId = mqttOptions.CurrentValue.RobotOwner;
         var topicMembers = await manager.GetMembersFromTopicId(topicId);
-
+        foreach (var top in topicMembers)
+        {
+            Console.WriteLine("current topics");
+            Console.WriteLine(top);
+            
+        }
+        
         var isAlreadySubscribed = topicMembers.Contains(dto.clientId);
         var isTopicFree = topicMembers.Count == 0;
 

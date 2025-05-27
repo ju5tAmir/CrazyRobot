@@ -1,12 +1,25 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Security.Claims;
+using System.Text;
 using Infrastructure.Postgres.Scaffolding;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 using NUnit.Framework;
 using Startup.Tests.TestUtils;
-using Application.Models.Dtos.Surveys;
+using AuthUserRequest = Generated.AuthUserRequest;
+using CreateSurveyRequestDto = Application.Models.Dtos.Surveys.CreateSurveyRequestDto;
+using QuestionDto = Application.Models.Dtos.Surveys.QuestionDto;
+using QuestionOptionDto = Application.Models.Dtos.Surveys.QuestionOptionDto;
+using QuestionResponseDto = Application.Models.Dtos.Surveys.QuestionResponseDto;
+using SurveyResponseDto = Application.Models.Dtos.Surveys.SurveyResponseDto;
+using SurveyResultsDto = Application.Models.Dtos.Surveys.SurveyResultsDto;
+using SurveySubmissionRequestDto = Application.Models.Dtos.Surveys.SurveySubmissionRequestDto;
+using UpdateSurveyRequestDto = Application.Models.Dtos.Surveys.UpdateSurveyRequestDto;
 
 namespace Startup.Tests.Surveys;
 
@@ -82,10 +95,11 @@ public class AdminSurveysControllerTests : WebApplicationFactory<Program>
     [Test]
     public async Task UpdateSurvey_UpdatesSurvey_WhenExists()
     {
-        // Arrange
+        // Arrange - Create admin and survey
         await ApiTestSetupUtilities.TestRegisterAndAddJwt(_httpClient);
 
-        var ctx = _scopedServiceProvider.GetRequiredService<AppDbContext>();
+        using var scope = Services.CreateScope();
+        var ctx = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         
         var admin = MockObjects.GetAdmin();
         ctx.Users.Add(admin);
@@ -93,7 +107,7 @@ public class AdminSurveysControllerTests : WebApplicationFactory<Program>
         ctx.Surveys.Add(survey);
         await ctx.SaveChangesAsync();
         
-        
+        // Update the survey
         var updateDto = new UpdateSurveyRequestDto
         {
             Id = survey.Id,
@@ -121,9 +135,9 @@ public class AdminSurveysControllerTests : WebApplicationFactory<Program>
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
         var updatedSurvey = await response.Content.ReadFromJsonAsync<SurveyResponseDto>();
         Assert.That(updatedSurvey, Is.Not.Null);
-        Assert.That(updatedSurvey.Title, Is.EqualTo(updateDto.Title));
-        Assert.That(updatedSurvey.Description, Is.EqualTo(updateDto.Description));
-        Assert.That(updatedSurvey.IsActive, Is.EqualTo(updateDto.IsActive));
+        Assert.That(updatedSurvey.Title, Is.EqualTo("Updated Survey"));
+        Assert.That(updatedSurvey.Description, Is.EqualTo("Updated Description"));
+        Assert.That(updatedSurvey.IsActive, Is.False);
     }
 
     [Test]
@@ -163,10 +177,11 @@ public class AdminSurveysControllerTests : WebApplicationFactory<Program>
     [Test]
     public async Task DeleteSurvey_DeletesSurvey_WhenExists()
     {
-        // Arrange 
+        // Arrange - Create admin and survey
         await ApiTestSetupUtilities.TestRegisterAndAddJwt(_httpClient);
 
-        var ctx = _scopedServiceProvider.GetRequiredService<AppDbContext>();
+        using var scope = Services.CreateScope();
+        var ctx = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         
         var admin = MockObjects.GetAdmin();
         ctx.Users.Add(admin);
@@ -204,10 +219,11 @@ public class AdminSurveysControllerTests : WebApplicationFactory<Program>
     [Test]
     public async Task GetSurveyResults_ReturnsSurveyResults_WhenSurveyExists()
     {
-        // Arrange 
+        // Arrange - Create user_guest, survey and survey response
         await ApiTestSetupUtilities.TestRegisterAndAddJwt(_httpClient);
 
-        var ctx = _scopedServiceProvider.GetRequiredService<AppDbContext>();
+        using var scope = Services.CreateScope();
+        var ctx = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         
         var admin = MockObjects.GetAdmin();
         ctx.Users.Add(admin);

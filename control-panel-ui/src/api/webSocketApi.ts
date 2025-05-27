@@ -41,6 +41,10 @@ export interface ClientSendsTimerConfirmationDto extends BaseDto {
     clientId:string
 }
 
+export interface ForceDisconnectedDto extends BaseDto{
+    reason:string
+}
+
 
 
 
@@ -91,5 +95,6 @@ export enum StringConstants {
     ServerSubscribedClientToRobotTopicDto="ServerSubscribedClientToRobotTopicDto",
     ClientUnsubscribeFromRobotTopicDto ="ClientUnsubscribeFromRobotTopicDto",
     ServerUnsubscribedClientFromRobotTopicDto = "ServerUnsubscribedClientFromRobotTopicDto",
-    BatteryLevelDto="BatteryLevelDto"
+    BatteryLevelDto="BatteryLevelDto",
+    ForceDisconnectedDto="ForceDisconnectedDto"
 }

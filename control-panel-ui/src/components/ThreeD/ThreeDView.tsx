@@ -1,5 +1,4 @@
 import React, { Suspense, useRef, useEffect } from 'react';
-import { Leva } from 'leva';
 import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, OrbitControls as OrbitControlsImpl } from '@react-three/drei';
 import WallE from './WallE';
@@ -40,7 +39,6 @@ const ThreeDView: React.FC = () => {
         </Suspense>
         <DebugInfo />
       </Canvas>
-    <Leva collapsed />
     </>
   );
 };

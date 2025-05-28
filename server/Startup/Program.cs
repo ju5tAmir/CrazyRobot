@@ -15,7 +15,7 @@ using NSwag.Generation;
 using Startup.Documentation;
 using Startup.Proxy;
 using Scalar.AspNetCore;
- 
+
 
 namespace Startup;
 
@@ -32,7 +32,7 @@ public class Program
         {
             logging.ClearProviders();
             logging.AddConsole();
-            logging.AddDebug();   
+            logging.AddDebug();
         });
         ConfigureServices(builder.Services, builder.Configuration);
         var app = builder.Build();
@@ -50,7 +50,7 @@ public class Program
         //services.AddSingleton(StorageClient.Create());
         services.RegisterWebsocketApiServices();
         services.RegisterRestApiServices();
-        
+
         services.AddOpenApiDocument(conf =>
         {
             conf.DocumentProcessors.Add(new AddAllDerivedTypesProcessor());
@@ -77,18 +77,18 @@ public class Program
 
         app.ConfigureRestApi();
         await app.ConfigureWebsocketApi(appOptions.WS_PORT);
-        
+
         app.MapGet("Acceptance", () => "Accepted");
         app.UseOpenApi(conf => { conf.Path = "openapi/v1.json"; });
         app.UseSwaggerUi(ui =>
         {
-            ui.Path         = "/swagger";          
-            ui.DocumentPath = "/openapi/v1.json";   
+            ui.Path         = "/swagger";
+            ui.DocumentPath = "/openapi/v1.json";
         });
         var document = await app.Services.GetRequiredService<IOpenApiDocumentGenerator>().GenerateAsync("v1");
         var json = document.ToJson();
         await File.WriteAllTextAsync("openapi.json", json);
-        app.GenerateTypeScriptClient("/../../control-panel-ui/src/api/generated-client_TEST.ts").GetAwaiter().GetResult();
+        app.GenerateTypeScriptClient("/../../client/src/api/generated-client_TEST.ts").GetAwaiter().GetResult();
         app.MapScalarApiReference();
     }
 }

@@ -23,7 +23,7 @@ A replica of WALL-E to represent the concepts and technologies learned during th
 ## Contributors
 - [@grosuionutandrei](https://github.com/grosuionutandrei)
 - [@Nelson-SV](https://github.com/Nelson-SV)
-- [@username3](https://github.com/andriiVIt)
+- [@andriiVIt](https://github.com/andriiVIt)
 - [@ju5tAmir](https://github.com/ju5tAmir)
 
 

@@ -1,6 +1,6 @@
 # ToDo List:
-- [ ] Finishing the project  
-- [ ] Making a Kebab BBQ afterwards  
+- [ ] Finishing the project  (optional)
+- [ ] Making a Kebab BBQ afterwards
 
 
 
@@ -10,7 +10,7 @@ Payload : Object
 {
 Engine : true
 }
-} 
+}
 
 For example when the esp32 sends commands back , that will tell the client that is initialized will send this message
 CommandType : "Initialized"
@@ -18,4 +18,5 @@ Payload : Object
 {
 InitializeEngine:true
 }
-} 
+}
+

@@ -1,19 +1,17 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
-WORKDIR /src
-COPY ["server/Startup/Startup.csproj", "server/Startup/"]
-RUN dotnet restore "server/Startup/Startup.csproj" --runtime linux-musl-x64
-COPY ["server/", "server/"]
-RUN dotnet publish "server/Startup/Startup.csproj" \
-    -c Release \
-    -o /app/publish \
-    --runtime linux-musl-x64 \
-    --self-contained true \
-    /p:PublishSingleFile=true
 
-FROM mcr.microsoft.com/dotnet/runtime-deps:8.0-alpine
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+COPY . .
+RUN dotnet restore "server/Startup/Startup.csproj"
+RUN dotnet publish "server/Startup/Startup.csproj" -c Release -o /app/publish
+
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 COPY --from=build /app/publish .
 ENV ASPNETCORE_URLS=http://0.0.0.0:8080
 EXPOSE 8080
+EXPOSE 5001
+EXPOSE 8181
+EXPOSE 8883
 
-ENTRYPOINT ["./Startup"]
+ENTRYPOINT ["dotnet", "Startup.dll"]

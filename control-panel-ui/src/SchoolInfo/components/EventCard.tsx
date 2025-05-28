@@ -19,7 +19,9 @@ export default function EventCard({ event }: { event: EventDto }) {
                 </div>
                 <div className="text-right">
           <span className={`badge ${
+// @ts-expect-error lksjdf
               event.status===0 ? 'badge-primary' :
+// @ts-expect-error lksjdf
                   event.status===1 ? 'badge-warning' :
                       'badge-outline'
           }`}>

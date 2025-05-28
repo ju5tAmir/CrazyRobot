@@ -14,32 +14,48 @@ public class MqttHostedService : BackgroundService
         _logger = logger;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+{
+    while (!stoppingToken.IsCancellationRequested)
     {
-        while (!stoppingToken.IsCancellationRequested)
+        try
         {
-            try
-            {
-                _logger.LogInformation("Attempting to connect to MQTT broker...");
-                var connected = await _mqttClientService.ConnectAsync();  // now returns bool
+            _logger.LogInformation("Attempting to connect to MQTT broker...");
+            var connected = await _mqttClientService.ConnectAsync();
 
-                if (connected)
+            if (connected)
+            {
+                _logger.LogInformation("MQTT connected successfully.");
+
+                // Wait until the stoppingToken is triggered (graceful shutdown)
+                try
                 {
-                    _logger.LogInformation("MQTT connected successfully.");
-                    await Task.Delay(Timeout.Infinite, stoppingToken); // wait forever
+                    await Task.Delay(Timeout.Infinite, stoppingToken);
                 }
-                else
+                catch (TaskCanceledException)
                 {
-                    _logger.LogWarning("Failed to connect. Retrying in 5 seconds...");
-                    await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
+                    // Expected during shutdown, no need to log as error
+                    _logger.LogInformation("MQTT Hosted Service is stopping...");
                 }
             }
-            catch (Exception ex)
+            else
             {
-                _logger.LogError(ex, "Exception while trying to connect. Retrying...");
+                _logger.LogWarning("Failed to connect. Retrying in 5 seconds...");
                 await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
             }
         }
+        catch (TaskCanceledException)
+        {
+            // This can happen if stoppingToken is cancelled during delay or ConnectAsync
+            _logger.LogInformation("MQTT Hosted Service is stopping...");
+            break;  // exit the while loop
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception while trying to connect. Retrying...");
+            await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
+        }
     }
+}
 
 }

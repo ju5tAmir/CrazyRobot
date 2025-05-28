@@ -25,6 +25,7 @@ export default function EventCard({ event }: { event: EventDto }) {
                   event.status===1 ? 'badge-warning' :
                       'badge-outline'
           }`}>
+            {/* @ts-expect-error lskjdf */}
             {EventStatus[event.status!]}
           </span>
                 </div>

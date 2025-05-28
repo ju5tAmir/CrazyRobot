@@ -3,7 +3,6 @@ import { useEffect, useRef } from "react";
 export const useWebSocket = () => {
     const gateway = `ws://crazyrobot.local/ws`;
     const websocketRef = useRef<WebSocket | null>(null);
-   const clientIdRef = useRef<string>(getOrCreateClientId());
 
     useEffect(() => {
         initWebSocket();
@@ -23,12 +22,14 @@ export const useWebSocket = () => {
     };
 
     const onOpen = (event: Event) => {
-        console.log('Connection opened');
+        console.log('Connection opened ');
+        console.log(event.target);
         // 👇 Immediately send a "connect" event with the client ID
     };
 
     const onClose = (event: CloseEvent) => {
         console.log('Connection closed');
+        console.log(event.target);
         setTimeout(initWebSocket, 2000);
     };
 
@@ -46,17 +47,5 @@ export const useWebSocket = () => {
 
 
 
-    function getOrCreateClientId(): string {
-        let clientId = localStorage.getItem("clientId");
-        if (!clientId) {
-            clientId = generateClientId();
-            localStorage.setItem("clientId", clientId);
-        }
-        return clientId;
-    }
-
-    function generateClientId(): string {
-        return Math.random().toString(36).substring(2, 10);
-    }
     return { sendData };
 };

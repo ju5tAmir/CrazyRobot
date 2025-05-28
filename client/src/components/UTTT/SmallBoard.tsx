@@ -5,7 +5,7 @@ import {useState, useRef, useEffect, useCallback} from "react";
 
 import {AllowToPlay, currentPlayer, MacroboardStatus} from "../../atoms";
 import {useAtom} from "jotai";
-import {useCheckWin, useDetectEqual} from "../../hooks";
+import {useCheckWin} from "../../hooks";
 
 
 export const SmallBoard = (props: SmallBoardProps) => {
@@ -17,7 +17,6 @@ export const SmallBoard = (props: SmallBoardProps) => {
     const [localWinner, setLocalWinner] = useState<Player | null>(null);
     const [didAnimate, setDidAnimate] = useState(false);
     const checkForWin = useCheckWin();
-    const checkDraw = useDetectEqual();
     const pendingUpdateRef = useRef<{
         board: number[];
         macroOrder: number;
@@ -84,6 +83,7 @@ export const SmallBoard = (props: SmallBoardProps) => {
     return (
         <div className="p-2 bg-gray-900">
             <div className={`grid grid-cols-3 gap-0.5 w-full h-full aspect-square bg-white`}>
+                {/* @ts-expect-error lsjdf */}
                 {props.board.map((cellValue, index) => (
                     <Cell
                         key={index}

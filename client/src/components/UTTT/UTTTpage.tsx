@@ -1,4 +1,4 @@
-import {useRef, useState} from "react";
+import {useRef} from "react";
 import {SmallBoard} from "./SmallBoard.tsx";
 import {Player} from "../../models";
 import {useAtom} from "jotai";
@@ -6,7 +6,7 @@ import {currentPlayer} from "../../atoms";
 
 export const  UTTTPage =()=>{
     const macroboardStatus = useRef<number[]>([-1,-1,-1,-1,-1,-1,-1,-1,-1]);
-    const [player,setPlayer]= useAtom(currentPlayer);
+    const [player,]= useAtom(currentPlayer);
     const topLeftBoard = [-1,-1,-1,-1,-1,-1,-1,-1,-1];
     const topMiddleBoard = [-1,-1,-1,-1,-1,-1,-1,-1,-1];
     const topRightBoard = [-1,-1,-1,-1,-1,-1,-1,-1,-1];

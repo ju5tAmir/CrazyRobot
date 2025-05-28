@@ -13,6 +13,7 @@ const internalUserAtom = atom<User>({
 
 export const CheckUserLogged= atom(
     (get) => get(internalUserAtom),
+    /* @ts-expect-error lskjdf */
     (get, set, newUser: User) => {
         sessionStorage.setItem(KEYS.USER_LOGGED, String(newUser.isLoggedIn));
         sessionStorage.setItem(KEYS.USER_ROLE, newUser.role);

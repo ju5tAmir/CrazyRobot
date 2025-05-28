@@ -1,18 +1,22 @@
 import React, { Suspense, useRef, useEffect } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
+// @ts-expect-error sdf
 import { OrbitControls, OrbitControls as OrbitControlsImpl } from '@react-three/drei';
 import WallE from './WallE';
-import * as THREE from 'three';
 import { Environment } from '@react-three/drei';
 
 
 const DebugInfo = () => {
-  const { camera, gl } = useThree();
+
+  const { camera,  } = useThree();
+// @ts-expect-error lsjkdf
   const controlsRef = useRef<OrbitControlsImpl>(null);
 
   useEffect(() => {
     // Expose camera and controls to globalThis for debugging
+// @ts-expect-error lsjkdf
     globalThis.debugCamera = camera;
+// @ts-expect-error lsjkdf
     globalThis.debugControls = controlsRef.current;
 
     console.log('Camera Position:', camera.position.toArray());

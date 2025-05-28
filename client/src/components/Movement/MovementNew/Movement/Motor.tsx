@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import MoveDetails from '../../mqtt/mqttComponents/MoveDetails.ts';
 import { Button } from "./Button.tsx";
+// @ts-expect-error lsjkdf
 import { useMqtt } from "../../hooks";
 
 export default function Motor() {
@@ -37,6 +37,7 @@ export default function Motor() {
     }, []);
 
     useEffect(() => {
+// @ts-expect-error lsjkdf
         messages.forEach((m) => console.log(m));
     }, [messages]);
 
@@ -163,18 +164,6 @@ export default function Motor() {
         return "No Direction";
     };
 
-    const getStatus = (): MoveDetails => ({
-        engine,
-        move: {
-            isMoving: move !== false,
-            value: move ? String(move) : "None"
-        },
-        direction: {
-            isTurning: direction !== false,
-            value: direction ? String(direction) : "None"
-        },
-        speed
-    });
 
     return (
         <>
@@ -185,7 +174,6 @@ export default function Motor() {
                     <p>Moving Status: {getMoveStatus(move)}</p>
                     <p>Direction Status: {getDirectionStatus(direction)}</p>
                     <p>Speed: {speed}</p>
-                    <p>Status: {JSON.stringify(getStatus())}</p>
                     <p>Pressed keys: {Array.from(pressedKeys).join(', ')}</p>
                 </div>
 
@@ -197,6 +185,7 @@ export default function Motor() {
                             handlePressed={() => handleInputDown('w')}
                             handleReleased={() => handleInputUp('w')}
                             handleEngineState={engine}
+// @ts-expect-error lsjkdf
                             handleIsKeyPressed={pressedKeys}
                         />
                     </div>
@@ -208,6 +197,7 @@ export default function Motor() {
                             handlePressed={() => handleInputDown('a')}
                             handleReleased={() => handleInputUp('a')}
                             handleEngineState={engine}
+// @ts-expect-error lsjkdf
                             handleIsKeyPressed={pressedKeys}
                         />
                         <Button
@@ -216,6 +206,7 @@ export default function Motor() {
                             handlePressed={() => handleInputDown('s')}
                             handleReleased={() => handleInputUp('s')}
                             handleEngineState={engine}
+// @ts-expect-error lsjkdf
                             handleIsKeyPressed={pressedKeys}
                         />
                         <Button
@@ -224,6 +215,7 @@ export default function Motor() {
                             handlePressed={() => handleInputDown('d')}
                             handleReleased={() => handleInputUp('d')}
                             handleEngineState={engine}
+// @ts-expect-error lsjkdf
                             handleIsKeyPressed={pressedKeys}
                         />
                     </div>

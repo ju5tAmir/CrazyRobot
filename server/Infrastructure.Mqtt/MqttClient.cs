@@ -18,51 +18,45 @@ public class MqttClientService
     private int _reconnectAttempts = 0;
     private const int MaxReconnectAttempts = 5;
 
+
     public MqttClientService(IOptionsMonitor<MqttOptions> mqttOptions, ILogger<MqttClientService> logger,
         IMqttMessageHandler messageHandler)
     {
         _mqttOptions = mqttOptions;
         _logger = logger;
         _messageHandler = messageHandler;
-        var factory = new MqttFactory();  // Updated from MqttClientFactory to MqttFactory
+        var factory = new MqttClientFactory();
         _client = factory.CreateMqttClient();
+_client.DisconnectedAsync += async e =>
+{
+    _logger.LogWarning("MQTT client disconnected. Reason: " + e.Reason);
 
-        _client.DisconnectedAsync += async e =>
+    if (_reconnectAttempts >= MaxReconnectAttempts)
+    {
+        _logger.LogError("Maximum reconnect attempts reached. Giving up.");
+        return;
+    }
+
+    _reconnectAttempts++;
+    await Task.Delay(TimeSpan.FromSeconds(5 * _reconnectAttempts));
+
+    try
+    {
+        if (await ConnectAsync())
         {
-            _logger.LogWarning("MQTT client disconnected. Reason: " + e.Reason);
+            _reconnectAttempts = 0; // reset on success
+        }
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Reconnection attempt failed.");
+    }
 
-            if (_reconnectAttempts >= MaxReconnectAttempts)
-            {
-                _logger.LogError("Maximum reconnect attempts reached. Giving up.");
-                return;
-            }
-
-            _reconnectAttempts++;
-            await Task.Delay(TimeSpan.FromSeconds(5 * _reconnectAttempts));
-
-            try
-            {
-                if (await ConnectAsync())
-                {
-                    _reconnectAttempts = 0; // reset on success
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Reconnection attempt failed.");
-            }
         };
     }
 
     public async Task<bool> ConnectAsync()
     {
-        // 🛡️ Check connection state
-        if (_client.IsConnected || _client.IsConnecting || _client.IsDisconnecting)
-        {
-            _logger.LogInformation("MQTT client is already connected or in the process of connecting/disconnecting.");
-            return false;
-        }
-
         Console.WriteLine(_mqttOptions.CurrentValue.broker + " Trying to connect...");
         Console.WriteLine(_mqttOptions.CurrentValue.Username + " Trying to connect... username");
 
@@ -83,7 +77,6 @@ public class MqttClientService
             if (result.ResultCode == MqttClientConnectResultCode.Success)
             {
                 _logger.LogInformation("Connected successfully to MQTT broker.");
-                _reconnectAttempts = 0; // reset on success
                 await SubscribeAsync(_mqttOptions.CurrentValue.SubscribeEngineTopic);
                 await SubscribeAsync(_mqttOptions.CurrentValue.SubscribeCommandsTopic);
                 await SubscribeAsync(_mqttOptions.CurrentValue.DistanceWarningTopic);
@@ -104,6 +97,7 @@ public class MqttClientService
         }
     }
 
+
     public async Task SubscribeAsync(string topic)
     {
         await _client.SubscribeAsync(new MqttTopicFilterBuilder()
@@ -114,6 +108,18 @@ public class MqttClientService
         _logger.LogInformation($"Subscribed to topic: {topic}");
     }
 
+
+    //TODO extract the proper message from the mqtt
+    /// <summary>
+    /// For example when the esp32 sends commands back , that will tell the client that is initialized will send this message
+    /// {
+    /// CommandType : "Initialized"
+    /// Payload : Object
+    /// {
+    ///  InitializeEngine:true
+    /// }
+    ///}
+    /// </summary>
     private async Task HandleIncomingMessageAsync(MqttApplicationMessageReceivedEventArgs e)
     {
         var topic = e.ApplicationMessage.Topic;
@@ -158,19 +164,13 @@ public class MqttClientService
             .Build();
 
         await _client.PublishAsync(mqttMessage);
+
         _logger.LogInformation($"Published message to topic: {topic}");
     }
 
     public async Task DisconnectAsync()
     {
-        if (!_client.IsConnected)
-        {
-            _logger.LogInformation("MQTT client is already disconnected.");
-            return;
-        }
-
         await _client.DisconnectAsync();
         _logger.LogInformation("Disconnected from MQTT broker.");
     }
 }
-

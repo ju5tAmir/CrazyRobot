@@ -17,6 +17,7 @@ public class MqttClientService
     private readonly IMqttMessageHandler _messageHandler;
     private int _reconnectAttempts = 0;
     private const int MaxReconnectAttempts = 5;
+    private bool _isReconnecting = false;
 
 
     public MqttClientService(IOptionsMonitor<MqttOptions> mqttOptions, ILogger<MqttClientService> logger,
@@ -31,26 +32,7 @@ _client.DisconnectedAsync += async e =>
 {
     _logger.LogWarning("MQTT client disconnected. Reason: " + e.Reason);
 
-    if (_reconnectAttempts >= MaxReconnectAttempts)
-    {
-        _logger.LogError("Maximum reconnect attempts reached. Giving up.");
-        return;
-    }
-
-    _reconnectAttempts++;
-    await Task.Delay(TimeSpan.FromSeconds(5 * _reconnectAttempts));
-
-    try
-    {
-        if (await ConnectAsync())
-        {
-            _reconnectAttempts = 0; // reset on success
-        }
-    }
-    catch (Exception ex)
-    {
-        _logger.LogError(ex, "Reconnection attempt failed.");
-    }
+ 
 
         };
     }
@@ -109,7 +91,7 @@ _client.DisconnectedAsync += async e =>
     }
 
 
-    //TODO extract the proper message from the mqtt
+ 
     /// <summary>
     /// For example when the esp32 sends commands back , that will tell the client that is initialized will send this message
     /// {
@@ -173,4 +155,45 @@ _client.DisconnectedAsync += async e =>
         await _client.DisconnectAsync();
         _logger.LogInformation("Disconnected from MQTT broker.");
     }
+    
+    public async Task AttemptReconnectAsync()
+    {
+        if (_isReconnecting)
+        {
+            _logger.LogInformation("Already attempting to reconnect.");
+            return;
+        }
+
+        _isReconnecting = true;
+
+        while (_reconnectAttempts < MaxReconnectAttempts)
+        {
+            _reconnectAttempts++;
+            _logger.LogWarning($"Reconnect attempt {_reconnectAttempts} of {MaxReconnectAttempts}...");
+
+            await Task.Delay(TimeSpan.FromSeconds(5 * _reconnectAttempts));
+
+            try
+            {
+                if (await ConnectAsync())
+                {
+                    _logger.LogInformation("Reconnected successfully.");
+                    _reconnectAttempts = 0;
+                    break;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Reconnection attempt failed.");
+            }
+        }
+
+        if (_reconnectAttempts >= MaxReconnectAttempts)
+        {
+            _logger.LogError("Maximum reconnect attempts reached. Giving up.");
+        }
+
+        _isReconnecting = false;
+    }
 }
+

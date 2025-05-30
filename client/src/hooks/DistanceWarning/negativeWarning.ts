@@ -15,11 +15,9 @@ export const useNegativeWarnings = ()=>{
     const [negativeWarning, setWarning] = useState<boolean>(false);
     useEffect(() => {
     if (!readyState) return;
-    console.log("✅ WebSocket is ready! Subscribing to messages...");
     const unsubscribe = onMessage<NegativeDistanceNotifierDto>(
         StringConstants.NegativeDistanceNotifierDto,
         (message) => {
-            console.log(message.command.command + "arrived");
             const warning = message.command.payload?.warning;
             if (!warning) return;
             if(warning===WARNING_LEVEL.SEVERE){

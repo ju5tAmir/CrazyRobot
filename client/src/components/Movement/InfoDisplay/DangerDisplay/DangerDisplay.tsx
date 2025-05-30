@@ -14,7 +14,6 @@ export const DangerDisplay = (props:DangerDisplayProps)=>{
 
 
     const computeColor = (position: DIRECTION_WARNING) => {
-console.log("engineState" + engineState);
         if(!engineState){
             return "";
         }
@@ -27,8 +26,6 @@ console.log("engineState" + engineState);
             : level === WARNING_LEVEL.MILD
                 ? "bg-orange-400"
                 : "";
-
-        console.log(`Position: ${position}, Level: ${level}, Class: ${color}`);
         return color;
     };
 

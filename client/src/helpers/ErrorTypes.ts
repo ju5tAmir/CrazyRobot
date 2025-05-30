@@ -5,8 +5,3 @@ export enum ErrorMessages {
     PasswordsMustMatch = "Password confirmation is not the same as password, please retry!",
 }
 
-export enum ErrorCodes {
-    FileNotUploaded,
-    FileFormatUnsupported,
-    PasswordsMustMatch,
-}

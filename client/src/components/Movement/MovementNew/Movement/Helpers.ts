@@ -23,7 +23,6 @@ export const subscribeClientToRobot = async (
             request,
             StringConstants.ServerSubscribedClientToRobotTopicDto
         );
-        console.log('✅ Subscribed to robotMovements');
         return response.subscribed;
     } catch (error) {
         const errorDto = error as ServerSendsErrorMessageDto;

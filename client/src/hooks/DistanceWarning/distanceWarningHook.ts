@@ -23,9 +23,6 @@ export function useDistanceWarnings() {
 
     useEffect(() => {
         if (!readyState) return;
-
-        console.log("✅ Subscribing to DangerMovementDto WebSocket messages...");
-
         const unsubscribe = onMessage<DangerMovementDto>(
             StringConstants.DangerMovementDto,
             (message) => {
@@ -42,7 +39,6 @@ export function useDistanceWarnings() {
                     const levels = cleanWarning.split(",").map(lvl => lvl.trim());
 console.log(levels);
                     if (levels.length !== 4) {
-                        console.warn("Unexpected warning format:", warning);
                         return prev;
                     }
 

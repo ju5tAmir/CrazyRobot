@@ -74,7 +74,6 @@ export const ControlMotor = () => {
                         if (!success) {
                             console.warn("Failed to unsubscribe");
                         }
-                        console.warn(" to unsubscribe");
                     })
                     .catch(err => {
                         console.error("Unsubscribe error", err);
@@ -108,31 +107,28 @@ export const ControlMotor = () => {
 
 
     useEffect(() => {
+        if (!readyState || pressedKeys.size === 0 ) return;
         const keysChanged = [...pressedKeys].some(k => !previousPressed.current.has(k)) ||
             [...previousPressed.current].some(k => !pressedKeys.has(k));
         if (keysChanged) {
             sendMovementCommand();
         }
         previousPressed.current = new Set(pressedKeys);
-    }, [pressedKeys]);
-
-
-
+    }, [pressedKeys,readyState]);
 
     const handleInputDown = useCallback((value: string) => {
-        console.log(value + " pressed");
         if (value === "e") {
+            //while the start procedure is executing we prevent users to press start stop motor button
             if (engineLocked || startProcedure) {
                 console.log("Engine is locked or initializing... blocking 'e' press.");
                 return;
             }
-            console.log(engine + " engineState")
+            // start the engine if is of
             if (!engine) {
-                console.log("Starting engine...");
                 setStartProcedure(true);
                 sendEngineCommand(true);
             } else {
-                console.log("Stopping engine...");
+                //stop the engine if is on
                 setStartProcedure(true);
                 sendEngineCommand(false);
             }
@@ -151,7 +147,6 @@ export const ControlMotor = () => {
         if (!engine) return;
         setPressedKeys(prev => {
             const newSet = new Set(prev);
-            console.log("added " + value);
             newSet.add(value);
             setLastPressed(value);
             return newSet;
@@ -162,7 +157,6 @@ export const ControlMotor = () => {
 
 
     const handleInputUp = useCallback((value: string) => {
-        console.log(value + " released");
         if (value === "e") return;
         if (!engine) return;
 
@@ -174,10 +168,7 @@ export const ControlMotor = () => {
     }, [engine]);
 
 
-    if(disconnected.disconnected){
-        navigate("/school-info");
-        return ;
-    }
+
 
     /**
      * send start stop commands
@@ -185,7 +176,6 @@ export const ControlMotor = () => {
      * @param value
      */
     const sendEngineCommand = async (value:boolean)=>{
-          console.log("value"+ value +"");
             setEngineLocked(true);
         const request:EngineStateDto = {
              eventType:StringConstants.EngineStateDto,
@@ -201,13 +191,13 @@ export const ControlMotor = () => {
             const signInResult: ServerConfirmsDto = await sendRequest<EngineStateDto
                 , ServerConfirmsDto>(request,StringConstants.ServerConfirmsDto)
             if (signInResult?.success) {
-                toast.success("Engine send")
+                toast.success("Engine command processing")
             } else {
                 toast.error("Retry")
             }
         }catch (error){
              const errorDto = error as unknown as ServerSendsErrorMessageDto;
-             toast.error("ErrorReceivedEngine");
+             toast.error("Engine initializing failed");
              toast.error(errorDto.message!);
         }
     }
@@ -223,11 +213,9 @@ export const ControlMotor = () => {
                 directions
             }}
         }
-        console.log(request);
         try{
             const sentCommandResult: ServerConfirmsDto = await sendRequest<RobotMovementDto,
                 ServerConfirmsDto>(request,StringConstants.ServerConfirmsDto).finally(()=>console.log("er"));
-
             if (sentCommandResult?.success) {
                 toast.success("Sent successfully.")
             } else {
@@ -235,7 +223,7 @@ export const ControlMotor = () => {
             }
         }catch (error){
             const errorDto = error as unknown as ServerSendsErrorMessageDto;
-            toast.error(errorDto.error!.toString);
+            console.error(errorDto.error!.toString);
         }
     }
 
@@ -261,6 +249,12 @@ export const ControlMotor = () => {
         };
     }, [handleKeyDown, handleKeyUp]);
 
+
+    if(disconnected.disconnected){
+        navigate("/school-info");
+        return ;
+    }
+
     const engineStartedColor = ()=>{
         if(engineLocked){
             return "bg-orange-600";
@@ -270,6 +264,9 @@ export const ControlMotor = () => {
             return "bg-red-600"
         }
     }
+
+
+
 
     return (
         <>

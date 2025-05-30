@@ -165,8 +165,8 @@ const WallE: React.FC = () => {
       }
     }catch (error){
       const errorDto = error as unknown as ServerSendsErrorMessageDto;
-      toast.error("ErrorReceivedSeervo");
-      toast.error(errorDto.message!);
+      console.error("ErrorReceivedSeervo");
+      console.error(errorDto.message!);
     }
   }
 

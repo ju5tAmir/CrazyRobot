@@ -1,6 +1,7 @@
 ﻿
 
 using Api.Websocket.ClientDto;
+using Api.Websocket.ClientDto.robot;
 using Application.Interfaces.Infrastructure.Websocket;
 using Application.Interfaces.Robot;
 using Fleck;

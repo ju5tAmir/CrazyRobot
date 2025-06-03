@@ -8,13 +8,13 @@ namespace Application.Services;
 
 public class MqttMessageHandler:IMqttMessageHandler
 {
-    private InitializeEngineHandler _initializeHandler;
-    private DistanceWarningHandler _distanceWarningHandler;
-    private NegativeDistanceHandler _negativeDistanceHandler;
+    private IMessageToClientHandler<InitializeEngineResponse> _initializeHandler;
+    private IMessageToClientHandler<DistanceWarning> _distanceWarningHandler;
+    private IMessageToClientHandler<NegativeDistanceWarning> _negativeDistanceHandler;
     private IMessageToClientHandler<BatteryLevel> _batteryLevelHandler;
 
 
-    public MqttMessageHandler(InitializeEngineHandler initializeHandler,DistanceWarningHandler distanceWarningHandler,NegativeDistanceHandler negativeDistanceHandler,IMessageToClientHandler<BatteryLevel> batteryLevelHandler)
+    public MqttMessageHandler(IMessageToClientHandler<InitializeEngineResponse> initializeHandler,IMessageToClientHandler<DistanceWarning> distanceWarningHandler ,IMessageToClientHandler<NegativeDistanceWarning> negativeDistanceHandler,IMessageToClientHandler<BatteryLevel> batteryLevelHandler)
     {
       _initializeHandler = initializeHandler;
       _distanceWarningHandler = distanceWarningHandler;

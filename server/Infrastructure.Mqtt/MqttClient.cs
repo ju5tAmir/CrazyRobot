@@ -106,9 +106,6 @@ _client.DisconnectedAsync += async e =>
     {
         var topic = e.ApplicationMessage.Topic;
         var payloadString = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
-        Console.WriteLine(payloadString);
-        Console.WriteLine(topic);
-        Console.WriteLine("I am executed");
         ClientCommandDto? command = null;
 
         try

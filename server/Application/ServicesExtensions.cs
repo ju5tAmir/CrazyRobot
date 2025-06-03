@@ -19,9 +19,9 @@ public static class ServicesExtensions
 {
     public static IServiceCollection RegisterApplicationServices(this IServiceCollection services)
     {
-        services.AddTransient<InitializeEngineHandler> ();
-        services.AddTransient<NegativeDistanceHandler>();
-        services.AddTransient<DistanceWarningHandler>();
+        services.AddTransient<IMessageToClientHandler<InitializeEngineResponse>,InitializeEngineHandler> ();
+        services.AddTransient<IMessageToClientHandler<NegativeDistanceWarning>,NegativeDistanceHandler>();
+        services.AddTransient<IMessageToClientHandler<DistanceWarning>,DistanceWarningHandler>();
         services.AddTransient<IMessageToClientHandler<BatteryLevel>,BatteryLevelHandler>();
         services.AddSingleton<IMqttMessageHandler, MqttMessageHandler>();
         services.AddScoped<ISecurityService, SecurityService>();

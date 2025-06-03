@@ -4,5 +4,5 @@ namespace Application.Interfaces.Robot;
 
 public interface IClientMovementNotifier
 {
-    Task SenddistancewarningToClient(DistanceWarning distancewarning);
+    Task SendDistanceWarningToClient(DistanceWarning distancewarning);
 }

@@ -9,7 +9,7 @@ namespace Api.Websocket.EventHandlers.Robot.MovementControll;
 
 public class MovementResponseHandler(IConnectionManager connectionManager,IOptionsMonitor<MqttOptions> mqttOptions):IClientMovementNotifier
 {
-    public  Task SenddistancewarningToClient(DistanceWarning distancewarning)
+    public  Task SendDistanceWarningToClient(DistanceWarning distancewarning)
     {
         var response = new ClientCommand<DistanceWarning>()
         {
@@ -27,6 +27,7 @@ public class MovementResponseHandler(IConnectionManager connectionManager,IOptio
             requestId = Guid.NewGuid().ToString()
 
         };
+        
         connectionManager.BroadcastToTopic(mqttOptions.CurrentValue.DistanceWarningTopic, responseDto);
         return Task.CompletedTask;
     }

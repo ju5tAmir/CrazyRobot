@@ -3,7 +3,7 @@ using Core.Domain.Entities.Robot;
 
 namespace Application.Services;
 
-public class InitializeEngineHandler(IClientNotifier clientNotifier) 
+public class InitializeEngineHandler(IClientNotifier clientNotifier):IMessageToClientHandler<InitializeEngineResponse> 
 {
     public async Task HandleCommand(string topic, ClientCommand<InitializeEngineResponse> command)
     {

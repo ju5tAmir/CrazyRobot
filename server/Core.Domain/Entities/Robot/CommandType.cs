@@ -21,10 +21,10 @@ public enum CommandType
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum ClientCommandType
 {
-    // [JsonPropertyName("initialized")]
+   
     [EnumMember(Value = "initialized")]
     Initialized,
-    // [JsonPropertyName("batteryStatus")]
+   
     [EnumMember(Value = "batteryInfo")]
     BatteryInfo,
     [EnumMember(Value ="distanceWarning")]

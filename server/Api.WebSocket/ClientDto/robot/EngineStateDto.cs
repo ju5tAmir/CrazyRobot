@@ -1,7 +1,7 @@
 ﻿using Core.Domain.Entities.Robot;
 using WebSocketBoilerplate;
 
-namespace Api.Websocket.ClientDto;
+namespace Api.Websocket.ClientDto.robot;
 
 public class EngineStateDto:BaseDto
 {

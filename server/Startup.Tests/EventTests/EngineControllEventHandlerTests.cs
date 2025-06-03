@@ -2,6 +2,7 @@ using System;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Api.Websocket.ClientDto;
+using Api.Websocket.ClientDto.robot;
 using Application.Interfaces.Robot;
 using Core.Domain.Entities.Robot;
 using Infrastructure.Mqtt;

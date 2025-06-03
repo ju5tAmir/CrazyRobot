@@ -37,7 +37,6 @@ export function useDistanceWarnings() {
                         : warning;
 
                     const levels = cleanWarning.split(",").map(lvl => lvl.trim());
-console.log(levels);
                     if (levels.length !== 4) {
                         return prev;
                     }

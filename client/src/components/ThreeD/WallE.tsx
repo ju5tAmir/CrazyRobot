@@ -24,17 +24,19 @@ const WallE: React.FC = () => {
   const group = useRef<Group>(null);
   const { scene } = useGLTF('/models/wall-e-updated.glb');
   const { sendRequest, readyState} = useWsClient();
-
+  const  initialRender = useRef<boolean>(false);
   // Modify this to be null, so the servo command will ot be sent when the component is first mounted
-  const [servoCommand, setServoCommand] = useState<ApiServoCommand>({
+  const [servoCommand, setServoCommand] = useState<ApiServoCommand|null>(
+      {
     head:   90,
     neckt: 40,
     neckb:  30,
     leye:   125,
     reye:   80,
-    lhand:   160,
+    lhand:  70,
     rhand:   80,
-  });
+  }
+  );
 
 
   const mapDegToRange = (deg: number, min: number, max: number) => {
@@ -117,6 +119,13 @@ const WallE: React.FC = () => {
   const handR = mapDegToRange(handRDeg, 0.12, 1.0);
   const neck = mapDegToRange(neckDeg, 0.12, 0.6);
 
+  function reverseValue(value: number): number | undefined {
+    const min = 50;
+    const max = 180;
+
+    return max - (value - min);
+  }
+
   useFrame(() => {
     if (group.current) {
       const leye = group.current.getObjectByName('Object_8');
@@ -141,16 +150,23 @@ const WallE: React.FC = () => {
     useEffect(() => {
         console.log(servoCommand);
         if (readyState !== 1) return;
-      sendServoCommand();
+        console.log(initialRender.current);
+        if(initialRender.current){
+          sendServoCommand();
+        }
+         initialRender.current=true;
     }, [servoCommand, readyState]);
 
 
   const sendServoCommand=async ()=>{
+
+    const servoCopy = {...servoCommand};
+    servoCopy.lhand = reverseValue(servoCopy.lhand!);
     const request: ServoDto = {
       eventType: StringConstants.ServoDto,
       command: {
         commandType: CommandType.Servo,
-        payload: servoCommand,
+        payload: servoCopy ,
       },
     };
 

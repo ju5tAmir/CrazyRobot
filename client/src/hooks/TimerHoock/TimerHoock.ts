@@ -16,6 +16,8 @@ export const useTimerHook=()=>{
             (message) => {
                 const status = message.status;
                 const clientId = message.clientId;
+                console.log("Received clientId:", clientId);
+                console.log("Local clientId:", manageClientId.getClientId());
                 if(clientId===manageClientId.getClientId())
                 { setShowModal(status);}
             }

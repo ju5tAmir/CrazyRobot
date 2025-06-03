@@ -1,10 +1,10 @@
 import { useEffect, useState, useMemo } from 'react';
 import { GeneratedReportsClient, GeneratedReportDto } from '../../../api/generated-client';
-import { useAuth } from '../../../helpers/useAuth.ts';
+import { useAuth } from '../../../helpers';
 import { FileText, BookOpen, Trash2, ChevronDown, Plus } from 'lucide-react';
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 const http = import.meta.env.VITE_API_HTTP_SCHEMA;
-const API_URL =  http+ BASE_URL;
+const API_URL =  http + BASE_URL;
 const AI_API = http + import.meta.env.VITE_API_AI_URL;
 
 interface SurveySummary {
@@ -18,6 +18,11 @@ type Action = 'MakeReport' | 'SurveyQA' | 'BatchReports';
 
 export default function AIReportsPage() {
     const { jwt } = useAuth();
+    console.log('http', http);
+    console.log('BASE_URL', BASE_URL);
+    console.log('API_URL', API_URL);
+    console.log('AI_API', AI_API);
+
     const api = new GeneratedReportsClient(API_URL, {
         fetch: (u, i) =>
             fetch(u, {
@@ -73,7 +78,7 @@ export default function AIReportsPage() {
             if (!selectedSurveyId) return alert('Please select a survey');
 
             // Формируем URL с параметром survey_id
-            const url = `${import.meta.env.VITE_API_AI_URL}/reports/generate?survey_id=${selectedSurveyId}`;
+            const url = `${AI_API}/reports/generate?survey_id=${selectedSurveyId}`;
 
             const res = await fetch(url, {
                 method: 'POST',
@@ -107,7 +112,7 @@ export default function AIReportsPage() {
             prompt = `BatchReports`;
         }
 
-        const res = await fetch(`${import.meta.env.VITE_API_AI_URL}/assistant`, {
+        const res = await fetch(`${AI_API}/assistant`, {
             method: 'POST',
             headers: {
                 Authorization: `Bearer ${jwt}`,

@@ -24,8 +24,6 @@ public class ClientWatchdogService : IClientTimerService
 
     public void StartClientWatchdogTimer(string clientId, TimeSpan interval)
     {
-        Console.WriteLine(clientId);
-        Console.WriteLine("starting the timer ");
         StopClientWatchdog(clientId); 
         var timer = new System.Threading.Timer(_ => TriggerClientConfirmation(clientId), null, interval, Timeout.InfiniteTimeSpan);
         var clientWatch = new ClientWatchdogState() { ActiveTimer = timer };
@@ -44,7 +42,6 @@ public class ClientWatchdogService : IClientTimerService
 
 private async void TriggerClientConfirmation(string clientId)
     {
-        Console.WriteLine($"Triggering watchdog check for {clientId}");
         var cts = new CancellationTokenSource();
         var connectionTimerState = await _connectionManager.GetTimerForConnection(clientId);
         connectionTimerState!.ConfirmationTimeoutCts= cts;
@@ -67,37 +64,10 @@ private async void TriggerClientConfirmation(string clientId)
            Console.WriteLine($"Client {clientId} confirmed before timeout.");
        }
        
-        // _ = Task.Delay(TimeSpan.FromMinutes(1), cts.Token).ContinueWith(async task =>
-        // {
-        //     if (!cts.Token.IsCancellationRequested)
-        //     {
-        //        await _connectionManager.RemoveAndCloseConnection(clientId);
-        //        var engineState = new EngineManagement() { Engine = false };
-        //        var engineCommand = new Command<EngineManagement>()
-        //        {
-        //            CommandType = CommandType.Stop,
-        //            Payload = engineState
-        //        };
-        //      await  _robotEngineService.ManageEngine(engineCommand);
-        //     }
-        // });
     }
     public async Task<bool> RegisterClientResponse(string clientId)
     {
-        // var connectionTimerState = await _connectionManager.GetTimerForConnection(clientId);
-        //
-        // if (connectionTimerState?.ConfirmationTimeoutCts == null)
-        //     return false;
-        // try
-        // {
-        //     await connectionTimerState.ConfirmationTimeoutCts.CancelAsync();
-        //     StartClientWatchdogTimer(clientId, TimeSpan.FromMinutes(5));
-        //     return true;
-        // }
-        // catch (ObjectDisposedException)
-        // {
-        //     return false;
-        // }
+      
         
         var connectionTimerState = await _connectionManager.GetTimerForConnection(clientId);
 

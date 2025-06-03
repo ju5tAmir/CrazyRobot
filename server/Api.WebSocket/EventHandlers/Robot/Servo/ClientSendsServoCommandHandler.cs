@@ -12,6 +12,7 @@ public class ClientSendsServoCommandHandler(IConnectionManager connectionManager
     public override async Task Handle(ServoDto dto, IWebSocketConnection socket)
     {
         await servoManager.ManageServos(dto.command);
-        socket.SendDto(new ServerConfirmsDto() { Success = true , eventType = dto.eventType,requestId = dto.requestId});
+        
+        socket.SendDto(new ServerConfirmsDto() { Success = true , eventType =nameof(ServerConfirmsDto),requestId = dto.requestId});
     }
 }

@@ -6,7 +6,7 @@ namespace Application.Services.robot;
 
 public class BatteryLevelHandler(IBatteryNotifier batteryNotifier):IMessageToClientHandler<BatteryLevel>
 {
-    private const double LowerValue  = 10.0;
+    private const double LowerValue  = 8.0;
     private const double FullPower = 12.6;
     private const double UsableVoltageWindow = FullPower - LowerValue;
     

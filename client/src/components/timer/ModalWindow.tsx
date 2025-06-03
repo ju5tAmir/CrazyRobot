@@ -22,7 +22,7 @@ export  function ModalComponent() {
     const {sendRequest}= useWsClient();
     const modalRef = useRef<HTMLDialogElement>(null);
     const navigate = useNavigate();
-    const [disconnected,] = useAtom(ModalStateAtom);
+    const [disconnected,setDisconnected] = useAtom(ModalStateAtom);
 
     useEffect(() => {
         const dialog = modalRef.current;
@@ -36,12 +36,11 @@ export  function ModalComponent() {
 
 
     const actOnClick = ()=>{
-        if(disconnected.disconnected){
-            toast.error(disconnected.disconnected+"");
+        if (disconnected?.disconnected && disconnected?.reason) {
+            toast.error(disconnected.reason);
             setShowModal(false);
-        return;
+            return;
         }
-        toast.error(disconnected.disconnected+"");
         sendConfirmationToServer();
     }
 
@@ -61,14 +60,23 @@ export  function ModalComponent() {
                 setShowModal(false);
             } else {
                 toast.error("Session ended due to inactivity. Please log in again.");
-                navigate("/school-info");
+                setDisconnected({
+                    disconnected: true,
+                    reason: "Session expired due to inactivity",
+                });
                 setShowModal(false);
+                navigate("/school-info");
             }
         }catch (error){
             const errorDto = error as unknown as ServerSendsErrorMessageDto;
-            toast.error("ErrorReceived");
-            toast.error(errorDto.message!);
+            toast.error("Error received from server");
+            toast.error(errorDto.message || "Unknown error");
+            setDisconnected({
+                disconnected: true,
+                reason: errorDto.message || "Connection lost due to server error",
+            });
             setShowModal(false);
+            navigate("/school-info");
         }
     }
 

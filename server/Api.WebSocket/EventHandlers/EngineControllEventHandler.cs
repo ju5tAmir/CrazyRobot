@@ -13,7 +13,7 @@ public class EngineControllEventHandler(IConnectionManager connectionManager,IRo
     public override async Task Handle(EngineStateDto dto, IWebSocketConnection socket)
     {
         await robotService.ManageEngine(dto.command);
-        socket.SendDto(new ServerConfirmsDto() { Success = true , eventType = dto.eventType,requestId = dto.requestId});
+        socket.SendDto(new ServerConfirmsDto() { Success = true , eventType = nameof(ServerConfirmsDto),requestId = dto.requestId});
     }
     
 }

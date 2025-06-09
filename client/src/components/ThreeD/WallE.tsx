@@ -18,16 +18,16 @@ import {
   CommandType,
 } from '../../api/generated-client_TEST';
 import {ServerConfirmsDto, ServerSendsErrorMessageDto} from "../../api";
+import {useAtom} from "jotai/index";
+import {EngineStateAtom} from "../../atoms";
 
 
 const WallE: React.FC = () => {
   const group = useRef<Group>(null);
   const { scene } = useGLTF('/models/wall-e-updated.glb');
   const { sendRequest, readyState} = useWsClient();
-  const  initialRender = useRef<boolean>(false);
-  // Modify this to be null, so the servo command will ot be sent when the component is first mounted
-  const [servoCommand, setServoCommand] = useState<ApiServoCommand|null>(
-      {
+  const [engineState,] = useAtom(EngineStateAtom);
+  const initialState = {
     head:   90,
     neckt: 40,
     neckb:  30,
@@ -36,7 +36,9 @@ const WallE: React.FC = () => {
     lhand:  70,
     rhand:   80,
   }
-  );
+
+  // Modify this to be null, so the servo command will ot be sent when the component is first mounted
+  const [servoCommand, setServoCommand] = useState<ApiServoCommand>(initialState);
 
 
   const mapDegToRange = (deg: number, min: number, max: number) => {
@@ -50,27 +52,38 @@ const WallE: React.FC = () => {
       max: 150,
       step: 1,
       label: 'Head',
+     // disabled: !engineState,
       onEditEnd: (v) => {
         setServoCommand((prev) => ({ ...prev, head: v }));
       },
     },
     eyeLDeg: {
-      value: 125,
-      min: 85,
-      max: 135,
+      // value: 125,
+      // min: 85,
+      // max: 135,
+      // step: 1,
+      value: 80,
+      min: 70,
+      max: 120,
       step: 1,
       label: 'Right Eye',
+     //disabled: !engineState,
       onEditEnd: (v) => {
         setServoCommand((prev) => ({ ...prev, leye: v }));
       },
     },
     eyeRDeg: {
-      value: 80,
-      min: 70,
-      max: 120,
+      // value: 80,
+      // min: 70,
+      // max: 120,
+      // step: 1,
+      value: 125,
+      min: 85,
+      max: 135,
       step: 1,
       label: 'Left Eye',
       onEditEnd: (v) => {
+        console.log("moving the left eye +" + v+"");
         setServoCommand((prev) => ({ ...prev, reye: v }));
       },
     },
@@ -90,6 +103,7 @@ const WallE: React.FC = () => {
       max: 180,
       step: 1,
       label: 'Right Hand',
+      // disabled: !engineState,
       onEditEnd: (v) => {
         setServoCommand((prev) => ({ ...prev, rhand: v }));
       },
@@ -100,6 +114,7 @@ const WallE: React.FC = () => {
       max: 180,
       step: 1,
       label: 'Neck',
+      // disabled: !engineState,
       onEditEnd: (v) => {
         setServoCommand((prev) => ({
           ...prev,
@@ -114,7 +129,7 @@ const WallE: React.FC = () => {
   // Map degrees to actual servo model range
   const head = mapDegToRange(headDeg, -0.6, 0.6);
   const eyeL = mapDegToRange(eyeLDeg, 0.2, -0.3);
-  const eyeR = mapDegToRange(eyeRDeg, 0.3, -0.2);
+  const eyeR = mapDegToRange(eyeRDeg,-0.2, 0.3,);
   const handL = mapDegToRange(handLDeg, -1.6, -0.6);
   const handR = mapDegToRange(handRDeg, 0.12, 1.0);
   const neck = mapDegToRange(neckDeg, 0.12, 0.6);
@@ -122,7 +137,6 @@ const WallE: React.FC = () => {
   function reverseValue(value: number): number | undefined {
     const min = 50;
     const max = 180;
-
     return max - (value - min);
   }
 
@@ -150,11 +164,10 @@ const WallE: React.FC = () => {
     useEffect(() => {
         console.log(servoCommand);
         if (readyState !== 1) return;
-        console.log(initialRender.current);
-        if(initialRender.current){
+       
+        if(engineState){
           sendServoCommand();
         }
-         initialRender.current=true;
     }, [servoCommand, readyState]);
 
 
@@ -162,6 +175,10 @@ const WallE: React.FC = () => {
 
     const servoCopy = {...servoCommand};
     servoCopy.lhand = reverseValue(servoCopy.lhand!);
+    // servoCopy.leye=reverseValue(servoCopy.leye!);
+
+
+    servoCopy.reye=reverseValue(servoCopy.reye!);
     const request: ServoDto = {
       eventType: StringConstants.ServoDto,
       command: {
@@ -173,9 +190,8 @@ const WallE: React.FC = () => {
     try{
       const signInResult:ServerConfirmsDto = await sendRequest<ServoDto
           ,ServerConfirmsDto>(request,StringConstants.ServerConfirmsDto).finally(()=>console.log("er"));
-      console.log(signInResult);
       if (signInResult.success) {
-        toast.success("Engine send")
+        console.log("command sent");
       } else {
         toast.error("Retry")
       }

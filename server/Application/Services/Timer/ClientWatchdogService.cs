@@ -54,7 +54,7 @@ private async void TriggerClientConfirmation(string clientId)
            var engineState = new EngineManagement() { Engine = false };
            var engineCommand = new Command<EngineManagement>()
            {
-               CommandType = CommandType.Stop,
+               CommandType = CommandType.Initialize,
                Payload = engineState
            };
            await _robotEngineService.ManageEngine(engineCommand);

@@ -140,6 +140,7 @@ _client.DisconnectedAsync += async e =>
             .WithTopic(topic)
             .WithPayload(payload)
             .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
+            .WithRetainFlag(false)
             .Build();
 
         await _client.PublishAsync(mqttMessage);

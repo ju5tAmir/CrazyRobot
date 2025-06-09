@@ -1776,6 +1776,41 @@
           }
         ]
       },
+      "ServerConfirmsDto": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseDto"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "success": {
+                "type": "boolean"
+              }
+            }
+          }
+        ]
+      },
+      "ServerSendsTimerDto": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseDto"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "status": {
+                "type": "boolean"
+              },
+              "clientId": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
       "EngineStateDto": {
         "allOf": [
           {
@@ -1818,41 +1853,6 @@
           }
         }
       },
-      "ServerConfirmsDto": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/BaseDto"
-          },
-          {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "success": {
-                "type": "boolean"
-              }
-            }
-          }
-        ]
-      },
-      "ServerSendsTimerDto": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/BaseDto"
-          },
-          {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "status": {
-                "type": "boolean"
-              },
-              "clientId": {
-                "type": "string"
-              }
-            }
-          }
-        ]
-      },
       "ForceDisconnectedDto": {
         "allOf": [
           {
@@ -1890,9 +1890,9 @@
           "ClientSubscribeToRobotTopicDto",
           "ClientUnsubscribeFromRobotTopicDto",
           "ExampleClientDto",
-          "EngineStateDto",
           "ServerConfirmsDto",
           "ServerSendsTimerDto",
+          "EngineStateDto",
           "ForceDisconnectedDto"
         ]
       }

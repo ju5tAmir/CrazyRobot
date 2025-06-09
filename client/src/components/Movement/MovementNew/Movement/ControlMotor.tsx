@@ -73,7 +73,7 @@ export const ControlMotor = () => {
                     .then(success => {
                         if (!success) {
                             console.warn("Failed to unsubscribe");
-                        }
+                        }setEngineAtom(false);
                     })
                     .catch(err => {
                         console.error("Unsubscribe error", err);
